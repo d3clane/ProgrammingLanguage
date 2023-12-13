@@ -2,6 +2,7 @@
 #define TREE_H
 
 #include <stdio.h>
+#include "NameTable/NameTable.h"
 
 #define GENERATE_OPERATION_CMD(NAME, ...) NAME, 
 
@@ -15,7 +16,7 @@ enum class TreeOperationId
 union TreeNodeValue
 {
     double                  value;
-    char*                   varPtr; //Pointer to the array
+    int                     varId;
     TreeOperationId operation;
 }; 
 
@@ -74,30 +75,28 @@ TreeErrors TreeVerify     (const TreeNodeType* node);
 
 TreeNodeValue TreeNodeValueCreate(double value);
 TreeNodeValue TreeNodeValueCreate(TreeOperationId operationId);
-
-//Expects pointer to the allocated memory for var name
-TreeNodeValue TreeNodeValueCreate(char* varPtr);
+TreeNodeValue TreeNodeValueCreate(int varId);
 
 TreeNodeType* TreeNumericNodeCreate(double value);
-TreeNodeType* TreeVariableNodeCreate(char* varPtr);
+TreeNodeType* TreeVariableNodeCreate(int varId);
 
 #define TREE_TEXT_DUMP(tree) TreeTextDump((tree), __FILE__, \
                                                   __func__, \
                                                   __LINE__)
 
-void TreeTextDump(const TreeType* tree, const char* fileName, 
-                                                          const char* funcName,
-                                                          const int   line);
+void TreeTextDump(const TreeType* tree, 
+                  const char* fileName, const char* funcName, const int line,
+                  const NameTableType* nameTable);
 
-void TreeGraphicDump(const TreeType* tree, bool openImg = false);
+void TreeGraphicDump(const TreeType* tree, bool openImg, const NameTableType* nameTable);
 
 #define TREE_DUMP(tree) TreeDump((tree), __FILE__,  \
                                                                           __func__,  \
                                                                           __LINE__)
 
-void TreeDump(const TreeType* tree, const char* fileName,
-                                                              const char* funcName,
-                                                              const int   line);
+void TreeDump(const TreeType* tree, 
+              const char* fileName, const char* funcName, const int line,
+              const NameTableType* nameTable);
 
 void TreeNodeSetEdges(TreeNodeType* node, TreeNodeType* left, 
                                                          TreeNodeType* right);
@@ -105,9 +104,10 @@ void TreeNodeSetEdges(TreeNodeType* node, TreeNodeType* left,
 //TreeType       TreeCopy(const TreeType* tree);
 //TreeNodeType* TreeNodeCopy(const TreeNodeType* node);
 
-TreeErrors TreePrintPrefixFormat  (const TreeType* tree, 
-                                                        FILE* outStream = stdout);
-TreeErrors TreeReadPrefixFormat  (TreeType* tree, FILE* inStream = stdin);
+TreeErrors TreePrintPrefixFormat(const TreeType* tree, FILE* outStream,
+                                 const NameTableType* nameTable);
+
+//TreeErrors TreeReadPrefixFormat  (TreeType* tree, FILE* inStream = stdin);
 
 //-------------Operations funcs-----------
 

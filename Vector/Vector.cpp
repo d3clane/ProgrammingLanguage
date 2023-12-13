@@ -230,7 +230,7 @@ VectorErrors VectorDtor(VectorType* const vector)
     
     for (size_t i = 0; i < vector->size; ++i)
     {
-        vector->data[i] = POISON;
+        vector->data[i] = VECTOR_POISON;
     }
 
     ON_CANARY
@@ -296,7 +296,7 @@ VectorErrors VectorPop(VectorType* vector, ElemType* retVal)
 
     --vector->size;
     if (retVal) *retVal = CpyFunc(&vector->data[vector->size]);
-    vector->data[vector->size] = POISON;
+    vector->data[vector->size] = VECTOR_POISON;
 
     ON_HASH
     (
@@ -455,7 +455,7 @@ void VectorDump(const VectorType* vector, const char* const fileName,
         {
             //Log("\t\t*[%zu] = " ElemTypeFormat, i, vector->data[i]);
 
-            if (Equal(&vector->data[i], &POISON)) Log(" (POISON)");
+            if (Equal(&vector->data[i], &VECTOR_POISON)) Log(" (VECTOR_POISON)");
 
             Log("\n");
         }
@@ -466,7 +466,7 @@ void VectorDump(const VectorType* vector, const char* const fileName,
         {
             //Log("\t\t*[%zu] = " ElemTypeFormat, i, vector->data[i]);
             
-            //if (Equal(&vector->data[i], &POISON)) Log(" (POISON)");
+            //if (Equal(&vector->data[i], &VECTOR_POISON)) Log(" (VECTOR_POISON)");
 
             Log("\n");
         }
@@ -488,7 +488,7 @@ VectorErrors VectorRealloc(VectorType* vector, bool increase)
     else          vector->capacity >>= 1;
 
     if (!increase) 
-        FillArray(vector->data + vector->capacity, vector->data + vector->size, POISON);
+        FillArray(vector->data + vector->capacity, vector->data + vector->size, VECTOR_POISON);
 
     //--------Moves data to the first canary-------
     ON_CANARY
@@ -521,7 +521,7 @@ VectorErrors VectorRealloc(VectorType* vector, bool increase)
     )
 
     if (increase)
-        FillArray(vector->data + vector->size, vector->data + vector->capacity, POISON);
+        FillArray(vector->data + vector->size, vector->data + vector->capacity, VECTOR_POISON);
 
     // -------Putting canary at the end-----------
     ON_CANARY
@@ -579,7 +579,7 @@ static void VectorDataFill(VectorType* const vector)
         vector->data = GetAfterFirstCanaryAdr(vector);
     )
 
-    FillArray(vector->data, vector->data + vector->capacity, POISON);
+    FillArray(vector->data, vector->data + vector->capacity, VECTOR_POISON);
 
     ON_CANARY
     (

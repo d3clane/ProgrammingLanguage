@@ -1,5 +1,5 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef NAME_TABLE_TYPES_H
+#define NAME_TABLE_TYPES_H
 
 /// @file 
 /// @brief Contains types for stack
@@ -8,16 +8,24 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "FrontEnd/Parser.h"
+enum class NameType
+{
+    KEY_WORD,
+    VARIABLE,
+    FUNCTION,
+};
 
-/// @brief ElemType for stack
-typedef TokenType ElemType;
+struct Name
+{
+    char* name;
+    NameType nameType;
+};
 
-/// @brief Chosen POISON value for stack
-static const ElemType VECTOR_POISON = {};
+/// @brief Chosen NAME_TABLE_POISON value for stack
+static const Name NAME_TABLE_POISON = {};
 
-typedef ElemType (*CopyFuncType)(const ElemType* elem);
-static const CopyFuncType CpyFunc = TokenCopy;
+//typedef ElemType (*CopyFuncType)(const ElemType* elem);
+//static const CopyFuncType CpyFunc = TokenCopy;
 
 /*
 /// @brief Function for checking if two ElemType values are equal 
@@ -34,7 +42,7 @@ static inline bool Equal(const ElemType* const a, const ElemType* const b)
 
 static inline bool IsValidValue(const ElemType* value)
 {
-    return !Equal(value, &POISON);
+    return !Equal(value, &NAME_TABLE_POISON);
 }
 /*static inline bool Equal(const ElemType* const a, const ElemType* const b)
 {

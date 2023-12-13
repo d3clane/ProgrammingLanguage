@@ -259,8 +259,6 @@ static size_t ParseLessOrGreater(const char* str, const size_t posStart, const s
         word[2] = '\0';
     }
 
-    TreeNodeValue nodeVal = TreeNodeValueCreate(word);
-
     VectorPush(tokens, TokenCreate(TokenValueCreateOp(word), 
                                         TokenValueType::OPERATION, line, posStart));
 

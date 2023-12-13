@@ -8,24 +8,24 @@
 #include "Common/Log.h"
 #include "FastInput/InputOutput.h"
 #include "Common/DoubleFuncs.h"
+#include "NameTable/NameTable.h"
 
 //---------------------------------------------------------------------------------------
 
 static void TreeDtor     (TreeNodeType* node);
 
 
-static TreeErrors TreePrintPrefixFormat     (
-                                                const TreeNodeType* node, 
-                                                FILE* outStream);
+static TreeErrors TreePrintPrefixFormat(const TreeNodeType* node, FILE* outStream,
+                                        const NameTableType* nameTable);
 
-static TreeNodeType* TreeReadPrefixFormat(const char* const string, 
+/*static TreeNodeType* TreeReadPrefixFormat(const char* const string, 
                                                        const char** stringEndPtr);
-static const char* TreeReadTokenValue(TreeNodeValue* value, 
-                                               TreeNodeValueTypeof* valueType, 
-                                               const char* string);
+static const char* TreeReadTokenValue(TreeNodeValue* value, TreeNodeValueTypeof* valueType, 
+                                      const char* string);*/
 
 static void TreeGraphicDump(const TreeNodeType* node, FILE* outDotFile);
-static void DotFileCreateTokens(const TreeNodeType* node, FILE* outDotFile);
+static void DotFileCreateTokens(const TreeNodeType* node, FILE* outDotFile,
+                                const NameTableType* nameTable);
 
 static inline void CreateImgInLogFile(const size_t imgIndex, bool openImg);
 static inline void DotFileBegin(FILE* outDotFile);
@@ -103,7 +103,7 @@ void TreeNodeDtor(TreeNodeType* node)
 {
     node->left         = nullptr;
     node->right        = nullptr;
-    node->value.varPtr = nullptr;
+    node->value.varId  =      -1;
 
     free(node);
 }
@@ -177,7 +177,7 @@ static inline void DotFileEnd(FILE* outDotFile)
 
 //---------------------------------------------------------------------------------------
 
-void TreeGraphicDump(const TreeType* tree, bool openImg)
+void TreeGraphicDump(const TreeType* tree, bool openImg, const NameTableType* nameTable)
 {
     assert(tree);
 
@@ -189,7 +189,7 @@ void TreeGraphicDump(const TreeType* tree, bool openImg)
 
     DotFileBegin(outDotFile);
 
-    DotFileCreateTokens(tree->root, outDotFile);
+    DotFileCreateTokens(tree->root, outDotFile, nameTable);
 
     TreeGraphicDump(tree->root, outDotFile);
 
@@ -204,7 +204,8 @@ void TreeGraphicDump(const TreeType* tree, bool openImg)
 
 //---------------------------------------------------------------------------------------
 
-static void DotFileCreateTokens(const TreeNodeType* node, FILE* outDotFile)
+static void DotFileCreateTokens(const TreeNodeType* node, FILE* outDotFile,
+                                const NameTableType* nameTable)
 {
     assert(outDotFile);
 
@@ -221,14 +222,14 @@ static void DotFileCreateTokens(const TreeNodeType* node, FILE* outDotFile)
         fprintf(outDotFile, "fillcolor=\"#7293ba\", label = \"%lg\", ", node->value.value);
     else if (node->valueType == TreeNodeValueTypeof::VARIABLE)
         fprintf(outDotFile, "fillcolor=\"#78DBE2\", label = \"%s\", ",
-                            node->value.varPtr);
+                            nameTable->data[node->value.varId].name);
     else 
         fprintf(outDotFile, "fillcolor=\"#FF0000\", label = \"ERROR\", ");
 
     fprintf(outDotFile, "color = \"#D0D000\"];\n");
 
-    DotFileCreateTokens(node->left, outDotFile);
-    DotFileCreateTokens(node->right, outDotFile);
+    DotFileCreateTokens(node->left, outDotFile, nameTable);
+    DotFileCreateTokens(node->right, outDotFile, nameTable);
 }
 
 //---------------------------------------------------------------------------------------
@@ -252,9 +253,9 @@ static void TreeGraphicDump(const TreeNodeType* node, FILE* outDotFile)
 
 //---------------------------------------------------------------------------------------
 
-void TreeTextDump(const TreeType* tree, const char* fileName, 
-                                                          const char* funcName,
-                                                          const int   line)
+void TreeTextDump(const TreeType* tree, 
+                  const char* fileName, const char* funcName, const int line,
+                  const NameTableType* nameTable)
 {
     assert(tree);
     assert(fileName);
@@ -264,24 +265,24 @@ void TreeTextDump(const TreeType* tree, const char* fileName,
 
     Log("Tree root: %p, value: %s\n", tree->root, tree->root->value);
     Log("Tree: ");
-    TreePrintPrefixFormat(tree, nullptr);
+    TreePrintPrefixFormat(tree, nullptr, nameTable);
 
     LOG_END();
 }
 
 //---------------------------------------------------------------------------------------
 
-void TreeDump(const TreeType* tree, const char* fileName,
-                                                              const char* funcName,
-                                                              const int   line)
+void TreeDump(const TreeType* tree, 
+              const char* fileName, const char* funcName, const int line,
+              const NameTableType* nameTable)
 {
     assert(tree);
     assert(fileName);
     assert(funcName);
 
-    TreeTextDump(tree, fileName, funcName, line);
+    TreeTextDump(tree, fileName, funcName, line, nameTable);
 
-    TreeGraphicDump(tree);
+    TreeGraphicDump(tree, false, nameTable);
 }
 
 //---------------------------------------------------------------------------------------
@@ -333,11 +334,11 @@ TreeNodeValue TreeNodeValueCreate(TreeOperationId operation)
     return value;
 }
 
-TreeNodeValue TreeNodeValueCreate(char* varPtr)
+TreeNodeValue TreeNodeValueCreate(int varId)
 {
     TreeNodeValue value = 
     {
-        .varPtr = varPtr,
+        .varId = varId,
     };
 
     return value;
@@ -352,11 +353,9 @@ TreeNodeType* TreeNumericNodeCreate(double value)
     return TreeNodeCreate(tokenVal, TreeNodeValueTypeof::VALUE);
 }
 
-TreeNodeType* TreeVariableNodeCreate(char* varPtr)
+TreeNodeType* TreeVariableNodeCreate(int varId)
 {
-    assert(varPtr);
-
-    TreeNodeValue tokenVal  = TreeNodeValueCreate(varPtr);
+    TreeNodeValue tokenVal  = TreeNodeValueCreate(varId);
 
     return TreeNodeCreate(tokenVal, TreeNodeValueTypeof::VARIABLE);
 }
@@ -370,15 +369,15 @@ do                                                     \
     Log(__VA_ARGS__);                                  \
 } while (0)
 
-TreeErrors TreePrintPrefixFormat(const TreeType* tree, 
-                                             FILE* outStream)
+TreeErrors TreePrintPrefixFormat(const TreeType* tree, FILE* outStream,
+                                 const NameTableType* nameTable)
 {
     assert(tree);
     assert(outStream);
 
     LOG_BEGIN();
 
-    TreeErrors err = TreePrintPrefixFormat(tree->root, outStream);
+    TreeErrors err = TreePrintPrefixFormat(tree->root, outStream, nameTable);
 
     PRINT(outStream, "\n");
 
@@ -389,9 +388,8 @@ TreeErrors TreePrintPrefixFormat(const TreeType* tree,
 
 //---------------------------------------------------------------------------------------
 
-static TreeErrors TreePrintPrefixFormat(
-                                                    const TreeNodeType* node, 
-                                                    FILE* outStream)
+static TreeErrors TreePrintPrefixFormat(const TreeNodeType* node, FILE* outStream,
+                                        const NameTableType* nameTable)
 {
     if (node == nullptr)
     {
@@ -404,22 +402,22 @@ static TreeErrors TreePrintPrefixFormat(
     if (node->valueType == TreeNodeValueTypeof::VALUE)
         PRINT(outStream, "%.2lg ", node->value.value);
     else if (node->valueType == TreeNodeValueTypeof::VARIABLE)
-        PRINT(outStream, "%s ", node->value.varPtr);
+        PRINT(outStream, "%s ", nameTable->data[node->value.varId].name);
     else
         PRINT(outStream, "%s ", TreeOperationGetLongName(node->value.operation));
 
     TreeErrors err = TreeErrors::NO_ERR;
 
-    err = TreePrintPrefixFormat(node->left, outStream);
+    err = TreePrintPrefixFormat(node->left, outStream, nameTable);
     
-    err = TreePrintPrefixFormat(node->right, outStream);
+    err = TreePrintPrefixFormat(node->right, outStream, nameTable);
 
     PRINT(outStream, ")");
     
     return err;
 }
 
-TreeErrors TreeReadPrefixFormat(TreeType* tree, FILE* inStream)
+/*TreeErrors TreeReadPrefixFormat(TreeType* tree, FILE* inStream)
 {
     assert(tree);
     assert(inStream);
@@ -437,11 +435,11 @@ TreeErrors TreeReadPrefixFormat(TreeType* tree, FILE* inStream)
     free(inputTree);
 
     return TreeErrors::NO_ERR;
-}
+}*/
 
 //---------------------------------------------------------------------------------------
 
-static TreeNodeType* TreeReadPrefixFormat(
+/*static TreeNodeType* TreeReadPrefixFormat(
                                                         const char* const string, 
                                                         const char** stringEndPtr)
 {
@@ -483,10 +481,9 @@ static TreeNodeType* TreeReadPrefixFormat(
     *stringEndPtr = stringPtr;
     return node;
 }
-
-static const char* TreeReadTokenValue(TreeNodeValue* value, 
-                                               TreeNodeValueTypeof* valueType, 
-                                               const char* string)
+*/
+/*static const char* TreeReadTokenValue(TreeNodeValue* value, TreeNodeValueTypeof* valueType, 
+                                      const char* string, NameTableType* nameTable)
 {
     assert(value);
     assert(string);
@@ -530,7 +527,7 @@ static const char* TreeReadTokenValue(TreeNodeValue* value,
     *valueType   = TreeNodeValueTypeof::VARIABLE;
 
     return stringPtr;
-}
+}*/
 
 void TreeNodeSetEdges(TreeNodeType* node, TreeNodeType* left, 
                                                      TreeNodeType* right)

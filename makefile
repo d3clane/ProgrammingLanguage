@@ -23,13 +23,15 @@ DOXYFILE = Others/Doxyfile
 HEADERS  = Tree/Tree.h Tree/Operations.h Common/Colors.h Common/DoubleFuncs.h Common/Errors.h \
 		 	Common/Log.h Common/StringFuncs.h FastInput/StringFuncs.h FastInput/InputOutput.h \
 			Vector/Vector.h Vector/Types.h Vector/HashFuncs.h Vector/ArrayFuncs.h 			\
-			Tree/DSL.h
+			Tree/DSL.h Tree/NameTable/ArrayFuncs.h Tree/NameTable/HashFuncs.h 				\
+			Tree/NameTable/NameTable.h Tree/NameTable/Types.h
 FILESCPP = Tree/Tree.cpp Common/DoubleFuncs.cpp \
 			Common/Errors.cpp \
 		 	Common/Log.cpp Common/StringFuncs.cpp FastInput/StringFuncs.cpp \
 			FastInput/InputOutput.cpp FrontEnd/main.cpp FrontEnd/Parser.cpp\
 			Vector/ArrayFuncs.cpp Vector/HashFuncs.cpp Vector/Vector.cpp \
-			Tree/DSL.cpp
+			Tree/DSL.cpp Tree/NameTable/ArrayFuncs.cpp Tree/NameTable/HashFuncs.cpp	\
+			Tree/NameTable/NameTable.cpp
 
 objects = $(FILESCPP:%.cpp=%.o)
 
@@ -53,6 +55,7 @@ clean:
 	rm -rf Common/*.o
 	rm -rf Vector/*.o
 	rm -rf Tree/*.o
+	rm -rf Tree/NameTable/*.o
 
 
 buildDirs:
