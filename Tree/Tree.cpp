@@ -56,14 +56,12 @@ TreeErrors TreeCtor(TreeType* tree)
 
 //---------------------------------------------------------------------------------------
 
-TreeErrors TreeDtor(TreeType* tree)
+void TreeDtor(TreeType* tree)
 {
     assert(tree);
 
     TreeDtor(tree->root);
     tree->root = nullptr;
-
-    return TreeErrors::NO_ERR;
 }
 
 //---------------------------------------------------------------------------------------
@@ -98,6 +96,13 @@ TreeNodeType* TreeNodeCreate(TreeNodeValue value,
 }
 
 //---------------------------------------------------------------------------------------
+
+void TreeNodeDeepDtor(TreeNodeType* node)
+{
+    assert(node);
+
+    TreeDtor(node);
+}
 
 void TreeNodeDtor(TreeNodeType* node)
 {
@@ -216,20 +221,36 @@ static void DotFileCreateTokens(const TreeNodeType* node, FILE* outDotFile,
                         "[shape=Mrecord, style=filled, ", node);
 
     if (node->valueType == TreeNodeValueTypeof::OPERATION)
+    {
+        printf("%s\n", TreeOperationGetLongName(node->value.operation));
         fprintf(outDotFile, "fillcolor=\"#89AC76\", label = \"%s\", ", 
                             TreeOperationGetLongName(node->value.operation));
+    }
     else if (node->valueType == TreeNodeValueTypeof::VALUE)
+    {
+        printf("s\n", TreeOperationGetLongName(node->value.operation));
         fprintf(outDotFile, "fillcolor=\"#7293ba\", label = \"%lg\", ", node->value.value);
+    }
     else if (node->valueType == TreeNodeValueTypeof::VARIABLE)
         fprintf(outDotFile, "fillcolor=\"#78DBE2\", label = \"%s\", ",
-                            nameTable->data[node->value.varId].name);
+                                nameTable->data[node->value.varId].name);
     else 
         fprintf(outDotFile, "fillcolor=\"#FF0000\", label = \"ERROR\", ");
 
     fprintf(outDotFile, "color = \"#D0D000\"];\n");
+    
+    const NameTableType* localNameTable = nameTable;
 
-    DotFileCreateTokens(node->left, outDotFile, nameTable);
-    DotFileCreateTokens(node->right, outDotFile, nameTable);
+    if (node->valueType == TreeNodeValueTypeof::VARIABLE && 
+        nameTable->data[node->value.varId].localNameTable)
+    {
+        printf("VAR id - %zu\n", node->value.varId);
+        printf("VAR NAME - %s\n", nameTable->data[node->value.varId].name);
+        localNameTable = (NameTableType*)nameTable->data[node->value.varId].localNameTable;
+    }
+
+    DotFileCreateTokens(node->left,  outDotFile, localNameTable);
+    DotFileCreateTokens(node->right, outDotFile, localNameTable);
 }
 
 //---------------------------------------------------------------------------------------
@@ -314,7 +335,7 @@ TreeNodeType* TreeNodeCopy(const TreeNodeType* node)
 
 //---------------------------------------------------------------------------------------
 
-TreeNodeValue TreeNodeValueCreate(double value)
+TreeNodeValue TreeNodeNumValueCreate(int value)
 {
     TreeNodeValue tokenValue =
     {
@@ -324,7 +345,7 @@ TreeNodeValue TreeNodeValueCreate(double value)
     return tokenValue;
 }
 
-TreeNodeValue TreeNodeValueCreate(TreeOperationId operation)
+TreeNodeValue TreeNodeOpValueCreate(TreeOperationId operation)
 {
     TreeNodeValue value =
     {
@@ -334,7 +355,7 @@ TreeNodeValue TreeNodeValueCreate(TreeOperationId operation)
     return value;
 }
 
-TreeNodeValue TreeNodeValueCreate(int varId)
+TreeNodeValue TreeNodeVarValueCreate(int varId)
 {
     TreeNodeValue value = 
     {
@@ -346,16 +367,16 @@ TreeNodeValue TreeNodeValueCreate(int varId)
 
 //---------------------------------------------------------------------------------------
 
-TreeNodeType* TreeNumericNodeCreate(double value)
+TreeNodeType* TreeNumericNodeCreate(int value)
 {
-    TreeNodeValue tokenVal = TreeNodeValueCreate(value);
+    TreeNodeValue tokenVal = TreeNodeNumValueCreate(value);
 
     return TreeNodeCreate(tokenVal, TreeNodeValueTypeof::VALUE);
 }
 
 TreeNodeType* TreeVariableNodeCreate(int varId)
 {
-    TreeNodeValue tokenVal  = TreeNodeValueCreate(varId);
+    TreeNodeValue tokenVal  = TreeNodeVarValueCreate(varId);
 
     return TreeNodeCreate(tokenVal, TreeNodeValueTypeof::VARIABLE);
 }

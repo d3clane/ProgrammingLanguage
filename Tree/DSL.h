@@ -33,7 +33,7 @@
 #define  R_IS_OP(node) (node->right->valueType ==  OP_TYPE_CNST)
 
 #define CRT_NUM(VALUE)    TreeNumericNodeCreate(VALUE)
-#define CRT_VAR(VARS_ARR, VAR_NAME) TreeVariableNodeCreate(VARS_ARR, VAR_NAME)
+#define CRT_VAR(VAR_NAME) TreeVariableNodeCreate(VAR_NAME)
 
 #define GENERATE_OPERATION_CMD(NAME, ...)                                                       \
     TreeNodeType* _##NAME(TreeNodeType* left,                                     \

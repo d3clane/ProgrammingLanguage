@@ -7,7 +7,7 @@
     TreeNodeType* _##NAME(TreeNodeType* left,                                   \
                           TreeNodeType* right)                                  \
     {                                                                           \
-        return TreeNodeCreate(TreeNodeValueCreate(TreeOperationId::NAME),       \
+        return TreeNodeCreate(TreeNodeOpValueCreate(TreeOperationId::NAME),     \
                               TreeNodeValueTypeof::OPERATION,                   \
                               left, right);                                     \
     }

@@ -12,6 +12,10 @@
         "charconv": "cpp",
         "array": "cpp",
         "functional": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "__locale": "cpp",
+        "cmath": "cpp",
+        "sstream": "cpp",
+        "ios": "cpp"
     }
 }

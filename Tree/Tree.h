@@ -15,7 +15,7 @@ enum class TreeOperationId
 
 union TreeNodeValue
 {
-    double                  value;
+    int                     value;
     int                     varId;
     TreeOperationId operation;
 }; 
@@ -62,22 +62,23 @@ enum class TreeErrors
 //-------------Expression main funcs----------
 
 TreeErrors TreeCtor(TreeType* tree);
-TreeErrors TreeDtor(TreeType* tree);
+void TreeDtor(TreeType* tree);
 
 TreeNodeType* TreeNodeCreate(TreeNodeValue value, 
                                             TreeNodeValueTypeof valueType,
                                             TreeNodeType* left  = nullptr,
                                             TreeNodeType* right = nullptr);
 void TreeNodeDtor(TreeNodeType* node);
+void TreeNodeDeepDtor(TreeNodeType* node);
 
 TreeErrors TreeVerify     (const TreeType*      tree);
 TreeErrors TreeVerify     (const TreeNodeType* node);
 
-TreeNodeValue TreeNodeValueCreate(double value);
-TreeNodeValue TreeNodeValueCreate(TreeOperationId operationId);
-TreeNodeValue TreeNodeValueCreate(int varId);
+TreeNodeValue TreeNodeNumValueCreate(int value);
+TreeNodeValue TreeNodeOpValueCreate(TreeOperationId operationId);
+TreeNodeValue TreeNodeVarValueCreate(int varId);
 
-TreeNodeType* TreeNumericNodeCreate(double value);
+TreeNodeType* TreeNumericNodeCreate(int value);
 TreeNodeType* TreeVariableNodeCreate(int varId);
 
 #define TREE_TEXT_DUMP(tree) TreeTextDump((tree), __FILE__, \

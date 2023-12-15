@@ -214,4 +214,60 @@ GENERATE_OPERATION_CMD(OR, false, "and",
 
 })
 
+GENERATE_OPERATION_CMD(PRINT, true, "57!!",
+{
+
+})
+
+GENERATE_OPERATION_CMD(READ, true, "57??",
+{
+
+})
+
+GENERATE_OPERATION_CMD(COMMA, false, ",",
+{
+
+})
+
+GENERATE_OPERATION_CMD(FUNC_L_BRACKET, false, "57",
+{
+
+})
+
+GENERATE_OPERATION_CMD(FUNC_R_BRACKET, false, "57",
+{
+
+})
+
+GENERATE_OPERATION_CMD(TYPE_INT, false, "575757",
+{
+
+})
+
+GENERATE_OPERATION_CMD(TYPE, false, "__TYPE",
+{
+
+})
+
+GENERATE_OPERATION_CMD(NF, false, "__NF",
+{
+
+})
+
+GENERATE_OPERATION_CMD(FUNC, false, "__FUNC",
+{
+
+})
+
+GENERATE_OPERATION_CMD(FUNC_CALL, false, "__FUNC_CALL",
+{
+
+})
+
+GENERATE_OPERATION_CMD(RET, false, "57.",
+{
+
+})
+
+
 #undef CALC_CHECK

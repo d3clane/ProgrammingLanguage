@@ -19,6 +19,8 @@ struct Name
 {
     char* name;
     NameType nameType;
+
+    void* localNameTable;
 };
 
 /// @brief Chosen NAME_TABLE_POISON value for stack

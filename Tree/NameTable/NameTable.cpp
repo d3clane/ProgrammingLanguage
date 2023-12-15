@@ -185,6 +185,7 @@ NameTableErrors NameTableCtor(NameTableType* const nameTable, const size_t capac
     assert(nameTable);
 
     //--------SET STRUCT CANARY-------
+
     ON_CANARY
     (
         nameTable->structCanaryLeft  = Canary;
@@ -278,6 +279,27 @@ NameTableErrors NameTablePush(NameTableType* nameTable, const Name val)
     )
 
     NAME_TABLE_CHECK(nameTable);
+
+    return NameTableErrors::NAME_TABLE_NO_ERR;
+}
+
+NameTableErrors NameTableFind(NameTableType* table, const char* name, Name** outName)
+{
+    assert(table);
+    assert(outName);
+
+    NAME_TABLE_CHECK(table);
+
+    for (size_t i = 0; i < table->size; ++i)
+    {
+        if (strcmp(table->data[i].name, name) == 0)
+        {
+            *outName = table->data + i;
+            return NameTableErrors::NAME_TABLE_NO_ERR;
+        }
+    }
+
+    *outName = nullptr;
 
     return NameTableErrors::NAME_TABLE_NO_ERR;
 }

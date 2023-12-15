@@ -7,7 +7,7 @@ union TokenValue
 {
     TreeOperationId operation;
     char*           word;
-    double          val;
+    int             val;
 };
 
 enum class TokenValueType
@@ -39,7 +39,7 @@ TokenType TokenCreate(TokenValue value, TokenValueType valueType,   const size_t
                                                                     const size_t pos);
 
 TokenValue TokenValueCreateWord(const char* word);
-TokenValue TokenValueCreateNum(double value);
+TokenValue TokenValueCreateNum(int value);
 TokenValue TokenValueCreateOp(const char* word);
 
 TreeType CodeParse(const char* str);
