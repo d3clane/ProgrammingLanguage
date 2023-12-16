@@ -14,8 +14,6 @@ typedef VectorType TokensArrType;
 
 static TreeErrors ParseOnTokens(const char* str, TokensArrType* tokens);
 
-//TODO: ХРАНЮ указатель на неймтейбл локальных переменных внутри глобального нейм тейбла функции 
-
 struct DescentStorage
 {
     TokensArrType tokens;
@@ -444,12 +442,22 @@ TreeType CodeParse(const char* str)
     printf(GREEN_TEXT("global table size - %zu\n"), storage.globalTable.size);
     for (size_t i = 0; i < storage.globalTable.size; ++i)
     {
+        assert(storage.globalTable.data[i].localNameTable);
         printf(RED_TEXT("Global table val - %s\n"), storage.globalTable.data[i].name);
+        NameTableType* local = (NameTableType*)storage.globalTable.data[i].localNameTable;
+        printf(GREEN_TEXT("Local vars:\n"));
+        printf("Local var size - %zu\n", local->size);
+        /*for (size_t i = 0; i < local->size; ++i)
+        {
+            printf(RED_TEXT("%s "), local->data[i]);
+        }*/
+        printf("\n");
     }
 
     TreeGraphicDump(&expression, true, &storage.globalTable);
 
-    DescentStorageDtor(&storage);
+    //fprintf(stderr, "AAAAAAA\n");
+    //DescentStorageDtor(&storage);
     return expression;
 }
 
@@ -572,7 +580,7 @@ static TreeErrors ParseOnTokens(const char* str, TokensArrType* tokens)
         switch (tokens->data[i].valueType)
         {
             case TokenValueType::OPERATION:
-                printf("Operation - %d, %s\n", tokens->data[i].value.operation, 
+                printf("Operation - %d, %s\n", (int)tokens->data[i].value.operation, 
                      TreeOperationGetLongName(tokens->data[i].value.operation));
                 break;
             case TokenValueType::VARIABLE:
@@ -655,7 +663,7 @@ do                                                          \
 {                                                           \
     assert(outErr);                                         \
     SYN_ASSERT(storage, statement, outErr);                 \
-    printf("func - %s, line - %d\n", __func__, __LINE__);   \
+    /*printf("func - %s, line - %d\n", __func__, __LINE__);*/  \
     LOG_BEGIN();                                            \
     Log("func - %s, line - %d\n", __func__, __LINE__);      \
     LOG_END();                                              \
@@ -721,7 +729,7 @@ static inline TreeNodeType* GetFuncDef(DescentStorage* storage, bool* outErr)
 {
     NameTableType localNameTable = {};
     NameTableCtor(&localNameTable);
-
+    
     TreeNodeType* func = nullptr;
 
     TreeNodeType* typeNode = GetType(storage, outErr);
@@ -732,7 +740,9 @@ static inline TreeNodeType* GetFuncDef(DescentStorage* storage, bool* outErr)
     if (!funcName) return nullptr;
     
     //TODO: create set table function maybe
+    printf("Current var global table - %d\n", funcName->value.varId);
     storage->globalTable.data[funcName->value.varId].localNameTable = (void*)&localNameTable;
+    storage->currentLocalTable = localNameTable;
 
     func = _FUNC(funcName);
 
@@ -744,6 +754,7 @@ static inline TreeNodeType* GetFuncDef(DescentStorage* storage, bool* outErr)
     funcName->left = funcVars;
     IF_ERR_RET(outErr, func, typeNode);
 
+    //TODO: consume func instead of 3 code lines 
     SynAssert(storage, T_IS_K_WORD(storage) && T_CMP_WORD(storage, "57"), outErr);
     IF_ERR_RET(outErr, func, typeNode);
     POS(storage)++;
@@ -843,20 +854,20 @@ static inline TreeNodeType* GetFuncVarsDef(DescentStorage* storage, bool* outErr
 static inline TreeNodeType* GetOp(DescentStorage* storage, bool* outErr)
 {
     TreeNodeType* opNode = nullptr;
-    printf("In op\n");
+    //printf("In op\n");
     
-    printf("T is op - %d\n", T_IS_OP(storage));
+    //printf("T is op - %d\n", T_IS_OP(storage));
     
     if (T_IS_OP(storage))
     {
-        printf("p id - %d\n", (int)T_OP(storage));
+       // printf("p id - %d\n", (int)T_OP(storage));
     }
     if (T_IS_OP(storage, storage->tokenPos + 1))
     {
-        printf("next p id - %d\n", (int)T_OP(storage, storage->tokenPos + 1));
+       // printf("next p id - %d\n", (int)T_OP(storage, storage->tokenPos + 1));
     }
 
-
+    //TODO: peek - check and don't move
     if (T_CMP_OP(storage, TreeOperationId::IF))
     {
         opNode = GetIf(storage, outErr);
@@ -887,7 +898,7 @@ static inline TreeNodeType* GetOp(DescentStorage* storage, bool* outErr)
         opNode = jointNode;
         while (true)
         {
-            printf(RED_TEXT("Going in op recursively\n"));
+            //printf(RED_TEXT("Going in op recursively\n"));
             TreeNodeType* opInNode = GetOp(storage, outErr);
             IF_ERR_RET(outErr, opNode, opInNode);
 
@@ -900,7 +911,7 @@ static inline TreeNodeType* GetOp(DescentStorage* storage, bool* outErr)
             jointNode        = jointNode->right;
         }
 
-        printf(GREEN_TEXT("OUT OF RECURSION\n"));
+        //printf(GREEN_TEXT("OUT OF RECURSION\n"));
 
         SynAssert(storage, T_CMP_OP(storage, TreeOperationId::BLOCK_END), outErr);
         IF_ERR_RET(outErr, opNode, nullptr);
@@ -1002,7 +1013,7 @@ static inline TreeNodeType* GetPrint(DescentStorage* storage, bool* outErr)
     TreeNodeType* arg = GetArg(storage, outErr);
     IF_ERR_RET(outErr, arg, nullptr);
 
-    printf("HERE\n");
+    //printf("HERE\n");
 
     return _PRINT(arg);
 }
@@ -1411,20 +1422,41 @@ static inline TreeNodeType* GetVar(DescentStorage* storage, bool* outErr, AddVar
         .localNameTable = nullptr,
     };
 
+    printf(RED_TEXT("WORD - %s\n"), T_WORD(storage));
+    
+    switch (addVarEnum)
+    {
+        case AddVar::ADD_TO_GLOBAL:
+            printf("ADD_TO_GLOBAL\n");
+            break;
+        case AddVar::ADD_TO_LOCAL:
+            printf("ADD_TO_LOCAL\n");
+            break;
+        case AddVar::DONT_ADD:
+            printf("DONT_ADD\n");
+            break;
+        default:
+            break;
+    }
+
     //TODO: здесь проверки на то, что мы пушим (в плане того, чтобы не было конфликтов имен и т.д, пока похуй)
     switch (addVarEnum)
     {
         case AddVar::ADD_TO_GLOBAL:
         {
             NameTablePush(&storage->globalTable, pushName);
-            varNode = CRT_VAR(storage->globalTable.size);
+            varNode = CRT_VAR(storage->globalTable.size - 1);
             break;
         }
 
         case AddVar::ADD_TO_LOCAL:
         {
+            printf(GREEN_TEXT("LOCAL vars: \n"));
+            for (size_t i = 0; i < storage->currentLocalTable.size; ++i)
+                printf("%s ", storage->currentLocalTable.data[i].name);
+            printf("\n");
             NameTablePush(&storage->currentLocalTable, pushName);
-            varNode = CRT_VAR(storage->currentLocalTable.size);
+            varNode = CRT_VAR(storage->currentLocalTable.size - 1);
             break;
         }
 
@@ -1468,18 +1500,37 @@ static void DescentStorageCtor(DescentStorage* storage)
 
 static void DescentStorageDtor(DescentStorage* storage)
 {
-    VectorDtor(&storage->tokens);
-
+    
     for (size_t i = 0; i < storage->globalTable.size; ++i)
     {
+        printf("ZZZ0\n");
         if (storage->globalTable.data[i].localNameTable)
         {
-            free((NameTableType*)(storage->globalTable.data[i].localNameTable));
-            free(storage->globalTable.data[i].name);
-        }
-    }
-    NameTableDtor(&storage->globalTable);
-    NameTableDtor(&storage->currentLocalTable);
+            NameTableType* local = (NameTableType*)storage->globalTable.data[i].localNameTable;
+            assert(local);
+            
+            printf("LOCALS:\n");
+            for (size_t i = 0; i < local->size; ++i)
+            {
+                printf("R1\n");
+                assert(local->data);
+                assert(local->data[i].name);
+                printf("R2\n");
 
+                printf("%s", local->data[i].name);
+                printf("Gamma\n");
+            }
+            printf("\n");
+            NameTableDtor((NameTableType*)storage->globalTable.data[i].localNameTable);
+        }
+
+        printf(RED_TEXT("R0\n"));
+        free(storage->globalTable.data[i].name);
+        printf(RED_TEXT("R1\n"));
+    }
+    printf("K0\n");
+    NameTableDtor(&storage->globalTable);
+
+    VectorDtor(&storage->tokens);
     storage->tokenPos = 0;
 }

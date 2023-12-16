@@ -217,23 +217,25 @@ static void DotFileCreateTokens(const TreeNodeType* node, FILE* outDotFile,
     if (node == nullptr)
         return;
     
-    fprintf(outDotFile, "node%p"
-                        "[shape=Mrecord, style=filled, ", node);
+    fprintf(outDotFile, "node%p[shape=Mrecord, style=filled, ", node);
 
     if (node->valueType == TreeNodeValueTypeof::OPERATION)
     {
-        printf("%s\n", TreeOperationGetLongName(node->value.operation));
+        printf("OP: %s\n", TreeOperationGetLongName(node->value.operation));
         fprintf(outDotFile, "fillcolor=\"#89AC76\", label = \"%s\", ", 
                             TreeOperationGetLongName(node->value.operation));
     }
     else if (node->valueType == TreeNodeValueTypeof::VALUE)
     {
-        printf("s\n", TreeOperationGetLongName(node->value.operation));
+        printf("VAL: %d\n", node->value.value);
         fprintf(outDotFile, "fillcolor=\"#7293ba\", label = \"%lg\", ", node->value.value);
     }
     else if (node->valueType == TreeNodeValueTypeof::VARIABLE)
+    {
+        printf("VAR ID: %d\n", node->value.varId);
         fprintf(outDotFile, "fillcolor=\"#78DBE2\", label = \"%s\", ",
                                 nameTable->data[node->value.varId].name);
+    }
     else 
         fprintf(outDotFile, "fillcolor=\"#FF0000\", label = \"ERROR\", ");
 

@@ -231,6 +231,7 @@ NameTableErrors NameTableDtor(NameTableType* const nameTable)
     
     for (size_t i = 0; i < nameTable->size; ++i)
     {
+        free(nameTable->data[i].name);
         nameTable->data[i] = NAME_TABLE_POISON;
     }
 

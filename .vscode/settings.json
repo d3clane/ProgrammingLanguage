@@ -16,6 +16,7 @@
         "__locale": "cpp",
         "cmath": "cpp",
         "sstream": "cpp",
-        "ios": "cpp"
+        "ios": "cpp",
+        "__node_handle": "cpp"
     }
 }
