@@ -221,18 +221,18 @@ static void DotFileCreateTokens(const TreeNodeType* node, FILE* outDotFile,
 
     if (node->valueType == TreeNodeValueTypeof::OPERATION)
     {
-        printf("OP: %s\n", TreeOperationGetLongName(node->value.operation));
+        //printf("OP: %s\n", TreeOperationGetLongName(node->value.operation));
         fprintf(outDotFile, "fillcolor=\"#89AC76\", label = \"%s\", ", 
                             TreeOperationGetLongName(node->value.operation));
     }
     else if (node->valueType == TreeNodeValueTypeof::VALUE)
     {
-        printf("VAL: %d\n", node->value.value);
-        fprintf(outDotFile, "fillcolor=\"#7293ba\", label = \"%lg\", ", node->value.value);
+        //printf("VAL: %d\n", node->value.value);
+        fprintf(outDotFile, "fillcolor=\"#7293ba\", label = \"%d\", ", node->value.value);
     }
     else if (node->valueType == TreeNodeValueTypeof::VARIABLE)
     {
-        printf("VAR ID: %d\n", node->value.varId);
+        //printf("VAR ID: %d\n", node->value.varId);
         fprintf(outDotFile, "fillcolor=\"#78DBE2\", label = \"%s\", ",
                                 nameTable->data[node->value.varId].name);
     }
@@ -246,9 +246,10 @@ static void DotFileCreateTokens(const TreeNodeType* node, FILE* outDotFile,
     if (node->valueType == TreeNodeValueTypeof::VARIABLE && 
         nameTable->data[node->value.varId].localNameTable)
     {
-        printf("VAR id - %zu\n", node->value.varId);
+        printf("VAR id - %d\n", node->value.varId);
         printf("VAR NAME - %s\n", nameTable->data[node->value.varId].name);
         localNameTable = (NameTableType*)nameTable->data[node->value.varId].localNameTable;
+        printf("LOCAL name table size - %zu\n", localNameTable->size);
     }
 
     DotFileCreateTokens(node->left,  outDotFile, localNameTable);

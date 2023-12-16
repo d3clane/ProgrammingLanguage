@@ -17,6 +17,9 @@
         "cmath": "cpp",
         "sstream": "cpp",
         "ios": "cpp",
-        "__node_handle": "cpp"
+        "__node_handle": "cpp",
+        "span": "cpp",
+        "string": "cpp",
+        "string_view": "cpp"
     }
 }

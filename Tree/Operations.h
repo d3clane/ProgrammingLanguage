@@ -5,11 +5,6 @@
 //TODO: половина инфы не нужна, стереть. 
 
 // GENERATE_OPERATION_CMD(NAME, IS_UNARY, SHORT_STRING, CALC_FUNC, ...)
-//GENERATE_OPERATION_CMD(NAME, FORMAT, TEX_FORMAT, IS_UNARY, SHORT_CUT_STRING, TEX_NAME,
-//                       NEED_LEFT_TEX_BRACES, NEED_RIGHT_TEX_BRACES,                  
-//                       OPERATION_CALCULATION_CODE, OPERATION_DIFF_CODE,
-//                       GNU_PLOT_NAME, GNU_PLOT_FORMAT,
-//                       SUM_TEX_LENS_CODE) 
 
 #define CALC_CHECK()            \
 do                              \
@@ -214,11 +209,13 @@ GENERATE_OPERATION_CMD(OR, false, "and",
 
 })
 
+//TODO: PRINT -> '{'
 GENERATE_OPERATION_CMD(PRINT, true, "57!!",
 {
 
 })
 
+//TODO: READ -> '{'
 GENERATE_OPERATION_CMD(READ, true, "57??",
 {
 
@@ -249,7 +246,7 @@ GENERATE_OPERATION_CMD(TYPE, false, "__TYPE",
 
 })
 
-GENERATE_OPERATION_CMD(NF, false, "__NF",
+GENERATE_OPERATION_CMD(NEW_FUNC, false, "__NF",
 {
 
 })
@@ -264,10 +261,6 @@ GENERATE_OPERATION_CMD(FUNC_CALL, false, "__FUNC_CALL",
 
 })
 
-GENERATE_OPERATION_CMD(RET, false, "57.",
-{
-
-})
 
 
 #undef CALC_CHECK

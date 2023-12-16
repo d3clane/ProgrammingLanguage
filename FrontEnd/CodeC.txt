@@ -1,0 +1,17 @@
+int factorial(int x1, int x2)
+{
+    int x = 0;
+    read(x);
+    x = x1 - x2 - x;
+    while (x > 3)
+    {
+        x = x - 1;
+    }
+    print(x);
+}
+
+int main()
+{
+    int r = 0;
+    print(r);
+}

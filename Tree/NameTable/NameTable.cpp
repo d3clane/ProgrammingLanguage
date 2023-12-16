@@ -180,11 +180,13 @@ NameTableErrors NameTableCtor(NameTableType* const nameTable, const size_t capac
     return errors;
 }
 #else 
-NameTableErrors NameTableCtor(NameTableType* const nameTable, const size_t capacity)
+NameTableErrors NameTableCtor(NameTableType** const outNameTable, const size_t capacity)
 {
-    assert(nameTable);
+    assert(outNameTable);
 
     //--------SET STRUCT CANARY-------
+
+    NameTableType* nameTable = (NameTableType*) calloc(1, sizeof(*nameTable));
 
     ON_CANARY
     (
@@ -219,6 +221,8 @@ NameTableErrors NameTableCtor(NameTableType* const nameTable, const size_t capac
 
     NAME_TABLE_CHECK(nameTable);
 
+    *outNameTable = nameTable;
+    
     return errors;    
 }
 #endif

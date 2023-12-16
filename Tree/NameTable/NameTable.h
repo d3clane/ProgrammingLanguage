@@ -100,7 +100,7 @@ enum class NameTableErrors
     /// @param [out]stk nameTable to fill
     /// @param [in]capacity size to reserve for the nameTable
     /// @return errors that occurred
-    NameTableErrors NameTableCtor(NameTableType* const stk, const size_t capacity = 0);
+    NameTableErrors NameTableCtor(NameTableType** const stk, const size_t capacity = 0);
 #endif
 
 /// @brief Destructor
