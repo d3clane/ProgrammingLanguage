@@ -11,7 +11,7 @@
 #include "FrontEnd/Parser.h"
 
 /// @brief ElemType for stack
-typedef TokenType ElemType;
+typedef Token ElemType;
 
 /// @brief Chosen POISON value for stack
 static const ElemType VECTOR_POISON = {};

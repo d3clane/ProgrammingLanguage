@@ -20,8 +20,11 @@ struct DescentStorage
 
     size_t tokenPos;
 
-    NameTableType* globalTable;
+    NameTableType* globalTable; 
+    //TODO: удалить, всегда добавляем в локалку + отделить функции  
     NameTableType* currentLocalTable;
+
+    NameTableType* allNamesTable;
 };
 
 enum class AddVar
@@ -34,58 +37,72 @@ enum class AddVar
 static void DescentStorageCtor(DescentStorage* storage);
 static void DescentStorageDtor(DescentStorage* storage);
 
-#define T_CRT_NUM(val)  TokenValueCreateNum(val)
-#define T_CRT_VAR(val)  TokenValueCreateWord(word)
-#define T_CRT_OP(val)   TokenValueCreateOp(word)
+#define T_CRT_NUM(val)      TokenValueCreateNum(val)
+#define T_CRT_VAR(word)     TokenValueCreateWord(word)
+#define T_CRT_OP(tokenId)   TokenValueCreateToken(tokenId)
 
-#define     T_OP_TYPE_CNST TokenValueType::OPERATION
-#define    T_NUM_TYPE_CNST TokenValueType::VALUE
-#define    T_VAR_TYPE_CNST TokenValueType::VARIABLE
-#define T_K_WORD_TYPE_CNST TokenValueType::KEY_WORD
+#define     T_OP_TYPE_CNST TokenValueType::TOKEN
+#define    T_NUM_TYPE_CNST TokenValueType::NUM
+#define    T_VAR_TYPE_CNST TokenValueType::NAME
 
 #define POS(storage) storage->tokenPos
 
-// G            ::= FUNC+ '\0'
-// FUNC         ::= FUNC_DEF
-// FUNC_DEF     ::= TYPE VAR FUNC_VARS_DEF '57' OP '}'
-// FUNC_VAR_DEF ::= {TYPE VAR}*
-// OP           ::= {IF | WHILE | '57' OP+ '}'} | { {VAR_DEF | PRINT | ASSIGN | RET} '57' }
-// IF           ::= '57?' OR '57' OP
-// WHILE        ::= '57!' OR '57' OP
-// RET          ::= OR CHANGE!!!!
-// VAR_DEF      ::= TYPE VAR '==' OR CHANGE!!!!!
-// PRINT        ::= '}' ARG 
-// READ         ::= '}'
-// 
+// G                ::= FUNC+ '\0'
+// FUNC             ::= FUNC_DEF
+// FUNC_DEF         ::= TYPE VAR FUNC_VARS_DEF '57' OP '}' CHANGE!!!
+// FUNC_VAR_DEF     ::= {TYPE VAR}*
+// OP               ::= {IF | WHILE | '57' OP+ '{'} | { {VAR_DEF | PRINT | ASSIGN | RET} '57' }
+// IF               ::= '57?' OR '57' OP
+// WHILE            ::= '57!' OR '57' OP
+// RET              ::= OR CHANGE!!!!
+// VAR_DEF          ::= TYPE VAR '==' OR CHANGE!!!!!
+// PRINT            ::= '{' ARG 
+// READ             ::= '{'
+// ASSIGN           ::= VAR '==' OR
+// OR               ::= AND {and AND}*
+// AND              ::= CMP {or CMP}*
+// CMP              ::= ADD_SUB {[<, <=, >, >=, =, !=] ADD_SUB}*
+// ADD_SUB          ::= MUL_DIV {[+, -] MUL_DIV}*
+// MUL_DIV          ::= POW {[*, /] POW}*
+// POW              ::= FUNC_CALL {['^'] FUNC_CALL}*
+// FUNC_CALL        ::= IN_BUILD_FUNCS | CREATED_FUNCS | EXPR
+// IN_BUILT_FUNCS   ::= [sin/cos/tan/cot/sqrt] OR '57' | READ
+// MADE_FUNC_CALL   ::= VAR '{' FUNC_VARS_CALL '57' 
+// FUNC_VARS_CALL   ::= {OR}*
+// EXPR             ::= '(' OR ')' | ARG
+// ARG              ::= NUM | GET_VAR
+// NUM              ::= ['0'-'9']+
+// VAR              ::= ['a'-'z' 'A'-'Z' '_']+ ['a'-'z' 'A'-'Z' '_' '0'-'9']*
 
-static inline TreeNodeType* GetVar          (DescentStorage* storage, bool* outErr, AddVar addVarEnum);
-static inline TreeNodeType* GetGrammar      (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetAddSub       (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetType         (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetFuncDef      (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetFunc         (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetFuncVarsDef  (DescentStorage* storage, bool* outErr, AddVar addvarEnum);
-static inline TreeNodeType* GetPrint        (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetRead         (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetVarDef       (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetFuncCall     (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetFuncVarCall  (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetWhile        (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetIf           (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetOp           (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetAssign       (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetAnd          (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetOr           (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetCmp          (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetMulDiv       (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetPow          (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetPrefixFunc   (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetExpr         (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetArg          (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetNum          (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetVar              (DescentStorage* storage, bool* outErr, AddVar addVarEnum);
+static inline TreeNodeType* GetGrammar          (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetAddSub           (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetType             (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetFuncDef          (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetFunc             (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetFuncVarsDef      (DescentStorage* storage, bool* outErr, AddVar addvarEnum);
+static inline TreeNodeType* GetPrint            (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetRead             (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetVarDef           (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetFuncCall         (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetFuncVarsCall     (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetWhile            (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetIf               (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetOp               (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetAssign           (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetAnd              (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetOr               (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetCmp              (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetMulDiv           (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetPow              (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetMadeFuncCall     (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetInBuiltFuncCall  (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetExpr             (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetArg              (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetNum              (DescentStorage* storage, bool* outErr);
+static inline TreeNodeType* GetReturn           (DescentStorage* storage, bool* outErr);
 
-
-static inline TokenType* T_LAST_TOKEN(const DescentStorage* storage)
+static inline Token* T_LAST_TOKEN(const DescentStorage* storage)
 {
     return &storage->tokens.data[storage->tokenPos];
 }
@@ -100,14 +117,14 @@ static inline const char* T_WORD(const DescentStorage* storage, const size_t pos
     return storage->tokens.data[pos].value.name;
 }
 
-static inline TreeOperationId T_OP(const DescentStorage* storage)
+static inline TokenId T_OP(const DescentStorage* storage)
 {
-    return storage->tokens.data[storage->tokenPos].value.operation;
+    return storage->tokens.data[storage->tokenPos].value.tokenId;
 }
 
-static inline TreeOperationId T_OP(const DescentStorage* storage, const size_t pos)
+static inline TokenId T_OP(const DescentStorage* storage, const size_t pos)
 {
-    return storage->tokens.data[pos].value.operation;
+    return storage->tokens.data[pos].value.tokenId;
 }
 
 static inline int T_NUM(const DescentStorage* storage)
@@ -130,25 +147,15 @@ static inline bool T_IS_OP(const DescentStorage* storage, const size_t pos)
     return storage->tokens.data[pos].valueType == T_OP_TYPE_CNST;
 }
 
-static inline bool T_CMP_OP(const DescentStorage* storage, TreeOperationId operation)
+static inline bool T_CMP_OP(const DescentStorage* storage, TokenId tokenId)
 {
-    return T_IS_OP(storage) && T_OP(storage) == operation;
+    return T_IS_OP(storage) && T_OP(storage) == tokenId;
 }
 
 static inline bool T_CMP_OP(const DescentStorage* storage, const size_t pos, 
-                            TreeOperationId operation)
+                            TokenId tokenId)
 {
-    return T_IS_OP(storage, pos) && T_OP(storage, pos) == operation;
-}
-
-static inline bool T_IS_K_WORD(const DescentStorage* storage)
-{
-    return storage->tokens.data[storage->tokenPos].valueType == T_K_WORD_TYPE_CNST;
-}
-
-static inline bool T_IS_K_WORD(const DescentStorage* storage, const size_t pos)
-{
-    return storage->tokens.data[pos].valueType == T_K_WORD_TYPE_CNST;
+    return T_IS_OP(storage, pos) && T_OP(storage, pos) == tokenId;
 }
 
 static inline bool T_IS_NUM(const DescentStorage* storage)
@@ -183,19 +190,17 @@ static inline bool T_IS_VAR(const DescentStorage* storage, const size_t pos)
 
 static inline bool T_CMP_WORD(const DescentStorage* storage, const char* str)
 {
-    return (T_IS_VAR(storage) || T_IS_K_WORD(storage)) && (strcmp(T_WORD(storage), str) == 0);
+    return T_IS_VAR(storage) && strcmp(T_WORD(storage), str) == 0;
 }
 
 static inline bool T_CMP_WORD(const DescentStorage* storage, const size_t pos, const char* str)
 {
-    return (T_IS_VAR(storage, pos) || T_IS_K_WORD(storage, pos)) && 
-            (strcmp(T_WORD(storage, pos), str) == 0);
+    return T_IS_VAR(storage, pos) && strcmp(T_WORD(storage, pos), str) == 0;
 }
 
 static inline bool T_CMP_WORD(const TokensArrType* tokens, const size_t pos, const char* str)
 {
-    //TODO: 
-    return (strcmp(tokens->data[pos].value.name, str) == 0);
+    return strcmp(tokens->data[pos].value.name, str) == 0;
 }
 
 static size_t ParseDigit(const char* str, const size_t posStart, const size_t line, 
@@ -240,37 +245,32 @@ static size_t ParseWord(const char* str, const size_t posStart, const size_t lin
 
     word[wordPos] = '\0';
 
-    if (strcmp(word, "sqrt") == 0 || strcmp(word, "pow") == 0 || strcmp(word, "sin") == 0 ||
-        strcmp(word, "cos")  == 0 || strcmp(word, "tan") == 0 || strcmp(word, "cot") == 0 ||
-        strcmp(word, "or")   == 0 || strcmp(word, "and") == 0)
-    {
-        VectorPush(tokens, TokenCreate(T_CRT_OP(word), TokenValueType::OPERATION, line, posStart));
-
-        return pos;
-    }
-
-    VectorPush(tokens, TokenCreate(TokenValueCreateWord(word), 
-                                        TokenValueType::NAME, line, posStart));
+    if (strcmp(word, "sqrt") == 0)
+        VectorPush(tokens, TokenCreate(T_CRT_OP(TokenId::SQRT), 
+                                                TokenValueType::TOKEN, line, posStart));
+    else if (strcmp(word, "sin") == 0)
+            VectorPush(tokens, TokenCreate(T_CRT_OP(TokenId::SIN), 
+                                                TokenValueType::TOKEN, line, posStart));
+    else if (strcmp(word, "cos") == 0)
+            VectorPush(tokens, TokenCreate(T_CRT_OP(TokenId::COS), 
+                                                TokenValueType::TOKEN, line, posStart)); 
+    else if (strcmp(word, "tan") == 0)
+            VectorPush(tokens, TokenCreate(T_CRT_OP(TokenId::TAN), 
+                                                TokenValueType::TOKEN, line, posStart)); 
+    else if (strcmp(word, "cot") == 0)
+            VectorPush(tokens, TokenCreate(T_CRT_OP(TokenId::COT), 
+                                                TokenValueType::TOKEN, line, posStart)); 
+    else if (strcmp(word, "and") == 0)
+            VectorPush(tokens, TokenCreate(T_CRT_OP(TokenId::OR), 
+                                                TokenValueType::TOKEN, line, posStart)); 
+    else if (strcmp(word, "or") == 0)
+            VectorPush(tokens, TokenCreate(T_CRT_OP(TokenId::AND), 
+                                                TokenValueType::TOKEN, line, posStart)); 
+    else
+        VectorPush(tokens, TokenCreate(TokenValueCreateName(word), 
+                                            TokenValueType::NAME, line, posStart));      
 
     return pos;
-}
-
-static size_t ParseChar(const char* str, const size_t posStart, const size_t line, 
-                                                                TokensArrType* tokens)
-{
-    assert(str);
-    assert(tokens);
-    
-    static const size_t  charWordLength  =  2;
-    static char charWord[charWordLength] = "";
-
-    charWord[0] = str[posStart];
-    charWord[1] = '\0';
-
-    VectorPush(tokens, TokenCreate(TokenValueCreateOp(charWord), 
-                                        TokenValueType::OPERATION, line, posStart));
-
-    return posStart + 1;
 }
 
 static size_t ParseEq(const char* str, const size_t posStart, const size_t line, 
@@ -280,24 +280,18 @@ static size_t ParseEq(const char* str, const size_t posStart, const size_t line,
     assert(tokens);
 
     size_t pos = posStart;
-
-    static const size_t  wordLength  =  3;
-    static char     word[wordLength] = "";
-
-    word[0] = str[pos];
     pos++;
-
-    word[1] = '\0';
 
     if (str[pos] == '=')
     {
-        word[1] = '=';
         pos++;
-        word[2] = '\0';
-    }
 
-    VectorPush(tokens, TokenCreate(TokenValueCreateOp(word), 
-                                        TokenValueType::OPERATION, line, posStart));
+        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::ASSIGN), 
+                                            TokenValueType::TOKEN, line, posStart));
+    }
+    else
+        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::NOT_EQ), 
+                                            TokenValueType::TOKEN, line, posStart));
 
     return pos;
 }
@@ -309,18 +303,14 @@ static size_t ParseExclamation(const char* str, const size_t posStart, const siz
     assert(tokens);
 
     size_t pos = posStart;
-
-    static const size_t  wordLength  =  64;
-    static char     word[wordLength] =  "";
-
-    word[0] = str[pos];
     pos++;
 
     if (str[pos] == '=')
     {
-        word[1] = '=';
         pos++;
-        word[2] = '\0';
+
+        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::EQ),    
+                                            TokenValueType::TOKEN, line, posStart));
     }
     else
     {
@@ -328,9 +318,6 @@ static size_t ParseExclamation(const char* str, const size_t posStart, const siz
 
         //TODO: syn_assert / or add not as !
     }
-
-    VectorPush(tokens, TokenCreate(TokenValueCreateOp(word),    
-                                        TokenValueType::OPERATION, line, posStart));
 
     return pos;
 }
@@ -342,24 +329,28 @@ static size_t ParseLessOrGreater(const char* str, const size_t posStart, const s
     assert(tokens);
 
     size_t pos = posStart;
-
-    static const size_t  wordLength  =  3;
-    static char     word[wordLength] = "";
-
-    word[0] = str[pos];
+    char firstChar = str[pos];
     pos++;
-
-    word[1] = '\0';
 
     if (str[pos] == '=')
     {
-        word[1] = '=';
         pos++;
-        word[2] = '\0';
+        if (firstChar == '<')
+            VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::GREATER_EQ), 
+                                            TokenValueType::TOKEN, line, posStart));
+        else
+            VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::LESS_EQ), 
+                                            TokenValueType::TOKEN, line, posStart)); 
+
+        return pos;
     }
 
-    VectorPush(tokens, TokenCreate(TokenValueCreateOp(word), 
-                                        TokenValueType::OPERATION, line, posStart));
+    if (firstChar == '<')
+        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::GREATER), 
+                                        TokenValueType::TOKEN, line, posStart));
+    else
+        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::LESS), 
+                                        TokenValueType::TOKEN, line, posStart)); 
 
     return pos;
 }
@@ -378,23 +369,15 @@ static size_t Parse5(const char* str, const size_t posStart, const size_t line,
     sscanf(str + pos, "%d%n", &value, &shift);
     pos += shift;
 
-    if (value != 57 && value != 5757 && value != 575757)
+    if (value != 57 && value != 575757)
         return ParseDigit(str, posStart, line, tokens);
 
     if (value == 575757)
     {
-        VectorPush(tokens, TokenCreate(TokenValueCreateOp("575757"), 
-                                            TokenValueType::OPERATION, line, posStart));
+        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::TYPE_INT), 
+                                            TokenValueType::TOKEN, line, posStart));
 
         return pos;  
-    }
-
-    if (value == 5757)
-    {
-        VectorPush(tokens, TokenCreate(TokenValueCreateOp("5757"), 
-                                            TokenValueType::OPERATION, line, posStart));
-
-        return pos;
     }
 
     //Value is 57:
@@ -403,15 +386,8 @@ static size_t Parse5(const char* str, const size_t posStart, const size_t line,
     if (str[pos] == '?')
     {
         pos++;
-        if (str[pos] == '?')
-        {
-            VectorPush(tokens, TokenCreate(TokenValueCreateOp("57??"), 
-                                                TokenValueType::OPERATION, line, posStart)); 
-            pos++;           
-        }
-        else
-            VectorPush(tokens, TokenCreate(TokenValueCreateOp("57?"), 
-                                                TokenValueType::OPERATION, line, posStart));
+        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::IF), 
+                                            TokenValueType::TOKEN, line, posStart));
 
         return pos;
     }
@@ -419,21 +395,14 @@ static size_t Parse5(const char* str, const size_t posStart, const size_t line,
     if (str[pos] == '!')
     {
         pos++;
-        if (str[pos] == '!')
-        {
-            VectorPush(tokens, TokenCreate(TokenValueCreateOp("57!!"), 
-                                                TokenValueType::OPERATION, line, posStart));
-            pos++;
-        }
-        else
-            VectorPush(tokens, TokenCreate(TokenValueCreateOp("57!"), 
-                                    TokenValueType::OPERATION, line, posStart));
+        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::WHILE), 
+                                TokenValueType::TOKEN, line, posStart));
 
         return pos;
     }
 
-    VectorPush(tokens, TokenCreate(TokenValueCreateWord("57"),
-                                            TokenValueType::KEY_WORD, line, posStart));
+    VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::FIFTY_SEVEN),
+                                            TokenValueType::TOKEN, line, posStart));
 
     return pos;
 }
@@ -452,25 +421,10 @@ TreeType CodeParse(const char* str)
     bool err = false;
     expression.root = GetGrammar(&storage, &err);
 
-    /*printf(GREEN_TEXT("global table size - %zu\n"), storage.globalTable.size);
-    for (size_t i = 0; i < storage.globalTable.size; ++i)
-    {
-        assert(storage.globalTable.data[i].localNameTable);
-        printf(RED_TEXT("Global table val - %s\n"), storage.globalTable.data[i].name);
-        NameTableType* local = (NameTableType*)storage.globalTable.data[i].localNameTable;
-        printf(GREEN_TEXT("Local vars:\n"));
-        printf("Local var size - %zu\n", local->size);
-        /*for (size_t i = 0; i < local->size; ++i)
-        {
-            printf(RED_TEXT("%s "), local->data[i]);
-        }*/
-        //printf("\n");
-    //}
+    TreeGraphicDump(&expression, true, storage.allNamesTable);
 
-    TreeGraphicDump(&expression, true, storage.globalTable);
-
-    //fprintf(stderr, "AAAAAAA\n");
-    //DescentStorageDtor(&storage);
+    DescentStorageDtor(&storage);
+    
     return expression;
 }
 
@@ -484,12 +438,32 @@ static TreeErrors ParseOnTokens(const char* str, TokensArrType* tokens)
         switch (str[pos])
         {
             case '+':
+            {
+                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::SUB), 
+                                                TokenValueType::TOKEN, line, pos));
+                pos++;
+                break; 
+            }
             case '*':
+            {
+                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::DIV), 
+                                                TokenValueType::TOKEN, line, pos));
+                pos++;
+                break; 
+            }
             case '/':
+            {
+                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::MUL), 
+                                                TokenValueType::TOKEN, line, pos));
+                pos++;
+                break; 
+            }
             case '^':
             {
-                pos = ParseChar(str, pos, line, tokens);
-                break;
+                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::SUB), 
+                                                TokenValueType::TOKEN, line, pos));
+                pos++;
+                break; 
             }
 
             case '=':
@@ -514,28 +488,37 @@ static TreeErrors ParseOnTokens(const char* str, TokensArrType* tokens)
             case '-':
             {
                 //TODO: rename create_word / create_op, not obvious that word is for not op's like
-                VectorPush(tokens, TokenCreate(TokenValueCreateOp("-"), 
-                                                    TokenValueType::OPERATION, line, pos));
-                ++pos;
+                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::ADD), 
+                                                    TokenValueType::TOKEN, line, pos));
+                pos++;
                 break;
             }
 
             case '(':
             {
-                //TODO: пока что operation, при добавлении новых смыслов -> word
-                VectorPush(tokens, TokenCreate(TokenValueCreateOp("("), 
-                                                    TokenValueType::OPERATION, line, pos));
+                //TODO: пока что tokenId, при добавлении новых смыслов -> word
+                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::L_BRACKET), 
+                                                    TokenValueType::TOKEN, line, pos));
                 ++pos;
                 break;
             }
 
             case ')':
             {
-                VectorPush(tokens, TokenCreate(TokenValueCreateOp(")"), 
-                                                    TokenValueType::OPERATION, line, pos));
+                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::R_BRACKET), 
+                                                    TokenValueType::TOKEN, line, pos));
                 ++pos;
                 break;
             }
+
+            case '{':
+            {
+                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::L_BRACE), 
+                                                        TokenValueType::TOKEN, line, pos));
+                pos++;
+                break; 
+            }
+
 
             case '\t':
             case ' ':
@@ -592,9 +575,8 @@ static TreeErrors ParseOnTokens(const char* str, TokensArrType* tokens)
         printf("line - %zu, pos - %zu\n", tokens->data[i].line, tokens->data[i].pos);
         switch (tokens->data[i].valueType)
         {
-            case TokenValueType::OPERATION:
-                printf("Operation - %d, %s\n", (int)tokens->data[i].value.operation, 
-                     TreeOperationGetLongName(tokens->data[i].value.operation));
+            case TokenValueType::TOKEN:
+                printf("Operation - %d\n", (int)tokens->data[i].value.tokenId);
                 break;
             case TokenValueType::NAME:
                 printf("Variable - %s\n", tokens->data[i].value.name);
@@ -602,25 +584,22 @@ static TreeErrors ParseOnTokens(const char* str, TokensArrType* tokens)
             case TokenValueType::NUM:
                 printf("Value - %d\n", tokens->data[i].value.num);
                 break;
-            case TokenValueType::KEY_WORD:
-                printf("Key word - %s\n", tokens->data[i].value.name);
-                break;
             default:
                 abort();
                 break;
         }
     }
     
-    VectorPush(tokens, TokenCreate(TokenValueCreateOp("\0"), TokenValueType::OPERATION, 
-                                                                            line, pos));
+    VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::PROGRAMM_END), 
+                                                TokenValueType::TOKEN, line, pos));
 
     return TreeErrors::NO_ERR;
 }
 
-TokenType TokenCreate(TokenValue value, TokenValueType valueType,   const size_t line, 
+Token TokenCreate(TokenValue value, TokenValueType valueType,   const size_t line, 
                                                                     const size_t pos)
 {
-    TokenType token = {};
+    Token token = {};
 
     token.value     = value;
     token.valueType = valueType;
@@ -630,7 +609,7 @@ TokenType TokenCreate(TokenValue value, TokenValueType valueType,   const size_t
     return token;
 }
 
-TokenType TokenCopy(const TokenType* token)
+Token TokenCopy(const Token* token)
 {
     return TokenCreate(token->value, token->valueType, token->line, token->pos);
 }
@@ -645,7 +624,7 @@ TokenValue TokenValueCreateNum(int value)
     return val;
 }
 
-TokenValue TokenValueCreateWord(const char* word)
+TokenValue TokenValueCreateName(const char* word)
 {
     TokenValue val =
     {
@@ -655,15 +634,11 @@ TokenValue TokenValueCreateWord(const char* word)
     return val;
 }
 
-TokenValue TokenValueCreateOp(const char* word)
+TokenValue TokenValueCreateToken(const TokenId tokenId)
 {
-    int id = TreeOperationGetId(word);
-
-    assert(id >= 0);
-
     TokenValue val =
     {
-        .operation = (TreeOperationId)id,
+        .tokenId = tokenId,
     };
 
     return val;
@@ -676,7 +651,7 @@ do                                                          \
 {                                                           \
     assert(outErr);                                         \
     SYN_ASSERT(storage, statement, outErr);                 \
-    /*printf("func - %s, line - %d\n", __func__, __LINE__);*/  \
+    printf("func - %s, line - %d\n", __func__, __LINE__);  \
     LOG_BEGIN();                                            \
     Log("func - %s, line - %d\n", __func__, __LINE__);      \
     LOG_END();                                              \
@@ -716,15 +691,15 @@ static inline TreeNodeType* GetGrammar(DescentStorage* storage, bool* outErr)
     TreeNodeType* root = GetFunc(storage, outErr);
     IF_ERR_RET(outErr, root, nullptr);
 
-    while (!T_CMP_OP(storage, TreeOperationId::PROGRAMM_END))
+    while (!T_CMP_OP(storage, TokenId::PROGRAMM_END))
     {
         TreeNodeType* tmpNode = GetFunc(storage, outErr);
         IF_ERR_RET(outErr, root, tmpNode);
 
-        root = _NF(root, tmpNode);
+        root = _NEW_FUNC(root, tmpNode);
     }
 
-    SynAssert(storage, T_CMP_OP(storage, TreeOperationId::PROGRAMM_END), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::PROGRAMM_END), outErr);
     IF_ERR_RET(outErr, root, nullptr);
 
     return root;
@@ -732,6 +707,7 @@ static inline TreeNodeType* GetGrammar(DescentStorage* storage, bool* outErr)
 
 static inline TreeNodeType* GetFunc(DescentStorage* storage, bool* outErr)
 {
+    printf("NEW FUNC on pos - %zu\n", storage->tokens.data[POS(storage)].pos);
     TreeNodeType* node = GetFuncDef(storage, outErr);
     IF_ERR_RET(outErr, node, nullptr);
 
@@ -752,26 +728,16 @@ static inline TreeNodeType* GetFuncDef(DescentStorage* storage, bool* outErr)
     IF_ERR_RET(outErr, typeNode, funcName);
     
     //TODO: create set table function maybe
-    printf("Current var global table - %d\n", funcName->value.varId);
     storage->globalTable->data[funcName->value.varId].localNameTable = (void*)localNameTable;
     storage->currentLocalTable = localNameTable;
-    printf(CYANTEXT "local table adr - %p\n", &localNameTable);
     func = _FUNC(funcName);
-
-    SynAssert(storage, T_IS_K_WORD(storage) && T_CMP_WORD(storage, "57"), outErr);
-    IF_ERR_RET(outErr, func, typeNode);
-    POS(storage)++;
 
     TreeNodeType* funcVars = GetFuncVarsDef(storage, outErr, AddVar::ADD_TO_LOCAL);
     funcName->left = funcVars;
     IF_ERR_RET(outErr, func, typeNode);
 
     //TODO: consume func instead of 3 code lines 
-    SynAssert(storage, T_IS_K_WORD(storage) && T_CMP_WORD(storage, "57"), outErr);
-    IF_ERR_RET(outErr, func, typeNode);
-    POS(storage)++;
-
-    SynAssert(storage, T_IS_K_WORD(storage) && T_CMP_WORD(storage, "57"), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::FIFTY_SEVEN), outErr);
     IF_ERR_RET(outErr, func, typeNode); //Checking for function code start
     
     TreeNodeType* funcCode = GetOp(storage, outErr);
@@ -785,13 +751,6 @@ static inline TreeNodeType* GetFuncDef(DescentStorage* storage, bool* outErr)
 
     func = _TYPE(typeNode, func);
 
-    NameTableType* local = (NameTableType*)storage->globalTable->data[funcName->value.varId].localNameTable;
-    printf("LOCAL TABLE SIZE - %zu\n", local->size);
-    for (size_t i = 0; i < local->size; ++i)
-    {
-        printf("%s ", local->data[i].name);
-    }
-    printf("\n");
     return func;
 }
 
@@ -807,7 +766,7 @@ static inline TreeNodeType* GetFuncDef(DescentStorage* storage, bool* outErr)
 
     func = _FUNC(funcName);
 
-    SynAssert(storage, T_IS_K_WORD(storage) && T_CMP_WORD(storage, "57"), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::FIFTY_SEVEN), outErr);
     IF_ERR_RET(outErr, func, typeNode);
     POS(storage)++;
 
@@ -815,7 +774,7 @@ static inline TreeNodeType* GetFuncDef(DescentStorage* storage, bool* outErr)
     funcName->left = funcVars;
     IF_ERR_RET(outErr, func, typeNode);
 
-    SynAssert(storage, T_IS_K_WORD(storage) && T_CMP_WORD(storage, "57"), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::FIFTY_SEVEN), outErr);
     IF_ERR_RET(outErr, func, typeNode);
     POS(storage)++;
 
@@ -826,12 +785,13 @@ static inline TreeNodeType* GetFuncDef(DescentStorage* storage, bool* outErr)
 
 static inline TreeNodeType* GetType(DescentStorage* storage, bool* outErr)
 {
-    if (T_CMP_OP(storage, TreeOperationId::TYPE_INT))
+    if (T_CMP_OP(storage, TokenId::TYPE_INT))
     {
         POS(storage)++;
         return TreeNodeCreate(TreeNodeOpValueCreate(TreeOperationId::TYPE_INT), 
-                              TreeNodeValueTypeof::OPERATION);
+                                                        TreeNodeValueTypeof::OPERATION);
     }
+    
 
     SynAssert(storage, false, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
@@ -844,7 +804,7 @@ static inline TreeNodeType* GetFuncVarsDef(DescentStorage* storage, bool* outErr
 {
     TreeNodeType* varsDefNode = nullptr;
         
-    if (!T_CMP_OP(storage, TreeOperationId::TYPE_INT))
+    if (!T_CMP_OP(storage, TokenId::TYPE_INT))
         return nullptr;
     
     TreeNodeType* varType = GetType(storage, outErr);
@@ -855,7 +815,7 @@ static inline TreeNodeType* GetFuncVarsDef(DescentStorage* storage, bool* outErr
 
     varsDefNode = _TYPE(varType, varName);
 
-    while (!(T_IS_K_WORD(storage) && T_CMP_WORD(storage, "57")))
+    while (!(T_CMP_OP(storage, TokenId::FIFTY_SEVEN)))
     {
         varType = GetType(storage, outErr);
         IF_ERR_RET(outErr, varsDefNode, varType);
@@ -887,29 +847,27 @@ static inline TreeNodeType* GetOp(DescentStorage* storage, bool* outErr)
     }
 
     //TODO: peek - check and don't move
-    if (T_CMP_OP(storage, TreeOperationId::IF))
+    if (T_CMP_OP(storage, TokenId::IF))
     {
         opNode = GetIf(storage, outErr);
         IF_ERR_RET(outErr, opNode, nullptr);
 
         return opNode;
     }
-    else if (T_CMP_OP(storage, TreeOperationId::WHILE))
+    else if (T_CMP_OP(storage, TokenId::WHILE))
     {
         opNode = GetWhile(storage, outErr);
         IF_ERR_RET(outErr, opNode, nullptr);
 
         return opNode;
     }
-    else if (T_CMP_OP(storage, TreeOperationId::PRINT))
+    else if (T_CMP_OP(storage, TokenId::L_BRACE))
         opNode = GetPrint(storage, outErr);
-    else if (T_CMP_OP(storage, TreeOperationId::READ))
-        opNode = GetRead(storage, outErr);
-    else if (T_CMP_OP(storage, TreeOperationId::TYPE_INT))
+    else if (T_CMP_OP(storage, TokenId::TYPE_INT))
         opNode = GetVarDef(storage, outErr);
-    else if (T_CMP_OP(storage, storage->tokenPos + 1, TreeOperationId::ASSIGN))
+    else if (T_CMP_OP(storage, storage->tokenPos + 1, TokenId::ASSIGN))
         opNode = GetAssign(storage, outErr);
-    else if (T_IS_K_WORD(storage) && T_CMP_WORD(storage, "57"))
+    else if (T_CMP_OP(storage, TokenId::FIFTY_SEVEN))
     {
         POS(storage)++;
 
@@ -923,7 +881,8 @@ static inline TreeNodeType* GetOp(DescentStorage* storage, bool* outErr)
 
             jointNode->left = opInNode;
 
-            if (T_CMP_OP(storage, TreeOperationId::BLOCK_END))
+            if (T_CMP_OP(storage, TokenId::L_BRACE) && 
+                !T_CMP_OP(storage, storage->tokenPos + 2, TokenId::FIFTY_SEVEN))
                 break;
 
             jointNode->right = _LINE_END(nullptr, nullptr);
@@ -932,34 +891,39 @@ static inline TreeNodeType* GetOp(DescentStorage* storage, bool* outErr)
 
         //printf(GREEN_TEXT("OUT OF RECURSION\n"));
 
-        SynAssert(storage, T_CMP_OP(storage, TreeOperationId::BLOCK_END), outErr);
+        SynAssert(storage, T_CMP_OP(storage, TokenId::L_BRACE), outErr);
         IF_ERR_RET(outErr, opNode, nullptr);
         POS(storage)++;
 
         return opNode;
     }
     else
-        opNode = GetFuncCall(storage, outErr);
+        opNode = GetReturn(storage, outErr);
 
     IF_ERR_RET(outErr, opNode, nullptr);
 
-    SynAssert(storage, T_IS_K_WORD(storage) && T_CMP_WORD(storage, "57"), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::FIFTY_SEVEN), outErr);
     IF_ERR_RET(outErr, opNode, nullptr);
     POS(storage)++;
 
     return opNode;
 }
 
+static inline TreeNodeType* GetReturn(DescentStorage* storage, bool* outErr)
+{
+    return _RETURN(GetOr(storage, outErr));
+}
+
 static inline TreeNodeType* GetIf(DescentStorage* storage, bool* outErr)
 {
-    SynAssert(storage, T_CMP_OP(storage, TreeOperationId::IF), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::IF), outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
     POS(storage)++;
 
     TreeNodeType* condition = GetOr(storage, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
 
-    SynAssert(storage, T_IS_K_WORD(storage) && T_CMP_WORD(storage, "57"), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::FIFTY_SEVEN), outErr);
     IF_ERR_RET(outErr, condition, nullptr);
     POS(storage)++;
 
@@ -971,14 +935,14 @@ static inline TreeNodeType* GetIf(DescentStorage* storage, bool* outErr)
 
 static inline TreeNodeType* GetWhile(DescentStorage* storage, bool* outErr)
 {
-    SynAssert(storage, T_CMP_OP(storage, TreeOperationId::WHILE), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::WHILE), outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
     POS(storage)++;
 
     TreeNodeType* condition = GetOr(storage, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
 
-    SynAssert(storage, T_IS_K_WORD(storage) && T_CMP_WORD(storage, "57"), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::FIFTY_SEVEN), outErr);
     IF_ERR_RET(outErr, condition, nullptr);
     POS(storage)++;
 
@@ -996,11 +960,11 @@ static inline TreeNodeType* GetVarDef(DescentStorage* storage, bool* outErr)
     TreeNodeType* varName = GetVar(storage, outErr, AddVar::ADD_TO_LOCAL);
     IF_ERR_RET(outErr, typeNode, varName);
 
-    SynAssert(storage, T_CMP_OP(storage, TreeOperationId::ASSIGN), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::ASSIGN), outErr);
     IF_ERR_RET(outErr, typeNode, varName);
     POS(storage)++;
 
-    TreeNodeType* expr = GetExpr(storage, outErr);
+    TreeNodeType* expr = GetOr(storage, outErr);
     TreeNodeType* assign = _ASSIGN(varName, expr);
     IF_ERR_RET(outErr, expr, typeNode);
 
@@ -1009,7 +973,7 @@ static inline TreeNodeType* GetVarDef(DescentStorage* storage, bool* outErr)
 
 static inline TreeNodeType* GetExpr(DescentStorage* storage, bool* outErr)
 {
-    if (!T_CMP_OP(storage, TreeOperationId::L_BRACKET))
+    if (!T_CMP_OP(storage, TokenId::L_BRACKET))
         return GetArg(storage, outErr);
 
     POS(storage)++;
@@ -1017,7 +981,7 @@ static inline TreeNodeType* GetExpr(DescentStorage* storage, bool* outErr)
     TreeNodeType* inBracketsExpr = GetOr(storage, outErr);
     IF_ERR_RET(outErr, inBracketsExpr, nullptr);
 
-    SynAssert(storage, T_CMP_OP(storage, TreeOperationId::R_BRACKET), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::R_BRACKET), outErr);
     IF_ERR_RET(outErr, inBracketsExpr, nullptr);
 
     return inBracketsExpr;
@@ -1025,28 +989,23 @@ static inline TreeNodeType* GetExpr(DescentStorage* storage, bool* outErr)
 
 static inline TreeNodeType* GetPrint(DescentStorage* storage, bool* outErr)
 {
-    SynAssert(storage, T_CMP_OP(storage, TreeOperationId::PRINT), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::L_BRACE), outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
     POS(storage)++;
 
     TreeNodeType* arg = GetArg(storage, outErr);
     IF_ERR_RET(outErr, arg, nullptr);
-
-    //printf("HERE\n");
 
     return _PRINT(arg);
 }
 
 static inline TreeNodeType* GetRead(DescentStorage* storage, bool* outErr)
 {
-    SynAssert(storage, T_CMP_OP(storage, TreeOperationId::READ), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::L_BRACE), outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
     POS(storage)++;
 
-    TreeNodeType* arg = GetArg(storage, outErr);
-    IF_ERR_RET(outErr, arg, nullptr);
-
-    return _PRINT(arg);
+    return _READ(nullptr, nullptr);
 }
 
 static inline TreeNodeType* GetAssign(DescentStorage* storage, bool* outErr)
@@ -1054,7 +1013,7 @@ static inline TreeNodeType* GetAssign(DescentStorage* storage, bool* outErr)
     TreeNodeType* var = GetVar(storage, outErr, AddVar::DONT_ADD);
     IF_ERR_RET(outErr, var, nullptr);
 
-    SynAssert(storage, T_CMP_OP(storage, TreeOperationId::ASSIGN), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::ASSIGN), outErr);
     IF_ERR_RET(outErr, var, nullptr);
     POS(storage)++;
 
@@ -1064,36 +1023,37 @@ static inline TreeNodeType* GetAssign(DescentStorage* storage, bool* outErr)
     return _ASSIGN(var, rightExpr);
 }
 
-static inline TreeNodeType* GetFuncCall(DescentStorage* storage, bool* outErr)
+static inline TreeNodeType* GetMadeFuncCall(DescentStorage* storage, bool* outErr)
 {
     TreeNodeType* funcName = GetVar(storage, outErr, AddVar::DONT_ADD);
     IF_ERR_RET(outErr, funcName, nullptr);
 
-    SynAssert(storage, T_IS_K_WORD(storage) && T_CMP_WORD(storage, "57"), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::L_BRACE), outErr);
     IF_ERR_RET(outErr, funcName, nullptr);
     POS(storage)++;
 
-    TreeNodeType* funcVars = GetFuncVarCall(storage, outErr);
+    TreeNodeType* funcVars = GetFuncVarsCall(storage, outErr);
     IF_ERR_RET(outErr, funcName, funcVars);
+    funcName->left = funcVars;
 
-    SynAssert(storage, T_IS_K_WORD(storage) && T_CMP_WORD(storage, "57"), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::FIFTY_SEVEN), outErr);
     IF_ERR_RET(outErr, funcName, funcVars);
     POS(storage)++;
 
-    return _FUNC_CALL(funcName, funcVars);
+    return _FUNC_CALL(funcName);
 }
 
-static inline TreeNodeType* GetFuncVarCall(DescentStorage* storage, bool* outErr)
+static inline TreeNodeType* GetFuncVarsCall(DescentStorage* storage, bool* outErr)
 {
-    if (T_IS_K_WORD(storage) && T_CMP_WORD(storage, "57"))
+    if (T_CMP_OP(storage, TokenId::FIFTY_SEVEN))
         return nullptr;
     
-    TreeNodeType* vars = GetArg(storage, outErr);
+    TreeNodeType* vars = GetOr(storage, outErr);
     IF_ERR_RET(outErr, vars, nullptr);
 
     while (T_IS_NUM(storage) || T_IS_VAR(storage))
     {
-        TreeNodeType* tmpVar = GetArg(storage, outErr);
+        TreeNodeType* tmpVar = GetOr(storage, outErr);
         IF_ERR_RET(outErr, vars, tmpVar);
 
         vars = _COMMA(vars, tmpVar);
@@ -1107,7 +1067,7 @@ static inline TreeNodeType* GetOr(DescentStorage* storage, bool* outErr)
     TreeNodeType* allExpr = GetAnd(storage, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
-    while (T_CMP_OP(storage, TreeOperationId::OR))
+    while (T_CMP_OP(storage, TokenId::OR))
     {
         POS(storage)++;
 
@@ -1125,7 +1085,7 @@ static inline TreeNodeType* GetAnd(DescentStorage* storage, bool* outErr)
     TreeNodeType* allExpr = GetCmp(storage, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
-    while (T_CMP_OP(storage, TreeOperationId::AND))
+    while (T_CMP_OP(storage, TokenId::AND))
     {
         POS(storage)++;
 
@@ -1143,8 +1103,8 @@ static inline int GetCmpOp(DescentStorage* storage)
     int myOp = -1;
 
     #define GENERATE_CMD(NAME)                          \
-        if (T_CMP_OP(storage, TreeOperationId::NAME))   \
-            myOp = (int)TreeOperationId::NAME;          \
+        if (T_CMP_OP(storage, TokenId::NAME))   \
+            myOp = (int)TokenId::NAME;          \
         else
     
     GENERATE_CMD(LESS)
@@ -1179,7 +1139,7 @@ static inline TreeNodeType* GetCmp(DescentStorage* storage, bool* outErr)
         IF_ERR_RET(outErr, allExpr, newExpr);
 
         #define GENERATE_CMD(NAME)                      \
-            if (myOp == (int)TreeOperationId::NAME)     \
+            if (myOp == (int)TokenId::NAME)     \
                 allExpr = _##NAME(allExpr, newExpr);    \
             else 
         
@@ -1208,10 +1168,10 @@ static inline int GetAddSubOp(DescentStorage* storage)
 {
     int myOp = -1;
 
-    if (T_CMP_OP(storage, TreeOperationId::ADD))
-        myOp = (int)TreeOperationId::ADD;
-    else if (T_CMP_OP(storage, TreeOperationId::SUB))
-        myOp = (int)TreeOperationId::SUB;
+    if (T_CMP_OP(storage, TokenId::ADD))
+        myOp = (int)TokenId::ADD;
+    else if (T_CMP_OP(storage, TokenId::SUB))
+        myOp = (int)TokenId::SUB;
     else
         myOp = -1;
     
@@ -1232,9 +1192,9 @@ static inline TreeNodeType* GetAddSub(DescentStorage* storage, bool* outErr)
         TreeNodeType* newExpr = GetMulDiv(storage, outErr);
         IF_ERR_RET(outErr, allExpr, newExpr);
 
-        if (myOp == (int)TreeOperationId::ADD)
+        if (myOp == (int)TokenId::ADD)
             allExpr = _ADD(allExpr, newExpr);
-        else if (myOp == (int)TreeOperationId::SUB)
+        else if (myOp == (int)TokenId::SUB)
             allExpr = _SUB(allExpr, newExpr);
         else 
         {
@@ -1252,10 +1212,10 @@ static inline int GetMulDivOp(DescentStorage* storage)
 {
     int myOp = -1;
 
-    if (T_CMP_OP(storage, TreeOperationId::MUL))
-        myOp = (int)TreeOperationId::MUL;
-    else if (T_CMP_OP(storage, TreeOperationId::DIV))
-        myOp = (int)TreeOperationId::DIV;
+    if (T_CMP_OP(storage, TokenId::MUL))
+        myOp = (int)TokenId::MUL;
+    else if (T_CMP_OP(storage, TokenId::DIV))
+        myOp = (int)TokenId::DIV;
     else
         myOp = -1;
     
@@ -1276,9 +1236,9 @@ static inline TreeNodeType* GetMulDiv(DescentStorage* storage, bool* outErr)
         TreeNodeType* newExpr = GetPow(storage, outErr);
         IF_ERR_RET(outErr, allExpr, newExpr);
 
-        if (myOp == (int)TreeOperationId::MUL)
+        if (myOp == (int)TokenId::MUL)
             allExpr = _MUL(allExpr, newExpr);
-        else if (myOp == (int)TreeOperationId::DIV)
+        else if (myOp == (int)TokenId::DIV)
             allExpr = _DIV(allExpr, newExpr);
         else 
         {
@@ -1296,8 +1256,8 @@ static inline int GetPowOp(DescentStorage* storage)
 {
     int myOp = -1;
 
-    if (T_CMP_OP(storage, TreeOperationId::POW))
-        myOp = (int)TreeOperationId::POW;
+    if (T_CMP_OP(storage, TokenId::POW))
+        myOp = (int)TokenId::POW;
     else
         myOp = -1;
     
@@ -1306,7 +1266,7 @@ static inline int GetPowOp(DescentStorage* storage)
 
 static inline TreeNodeType* GetPow(DescentStorage* storage, bool* outErr)
 {
-    TreeNodeType* allExpr = GetPrefixFunc(storage, outErr);
+    TreeNodeType* allExpr = GetFuncCall(storage, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
     int myOp = GetPowOp(storage);
@@ -1315,10 +1275,10 @@ static inline TreeNodeType* GetPow(DescentStorage* storage, bool* outErr)
     {
         POS(storage)++;
 
-        TreeNodeType* newExpr = GetPrefixFunc(storage, outErr);
+        TreeNodeType* newExpr = GetFuncCall(storage, outErr);
         IF_ERR_RET(outErr, allExpr, newExpr);
 
-        if (myOp == (int)TreeOperationId::POW)
+        if (myOp == (int)TokenId::POW)
             allExpr = _POW(allExpr, newExpr);
         else 
         {
@@ -1332,13 +1292,26 @@ static inline TreeNodeType* GetPow(DescentStorage* storage, bool* outErr)
     return allExpr;
 }
 
-static inline int GetPrefixFuncOp(DescentStorage* storage)
+static inline TreeNodeType* GetFuncCall(DescentStorage* storage, bool* outErr)
+{
+    if (T_CMP_OP(storage, TokenId::SIN)  || T_CMP_OP(storage, TokenId::COS) ||
+        T_CMP_OP(storage, TokenId::TAN)  || T_CMP_OP(storage, TokenId::COT) ||
+        T_CMP_OP(storage, TokenId::SQRT) || T_CMP_OP(storage, TokenId::L_BRACE))
+        return GetInBuiltFuncCall(storage, outErr);
+
+    if (T_CMP_OP(storage, storage->tokenPos + 1, TokenId::L_BRACE))
+        return GetMadeFuncCall(storage, outErr);
+    
+    return GetArg(storage, outErr);
+}
+
+static inline int GetInBuiltFuncOp(DescentStorage* storage)
 {
     int myOp = -1;
 
     #define GENERATE_CMD(NAME)                          \
-        if (T_CMP_OP(storage, TreeOperationId::NAME))   \
-            myOp = (int)TreeOperationId::NAME;          \
+        if (T_CMP_OP(storage, TokenId::NAME))   \
+            myOp = (int)TokenId::NAME;          \
         else
     
     GENERATE_CMD(SIN)
@@ -1357,28 +1330,31 @@ static inline int GetPrefixFuncOp(DescentStorage* storage)
     return myOp;
 }
 
-static inline TreeNodeType* GetPrefixFunc(DescentStorage* storage, bool* outErr)
+static inline TreeNodeType* GetInBuiltFuncCall(DescentStorage* storage, bool* outErr)
 {
-    int myOp = GetPrefixFuncOp(storage);
+    if (T_CMP_OP(storage, TokenId::L_BRACE))
+        return GetRead(storage, outErr);
+
+    int myOp = GetInBuiltFuncOp(storage);
 
     if (myOp == -1)
         return GetExpr(storage, outErr);
 
     assert(myOp != -1);
 
-    SynAssert(storage, T_CMP_OP(storage, TreeOperationId::L_BRACKET), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::L_BRACKET), outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
     POS(storage)++;
 
     TreeNodeType* expr = GetOr(storage, outErr);
     IF_ERR_RET(outErr, expr, nullptr);
 
-    SynAssert(storage, T_CMP_OP(storage, TreeOperationId::R_BRACKET), outErr);
+    SynAssert(storage, T_CMP_OP(storage, TokenId::R_BRACKET), outErr);
     IF_ERR_RET(outErr, expr, nullptr);
     POS(storage)++;
 
     #define GENERATE_CMD(NAME)                      \
-        if (myOp == (int)TreeOperationId::NAME)     \
+        if (myOp == (int)TokenId::NAME)     \
             expr = _##NAME(expr);                   \
         else 
     
@@ -1436,62 +1412,37 @@ static inline TreeNodeType* GetVar(DescentStorage* storage, bool* outErr, AddVar
     Name pushName = 
     {
         .name           = strdup(T_WORD(storage)),
-        .nameType       = NameType::NAME,
 
         .localNameTable = nullptr,
     };
-
-    printf(RED_TEXT("WORD - %s\n"), T_WORD(storage));
-    
-    switch (addVarEnum)
-    {
-        case AddVar::ADD_TO_GLOBAL:
-            printf("ADD_TO_GLOBAL\n");
-            break;
-        case AddVar::ADD_TO_LOCAL:
-            printf("ADD_TO_LOCAL\n");
-            break;
-        case AddVar::DONT_ADD:
-            printf("DONT_ADD\n");
-            break;
-        default:
-            break;
-    }
 
     //TODO: здесь проверки на то, что мы пушим (в плане того, чтобы не было конфликтов имен и т.д, пока похуй)
     switch (addVarEnum)
     {
         case AddVar::ADD_TO_GLOBAL:
         {
+            NameTablePush(storage->allNamesTable, pushName);
             NameTablePush(storage->globalTable, pushName);
-            varNode = CRT_VAR(storage->globalTable->size - 1);
+
+            varNode = CRT_VAR(storage->allNamesTable->size - 1);
             break;
         }
 
         case AddVar::ADD_TO_LOCAL:
         {
-            /*printf(GREEN_TEXT("LOCAL vars: \n"));
-            for (size_t i = 0; i < storage->currentLocalTable.size; ++i)
-                printf("%s ", storage->currentLocalTable.data[i].name);
-            printf("\n");*/
             NameTablePush(storage->currentLocalTable, pushName);
-            varNode = CRT_VAR(storage->currentLocalTable->size - 1);
+            NameTablePush(storage->allNamesTable, pushName);
+            varNode = CRT_VAR(storage->allNamesTable->size - 1);
             break;
         }
 
         case AddVar::DONT_ADD:
         {
             Name* outName = nullptr;
-            NameTableFind(storage->currentLocalTable, T_WORD(storage), &outName);
-            
-            if (!outName)
-                NameTableFind(storage->currentLocalTable, T_WORD(storage), &outName);
-            else
-            {
-                printf(CYANTEXT "difference - %zu, word - %s\n" STDTEXT, outName - storage->currentLocalTable->data, outName->name);
-                varNode = CRT_VAR(outName - storage->currentLocalTable->data);
-                break;
-            }
+            NameTableFind(storage->allNamesTable, T_WORD(storage), &outName);
+            //TODO: здесь пройтись по локали + глобали, проверить на существование переменную типо
+            varNode = CRT_VAR(outName - storage->allNamesTable->data);
+            break;
 
             SynAssert(storage, outName != nullptr, outErr);
             IF_ERR_RET(outErr, varNode, nullptr);
@@ -1514,42 +1465,21 @@ static void DescentStorageCtor(DescentStorage* storage)
 {
     VectorCtor(&storage->tokens);
     NameTableCtor(&storage->globalTable);
+    NameTableCtor(&storage->allNamesTable);
     storage->tokenPos  = 0;
 }
 
 static void DescentStorageDtor(DescentStorage* storage)
 {
     
-    /*for (size_t i = 0; i < storage->globalTable->size; ++i)
+    for (size_t i = 0; i < storage->globalTable->size; ++i)
     {
-        printf("ZZZ0\n");
-        if (storage->globalTable.data[i].localNameTable)
-        {
-            NameTableType* local = (NameTableType*)storage->globalTable.data[i].localNameTable;
-            assert(local);
-            
-            printf("LOCALS:\n");
-            for (size_t i = 0; i < local->size; ++i)
-            {
-                printf("R1\n");
-                assert(local->data);
-                assert(local->data[i].name);
-                printf("R2\n");
-
-                printf("%s", local->data[i].name);
-                printf("Gamma\n");
-            }
-            printf("\n");
-            NameTableDtor((NameTableType*)storage->globalTable.data[i].localNameTable);
-        }
-
-        printf(RED_TEXT("R0\n"));
-        free(storage->globalTable.data[i].name);
-        printf(RED_TEXT("R1\n"));
+        if (storage->globalTable->data[i].localNameTable)
+            NameTableDtor((NameTableType*)storage->globalTable->data[i].localNameTable);
     }
-    printf("K0\n");
-    NameTableDtor(&storage->globalTable);
+
+    NameTableDtor(storage->globalTable);
 
     VectorDtor(&storage->tokens);
-    storage->tokenPos = 0;*/
+    storage->tokenPos = 0;
 }

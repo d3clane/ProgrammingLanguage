@@ -562,6 +562,7 @@ void TreeNodeSetEdges(TreeNodeType* node, TreeNodeType* left,
     node->right = right;
 }
 
+/*
 int TreeOperationGetId(const char* string)
 {
     assert(string);
@@ -593,7 +594,7 @@ int TreeOperationGetId(const char* string)
     }
 
     return -1;
-}
+}*/
 
 const char* TreeOperationGetLongName(const  TreeOperationId operation)
 {
@@ -614,6 +615,7 @@ const char* TreeOperationGetLongName(const  TreeOperationId operation)
     return nullptr;
 }
 
+/*
 const char* TreeOperationGetShortName(const TreeOperationId operation)
 {
     #define GENERATE_OPERATION_CMD(NAME, v1, SHORT_NAME, ...)           \
@@ -632,6 +634,7 @@ const char* TreeOperationGetShortName(const TreeOperationId operation)
 
     return nullptr;
 }
+*/
 
 bool TreeOperationIsUnary(const TreeOperationId operation)
 {

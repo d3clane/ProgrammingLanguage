@@ -3,14 +3,7 @@
 
 #include "Tree/Tree.h"
 
-union TokenValue
-{
-    TreeOperationId operation;
-    char*           name;
-    int             num;
-};
-
-enum class TokenValueType
+enum class TokenId
 {
     ADD,
     SUB,
@@ -50,13 +43,24 @@ enum class TokenValueType
 
     FIFTY_SEVEN,
 
-    BLOCK_END,
+    L_BRACE,
+};
 
+union TokenValue
+{
+    TokenId      tokenId;
+    char*           name;
+    int             num;
+};
+
+enum class TokenValueType
+{
+    TOKEN,
     NAME,
     NUM,
 };
 
-struct TokenType
+struct Token
 {
     TokenValue     value;
     TokenValueType valueType;
@@ -72,13 +76,13 @@ enum class ParseErrors
     SYNTAX_ERR,
 };
 
-TokenType TokenCopy(const TokenType* token);
-TokenType TokenCreate(TokenValue value, TokenValueType valueType,   const size_t line, 
+Token TokenCopy(const Token* token);
+Token TokenCreate(TokenValue value, TokenValueType valueType,   const size_t line, 
                                                                     const size_t pos);
 
-TokenValue TokenValueCreateWord(const char* name);
+TokenValue TokenValueCreateName(const char* name);
 TokenValue TokenValueCreateNum(int value);
-TokenValue TokenValueCreateOp(const char* name);
+TokenValue TokenValueCreateToken(const TokenId tokenId);
 
 TreeType CodeParse(const char* str);
 

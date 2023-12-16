@@ -8,17 +8,9 @@
 #include <math.h>
 #include <stdio.h>
 
-enum class NameType
-{
-    KEY_WORD,
-    VARIABLE,
-    FUNCTION,
-};
-
 struct Name
 {
     char* name;
-    NameType nameType;
 
     void* localNameTable;
 };
