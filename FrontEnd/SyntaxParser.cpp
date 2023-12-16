@@ -2,21 +2,18 @@
 #include <assert.h>
 #include <string.h>
 
+#include "LexicalParser.h"
 #include "Tree/DSL.h"
 #include "Tree/Tree.h"
-#include "Parser.h"
+#include "SyntaxParser.h"
 #include "Common/StringFuncs.h"
-#include "Vector/Vector.h"
+#include "TokensArr/TokensArr.h"
 #include "Common/Colors.h"
 #include "Common/Log.h"
 
-typedef VectorType TokensArrType;
-
-static TreeErrors ParseOnTokens(const char* str, TokensArrType* tokens);
-
 struct DescentStorage
 {
-    TokensArrType tokens;
+    TokensArr tokens;
 
     size_t tokenPos;
 
@@ -25,6 +22,8 @@ struct DescentStorage
     NameTableType* currentLocalTable;
 
     NameTableType* allNamesTable;
+
+    const char* codeString;
 };
 
 enum class AddVar
@@ -34,16 +33,8 @@ enum class AddVar
     DONT_ADD,
 };
 
-static void DescentStorageCtor(DescentStorage* storage);
+static void DescentStorageCtor(DescentStorage* storage, const char* codeString);
 static void DescentStorageDtor(DescentStorage* storage);
-
-#define T_CRT_NUM(val)      TokenValueCreateNum(val)
-#define T_CRT_VAR(word)     TokenValueCreateWord(word)
-#define T_CRT_OP(tokenId)   TokenValueCreateToken(tokenId)
-
-#define     T_OP_TYPE_CNST TokenValueType::TOKEN
-#define    T_NUM_TYPE_CNST TokenValueType::NUM
-#define    T_VAR_TYPE_CNST TokenValueType::NAME
 
 #define POS(storage) storage->tokenPos
 
@@ -139,12 +130,12 @@ static inline int T_NUM(const DescentStorage* storage, const size_t pos)
 
 static inline bool T_IS_OP(const DescentStorage* storage)
 {
-    return storage->tokens.data[storage->tokenPos].valueType == T_OP_TYPE_CNST;
+    return storage->tokens.data[storage->tokenPos].valueType == TokenValueType::TOKEN;
 }
 
 static inline bool T_IS_OP(const DescentStorage* storage, const size_t pos)
 {
-    return storage->tokens.data[pos].valueType == T_OP_TYPE_CNST;
+    return storage->tokens.data[pos].valueType == TokenValueType::TOKEN;
 }
 
 static inline bool T_CMP_OP(const DescentStorage* storage, TokenId tokenId)
@@ -160,12 +151,12 @@ static inline bool T_CMP_OP(const DescentStorage* storage, const size_t pos,
 
 static inline bool T_IS_NUM(const DescentStorage* storage)
 {
-    return storage->tokens.data[storage->tokenPos].valueType == T_NUM_TYPE_CNST;
+    return storage->tokens.data[storage->tokenPos].valueType == TokenValueType::NUM;
 }
 
 static inline bool T_IS_NUM(const DescentStorage* storage, const size_t pos)
 {
-    return storage->tokens.data[pos].valueType == T_NUM_TYPE_CNST;
+    return storage->tokens.data[pos].valueType == TokenValueType::NUM;
 }
 
 static inline bool T_CMP_NUM(const DescentStorage* storage, int value)
@@ -180,12 +171,12 @@ static inline bool T_CMP_NUM(const DescentStorage* storage, const size_t pos, in
 
 static inline bool T_IS_VAR(const DescentStorage* storage)
 {
-    return storage->tokens.data[storage->tokenPos].valueType == T_VAR_TYPE_CNST;
+    return storage->tokens.data[storage->tokenPos].valueType == TokenValueType::NAME;
 }
 
 static inline bool T_IS_VAR(const DescentStorage* storage, const size_t pos)
 {
-    return storage->tokens.data[pos].valueType == T_VAR_TYPE_CNST;
+    return storage->tokens.data[pos].valueType == TokenValueType::NAME;
 }
 
 static inline bool T_CMP_WORD(const DescentStorage* storage, const char* str)
@@ -198,450 +189,34 @@ static inline bool T_CMP_WORD(const DescentStorage* storage, const size_t pos, c
     return T_IS_VAR(storage, pos) && strcmp(T_WORD(storage, pos), str) == 0;
 }
 
-static inline bool T_CMP_WORD(const TokensArrType* tokens, const size_t pos, const char* str)
+static inline bool T_CMP_WORD(const TokensArr* tokens, const size_t pos, const char* str)
 {
     return strcmp(tokens->data[pos].value.name, str) == 0;
 }
 
-static size_t ParseDigit(const char* str, const size_t posStart, const size_t line, 
-                                                                TokensArrType* tokens)
-{
-    assert(str);
-    assert(tokens);
-
-    size_t pos = posStart;
-
-    int value = 0;
-    int shift = 0;
-    sscanf(str + pos, "%d%n", &value, &shift);
-    pos += shift;
-
-    VectorPush(tokens, TokenCreate(TokenValueCreateNum(value), TokenValueType::NUM, line, pos));
-
-    return pos;
-}
-
-static size_t ParseWord(const char* str, const size_t posStart, const size_t line, 
-                                                              TokensArrType* tokens)
-{
-    assert(str);
-    assert(tokens);
-
-    size_t pos = posStart;
-
-    static const size_t maxWordSize   =  64;
-    static char word[maxWordSize + 1] =  "";
-    
-    size_t wordPos = 0;
-
-    while (isalpha(str[pos]) || isdigit(str[pos]) || str[pos] == '_')
-    {
-        assert(wordPos < maxWordSize);
-
-        word[wordPos] = str[pos];
-        ++pos;
-        ++wordPos;
-    }
-
-    word[wordPos] = '\0';
-
-    if (strcmp(word, "sqrt") == 0)
-        VectorPush(tokens, TokenCreate(T_CRT_OP(TokenId::SQRT), 
-                                                TokenValueType::TOKEN, line, posStart));
-    else if (strcmp(word, "sin") == 0)
-            VectorPush(tokens, TokenCreate(T_CRT_OP(TokenId::SIN), 
-                                                TokenValueType::TOKEN, line, posStart));
-    else if (strcmp(word, "cos") == 0)
-            VectorPush(tokens, TokenCreate(T_CRT_OP(TokenId::COS), 
-                                                TokenValueType::TOKEN, line, posStart)); 
-    else if (strcmp(word, "tan") == 0)
-            VectorPush(tokens, TokenCreate(T_CRT_OP(TokenId::TAN), 
-                                                TokenValueType::TOKEN, line, posStart)); 
-    else if (strcmp(word, "cot") == 0)
-            VectorPush(tokens, TokenCreate(T_CRT_OP(TokenId::COT), 
-                                                TokenValueType::TOKEN, line, posStart)); 
-    else if (strcmp(word, "and") == 0)
-            VectorPush(tokens, TokenCreate(T_CRT_OP(TokenId::OR), 
-                                                TokenValueType::TOKEN, line, posStart)); 
-    else if (strcmp(word, "or") == 0)
-            VectorPush(tokens, TokenCreate(T_CRT_OP(TokenId::AND), 
-                                                TokenValueType::TOKEN, line, posStart)); 
-    else
-        VectorPush(tokens, TokenCreate(TokenValueCreateName(word), 
-                                            TokenValueType::NAME, line, posStart));      
-
-    return pos;
-}
-
-static size_t ParseEq(const char* str, const size_t posStart, const size_t line, 
-                                                                TokensArrType* tokens)
-{
-    assert(str);
-    assert(tokens);
-
-    size_t pos = posStart;
-    pos++;
-
-    if (str[pos] == '=')
-    {
-        pos++;
-
-        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::ASSIGN), 
-                                            TokenValueType::TOKEN, line, posStart));
-    }
-    else
-        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::NOT_EQ), 
-                                            TokenValueType::TOKEN, line, posStart));
-
-    return pos;
-}
-
-static size_t ParseExclamation(const char* str, const size_t posStart, const size_t line, 
-                                                                        TokensArrType* tokens)
-{
-    assert(str);
-    assert(tokens);
-
-    size_t pos = posStart;
-    pos++;
-
-    if (str[pos] == '=')
-    {
-        pos++;
-
-        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::EQ),    
-                                            TokenValueType::TOKEN, line, posStart));
-    }
-    else
-    {
-        assert(false);
-
-        //TODO: syn_assert / or add not as !
-    }
-
-    return pos;
-}
-
-static size_t ParseLessOrGreater(const char* str, const size_t posStart, const size_t line, 
-                                                                        TokensArrType* tokens)
-{
-    assert(str);
-    assert(tokens);
-
-    size_t pos = posStart;
-    char firstChar = str[pos];
-    pos++;
-
-    if (str[pos] == '=')
-    {
-        pos++;
-        if (firstChar == '<')
-            VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::GREATER_EQ), 
-                                            TokenValueType::TOKEN, line, posStart));
-        else
-            VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::LESS_EQ), 
-                                            TokenValueType::TOKEN, line, posStart)); 
-
-        return pos;
-    }
-
-    if (firstChar == '<')
-        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::GREATER), 
-                                        TokenValueType::TOKEN, line, posStart));
-    else
-        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::LESS), 
-                                        TokenValueType::TOKEN, line, posStart)); 
-
-    return pos;
-}
-
-static size_t Parse5(const char* str, const size_t posStart, const size_t line, 
-                                                                    TokensArrType* tokens)
-{
-    assert(str);
-    assert(tokens);
-
-    size_t pos = posStart;
-
-    int value = 0;
-    int shift = 0;
-
-    sscanf(str + pos, "%d%n", &value, &shift);
-    pos += shift;
-
-    if (value != 57 && value != 575757)
-        return ParseDigit(str, posStart, line, tokens);
-
-    if (value == 575757)
-    {
-        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::TYPE_INT), 
-                                            TokenValueType::TOKEN, line, posStart));
-
-        return pos;  
-    }
-
-    //Value is 57:
-    assert(value == 57);
-
-    if (str[pos] == '?')
-    {
-        pos++;
-        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::IF), 
-                                            TokenValueType::TOKEN, line, posStart));
-
-        return pos;
-    }
-
-    if (str[pos] == '!')
-    {
-        pos++;
-        VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::WHILE), 
-                                TokenValueType::TOKEN, line, posStart));
-
-        return pos;
-    }
-
-    VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::FIFTY_SEVEN),
-                                            TokenValueType::TOKEN, line, posStart));
-
-    return pos;
-}
-
-TreeType CodeParse(const char* str)
+TreeType CodeParse(const char* str, SyntaxParserErrors* outErr)
 {
     assert(str);
 
     TreeType expression = {};
 
     DescentStorage storage = {};
-    DescentStorageCtor(&storage);
+    DescentStorageCtor(&storage, str);
 
     ParseOnTokens(str, &storage.tokens);
 
     bool err = false;
     expression.root = GetGrammar(&storage, &err);
 
-    TreeGraphicDump(&expression, true, storage.allNamesTable);
+    if (err)
+        *outErr = SyntaxParserErrors::SYNTAX_ERR; 
+
+    if (!err)
+        TreeGraphicDump(&expression, true, storage.allNamesTable);
 
     DescentStorageDtor(&storage);
     
     return expression;
-}
-
-static TreeErrors ParseOnTokens(const char* str, TokensArrType* tokens)
-{
-    size_t pos  = 0;
-    size_t line = 0;
-
-    while (str[pos] != '\0')
-    {
-        switch (str[pos])
-        {
-            case '+':
-            {
-                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::SUB), 
-                                                TokenValueType::TOKEN, line, pos));
-                pos++;
-                break; 
-            }
-            case '*':
-            {
-                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::DIV), 
-                                                TokenValueType::TOKEN, line, pos));
-                pos++;
-                break; 
-            }
-            case '/':
-            {
-                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::MUL), 
-                                                TokenValueType::TOKEN, line, pos));
-                pos++;
-                break; 
-            }
-            case '^':
-            {
-                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::SUB), 
-                                                TokenValueType::TOKEN, line, pos));
-                pos++;
-                break; 
-            }
-
-            case '=':
-            {
-                pos = ParseEq(str, pos, line, tokens);
-                break;
-            }
-
-            case '<':
-            case '>':
-            {
-                pos = ParseLessOrGreater(str, pos, line, tokens);
-                break;
-            }
-
-            case '!':
-            {
-                pos = ParseExclamation(str, pos, line, tokens);
-                break;
-            }
-
-            case '-':
-            {
-                //TODO: rename create_word / create_op, not obvious that word is for not op's like
-                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::ADD), 
-                                                    TokenValueType::TOKEN, line, pos));
-                pos++;
-                break;
-            }
-
-            case '(':
-            {
-                //TODO: пока что tokenId, при добавлении новых смыслов -> word
-                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::L_BRACKET), 
-                                                    TokenValueType::TOKEN, line, pos));
-                ++pos;
-                break;
-            }
-
-            case ')':
-            {
-                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::R_BRACKET), 
-                                                    TokenValueType::TOKEN, line, pos));
-                ++pos;
-                break;
-            }
-
-            case '{':
-            {
-                VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::L_BRACE), 
-                                                        TokenValueType::TOKEN, line, pos));
-                pos++;
-                break; 
-            }
-
-
-            case '\t':
-            case ' ':
-            {
-                const char* strPtr = SkipSymbolsWhileStatement(str + pos, isblank);
-                pos = strPtr - str;
-                break;
-            }
-            case '\n':
-            {
-                pos++;
-                line++;
-                break;
-            }
-
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-            {
-                pos = ParseDigit(str, pos, line, tokens);
-                break;
-            }
-
-            case '5':
-            {
-                pos = Parse5(str, pos, line, tokens);
-                break;
-            }
-
-            default:
-            {
-                if (isalpha(str[pos]) || str[pos] == '_')
-                {
-                    pos = ParseWord(str, pos, line, tokens);
-                    break;
-                }
-
-                //TODO: здесь syn_assert очев, такого не бывает же
-                assert(0 == 1);
-                break;
-            }
-        }
-    }
-
-    for (size_t i = 0; i < tokens->size; ++i)
-    {
-        printf("--------------------------------\n");
-        printf("line - %zu, pos - %zu\n", tokens->data[i].line, tokens->data[i].pos);
-        switch (tokens->data[i].valueType)
-        {
-            case TokenValueType::TOKEN:
-                printf("Operation - %d\n", (int)tokens->data[i].value.tokenId);
-                break;
-            case TokenValueType::NAME:
-                printf("Variable - %s\n", tokens->data[i].value.name);
-                break;
-            case TokenValueType::NUM:
-                printf("Value - %d\n", tokens->data[i].value.num);
-                break;
-            default:
-                abort();
-                break;
-        }
-    }
-    
-    VectorPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::PROGRAMM_END), 
-                                                TokenValueType::TOKEN, line, pos));
-
-    return TreeErrors::NO_ERR;
-}
-
-Token TokenCreate(TokenValue value, TokenValueType valueType,   const size_t line, 
-                                                                    const size_t pos)
-{
-    Token token = {};
-
-    token.value     = value;
-    token.valueType = valueType;
-    token.line      =      line;
-    token.pos       =       pos;
-
-    return token;
-}
-
-Token TokenCopy(const Token* token)
-{
-    return TokenCreate(token->value, token->valueType, token->line, token->pos);
-}
-
-TokenValue TokenValueCreateNum(int value)
-{
-    TokenValue val =
-    {
-        .num = value,
-    };
-
-    return val;
-}
-
-TokenValue TokenValueCreateName(const char* word)
-{
-    TokenValue val =
-    {
-        .name = strdup(word),
-    };
-
-    return val;
-}
-
-TokenValue TokenValueCreateToken(const TokenId tokenId)
-{
-    TokenValue val =
-    {
-        .tokenId = tokenId,
-    };
-
-    return val;
 }
 
 //-------------------Recursive descent-----------------
@@ -651,7 +226,7 @@ do                                                          \
 {                                                           \
     assert(outErr);                                         \
     SYN_ASSERT(storage, statement, outErr);                 \
-    printf("func - %s, line - %d\n", __func__, __LINE__);  \
+    /*printf("func - %s, line - %d\n", __func__, __LINE__);*/  \
     LOG_BEGIN();                                            \
     Log("func - %s, line - %d\n", __func__, __LINE__);      \
     LOG_END();                                              \
@@ -707,7 +282,6 @@ static inline TreeNodeType* GetGrammar(DescentStorage* storage, bool* outErr)
 
 static inline TreeNodeType* GetFunc(DescentStorage* storage, bool* outErr)
 {
-    printf("NEW FUNC on pos - %zu\n", storage->tokens.data[POS(storage)].pos);
     TreeNodeType* node = GetFuncDef(storage, outErr);
     IF_ERR_RET(outErr, node, nullptr);
 
@@ -833,18 +407,6 @@ static inline TreeNodeType* GetFuncVarsDef(DescentStorage* storage, bool* outErr
 static inline TreeNodeType* GetOp(DescentStorage* storage, bool* outErr)
 {
     TreeNodeType* opNode = nullptr;
-    //printf("In op\n");
-    
-    //printf("T is op - %d\n", T_IS_OP(storage));
-    
-    if (T_IS_OP(storage))
-    {
-       // printf("p id - %d\n", (int)T_OP(storage));
-    }
-    if (T_IS_OP(storage, storage->tokenPos + 1))
-    {
-       // printf("next p id - %d\n", (int)T_OP(storage, storage->tokenPos + 1));
-    }
 
     //TODO: peek - check and don't move
     if (T_CMP_OP(storage, TokenId::IF))
@@ -1461,11 +1023,13 @@ static inline TreeNodeType* GetVar(DescentStorage* storage, bool* outErr, AddVar
 }
 
 
-static void DescentStorageCtor(DescentStorage* storage)
+static void DescentStorageCtor(DescentStorage* storage, const char* str)
 {
-    VectorCtor(&storage->tokens);
+    TokensArrCtor(&storage->tokens);
     NameTableCtor(&storage->globalTable);
     NameTableCtor(&storage->allNamesTable);
+
+    storage->codeString       = str;
     storage->tokenPos  = 0;
 }
 
@@ -1480,6 +1044,6 @@ static void DescentStorageDtor(DescentStorage* storage)
 
     NameTableDtor(storage->globalTable);
 
-    VectorDtor(&storage->tokens);
+    TokensArrDtor(&storage->tokens);
     storage->tokenPos = 0;
 }

@@ -22,16 +22,19 @@ DOXYFILE = Others/Doxyfile
 
 HEADERS  = Tree/Tree.h Tree/Operations.h Common/Colors.h Common/DoubleFuncs.h Common/Errors.h \
 		 	Common/Log.h Common/StringFuncs.h FastInput/StringFuncs.h FastInput/InputOutput.h \
-			Vector/Vector.h Vector/Types.h Vector/HashFuncs.h Vector/ArrayFuncs.h 			\
+			FrontEnd/TokensArr/TokensArr.h FrontEnd/TokensArr/TokenTypes.h FrontEnd/TokensArr/HashFuncs.h FrontEnd/TokensArr/ArrayFuncs.h 			\
+			FrontEnd/LexicalParserTokenType	\
 			Tree/DSL.h Tree/NameTable/ArrayFuncs.h Tree/NameTable/HashFuncs.h 				\
-			Tree/NameTable/NameTable.h Tree/NameTable/Types.h
+			Tree/NameTable/NameTable.h Tree/NameTable/NameTableTypes.h FrontEnd/LexicalParser.h		\
+			FrontEnd/SyntaxParser.h
+			
 FILESCPP = Tree/Tree.cpp Common/DoubleFuncs.cpp \
 			Common/Errors.cpp \
 		 	Common/Log.cpp Common/StringFuncs.cpp FastInput/StringFuncs.cpp \
-			FastInput/InputOutput.cpp FrontEnd/main.cpp FrontEnd/Parser.cpp\
-			Vector/ArrayFuncs.cpp Vector/HashFuncs.cpp Vector/Vector.cpp \
+			FastInput/InputOutput.cpp FrontEnd/main.cpp \
+			FrontEnd/TokensArr/ArrayFuncs.cpp FrontEnd/TokensArr/HashFuncs.cpp FrontEnd/TokensArr/TokensArr.cpp \
 			Tree/DSL.cpp Tree/NameTable/ArrayFuncs.cpp Tree/NameTable/HashFuncs.cpp	\
-			Tree/NameTable/NameTable.cpp
+			Tree/NameTable/NameTable.cpp FrontEnd/LexicalParser.cpp FrontEnd/SyntaxParser.cpp
 
 objects = $(FILESCPP:%.cpp=%.o)
 
@@ -53,7 +56,7 @@ clean:
 	rm -rf FastInput/*.o
 	rm -rf FrontEnd/*.o
 	rm -rf Common/*.o
-	rm -rf Vector/*.o
+	rm -rf FrontEnd/TokensArr/*.o
 	rm -rf Tree/*.o
 	rm -rf Tree/NameTable/*.o
 

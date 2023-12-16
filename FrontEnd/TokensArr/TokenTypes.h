@@ -8,16 +8,13 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "FrontEnd/Parser.h"
+#include "FrontEnd/LexicalParserTokenType.h"
 
 /// @brief ElemType for stack
 typedef Token ElemType;
 
 /// @brief Chosen POISON value for stack
-static const ElemType VECTOR_POISON = {};
-
-typedef ElemType (*CopyFuncType)(const ElemType* elem);
-static const CopyFuncType CpyFunc = TokenCopy;
+static const ElemType TOKENS_ARR_POISON = {};
 
 /*
 /// @brief Function for checking if two ElemType values are equal 

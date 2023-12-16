@@ -1,7 +1,7 @@
 #ifndef ARRAY_FUNCS_H
 #define ARRAY_FUNCS_H
 
-#include "Types.h"
+#include "TokenTypes.h"
 
 /// @file
 /// @brief Functions for working with array

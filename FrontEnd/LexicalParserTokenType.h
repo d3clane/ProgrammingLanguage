@@ -1,7 +1,7 @@
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef LEXICAL_PARSER_TOKEN_TYPE
+#define LEXICAL_PARSER_TOKEN_TYPE
 
-#include "Tree/Tree.h"
+#include <stddef.h>
 
 enum class TokenId
 {
@@ -68,22 +68,5 @@ struct Token
     size_t line;
     size_t pos;
 };
-
-enum class ParseErrors
-{
-    NO_ERR,
-
-    SYNTAX_ERR,
-};
-
-Token TokenCopy(const Token* token);
-Token TokenCreate(TokenValue value, TokenValueType valueType,   const size_t line, 
-                                                                    const size_t pos);
-
-TokenValue TokenValueCreateName(const char* name);
-TokenValue TokenValueCreateNum(int value);
-TokenValue TokenValueCreateToken(const TokenId tokenId);
-
-TreeType CodeParse(const char* str);
 
 #endif

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "Common/Log.h"
-#include "Parser.h"
+#include "SyntaxParser.h"
 #include "FastInput/InputOutput.h"
 
 int main(int argc, char* argv[])
@@ -14,7 +14,10 @@ int main(int argc, char* argv[])
 
     char* inputTxt = ReadText(inStream);
 
-    CodeParse(inputTxt);
+    SyntaxParserErrors err = SyntaxParserErrors::NO_ERR;
+    CodeParse(inputTxt, &err);
 
     free(inputTxt);
+
+    return (int)err;
 }
