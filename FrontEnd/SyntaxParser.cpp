@@ -18,7 +18,6 @@ struct DescentState
     size_t tokenPos;
 
     NameTableType* globalTable; 
-    //TODO: удалить, всегда добавляем в локалку + отделить функции  
     NameTableType* currentLocalTable;
 
     NameTableType* allNamesTable;
