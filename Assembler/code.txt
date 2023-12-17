@@ -1,0 +1,37 @@
+jmp main:
+
+main:
+	in
+	call factorial:
+	push rbx
+    out
+	hlt
+
+factorial:
+    pop rax
+    push rax
+
+    push rax
+    push 0
+    je fac_if_0:
+
+    jmp fac_after_If:
+    fac_if_0:
+        pop
+        push 1
+        pop rbx
+        ret
+
+    fac_after_If:
+
+    push rax
+    push 1
+    sub
+    call factorial:
+
+    pop rax
+    push rax
+    push rbx
+    mul
+    pop rbx
+    ret

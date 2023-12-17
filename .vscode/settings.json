@@ -22,5 +22,6 @@
         "string": "cpp",
         "string_view": "cpp",
         "locale": "cpp"
-    }
+    },
+    "C_Cpp.errorSquiggles": "enabled"
 }

@@ -17,7 +17,7 @@ CXXFLAGS = -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-l
 HOME = $(shell pwd)
 CXXFLAGS += -I $(HOME)
 
-TARGET = BackEnd/backEnd.exe
+TARGET = FrontEnd/frontend.exe
 DOXYFILE = Others/Doxyfile
 
 HEADERS  = Tree/Tree.h Tree/Operations.h Common/Colors.h Common/DoubleFuncs.h Common/Errors.h \
@@ -26,16 +26,16 @@ HEADERS  = Tree/Tree.h Tree/Operations.h Common/Colors.h Common/DoubleFuncs.h Co
 			FrontEnd/LexicalParserTokenType	\
 			Tree/DSL.h Tree/NameTable/ArrayFuncs.h Tree/NameTable/HashFuncs.h 				\
 			Tree/NameTable/NameTable.h Tree/NameTable/NameTableTypes.h FrontEnd/LexicalParser.h		\
-			FrontEnd/SyntaxParser.h BackEnd/BackEnd.h
+			FrontEnd/SyntaxParser.h #BackEnd/BackEnd.h
 			
 FILESCPP = Tree/Tree.cpp Common/DoubleFuncs.cpp \
 			Common/Errors.cpp \
 		 	Common/Log.cpp Common/StringFuncs.cpp FastInput/StringFuncs.cpp \
-			FastInput/InputOutput.cpp BackEnd/main.cpp \
+			FastInput/InputOutput.cpp FrontEnd/main.cpp \
 			FrontEnd/TokensArr/ArrayFuncs.cpp FrontEnd/TokensArr/HashFuncs.cpp FrontEnd/TokensArr/TokensArr.cpp \
 			Tree/DSL.cpp Tree/NameTable/ArrayFuncs.cpp Tree/NameTable/HashFuncs.cpp	\
 			Tree/NameTable/NameTable.cpp FrontEnd/LexicalParser.cpp FrontEnd/SyntaxParser.cpp	\
-			BackEnd/BackEnd.cpp 
+			#BackEnd/BackEnd.cpp 
 
 objects = $(FILESCPP:%.cpp=%.o)
 

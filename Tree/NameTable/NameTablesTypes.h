@@ -13,6 +13,7 @@ struct Name
     char* name;
 
     void* localNameTable;
+    size_t varRamId;
 };
 
 /// @brief Chosen NAME_TABLE_POISON value for stack

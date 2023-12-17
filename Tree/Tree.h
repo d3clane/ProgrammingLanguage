@@ -15,7 +15,7 @@ enum class TreeOperationId
 
 union TreeNodeValue
 {
-    int                     value;
+    int                     num;
     int                     varId;
     TreeOperationId operation;
 }; 

@@ -229,7 +229,7 @@ static void DotFileCreateNodes(const TreeNode* node, FILE* outDotFile,
     else if (node->valueType == TreeNodeValueType::NUM)
     {
         //printf("VAL: %d\n", node->value.value);
-        fprintf(outDotFile, "fillcolor=\"#7293ba\", label = \"%d\", ", node->value.value);
+        fprintf(outDotFile, "fillcolor=\"#7293ba\", label = \"%d\", ", node->value.num);
     }
     else if (node->valueType == TreeNodeValueType::NAME)
     {
@@ -342,7 +342,7 @@ TreeNodeValue TreeNodeNumValueCreate(int value)
 {
     TreeNodeValue nodeValue =
     {
-        .value = value
+        .num = value
     };
 
     return nodeValue;
@@ -424,7 +424,7 @@ static TreeErrors TreePrintPrefixFormat(const TreeNode* node, FILE* outStream,
     PRINT(outStream, "(");
     
     if (node->valueType == TreeNodeValueType::NUM)
-        PRINT(outStream, "%d ", node->value.value);
+        PRINT(outStream, "%d ", node->value.num);
     else if (node->valueType == TreeNodeValueType::NAME)
         PRINT(outStream, "%s ", nameTable->data[node->value.varId].name);
     else
@@ -519,7 +519,7 @@ static const char* TreeReadNodeValue(TreeNodeValue* value, TreeNodeValueType* va
 
     if (scanResult != 0)
     {
-        value->value = readenValue;
+        value->num = readenValue;
         *valueType   = TreeNodeValueType::NUM;
         return string + shift;
     }
