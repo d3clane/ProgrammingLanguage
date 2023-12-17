@@ -60,6 +60,7 @@ clean:
 	rm -rf FrontEnd/TokensArr/*.o
 	rm -rf Tree/*.o
 	rm -rf Tree/NameTable/*.o
+	rm -rf BackEnd/*.o
 
 
 buildDirs:
