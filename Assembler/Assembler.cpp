@@ -3,9 +3,9 @@
 #include <ctype.h>
 
 #include "Assembler.h"
-#include "InputOutput/InputOutput.h"
+#include "FastInput/InputOutput.h"
 #include "Common/StringFuncs.h"
-#include "Common/Common.h"
+#include "Assembler/Commands/Common.h"
 
 static char* ReadRegister(const char* inCode, size_t* inPos);
 static bool ReadNumValue(const char* inCode, size_t* inPos, int* value);
@@ -205,7 +205,7 @@ static AssemblerErrors AsseemblerParseCommand(const char* command, const size_t 
         }                                                                                   \
         else 
     
-    #include "Common/Commands.h"
+    #include "Commands/Commands.h"
 
     /* else */
     {
@@ -236,7 +236,7 @@ static AssemblerErrors AssemblerParseCommandWithLabels
             outCode[*outCodePos] = num | ARG_FORMAT_IMM;    \
         else
 
-    #include "Common/Commands.h"
+    #include "Commands/Commands.h"
 
     /* else */
     {
@@ -287,8 +287,8 @@ static AssemblerErrors AssemblerParseCommandWithoutLabels
     assert(outCode);
     assert(outCodePos);
 
-    // grammar : '[' -> reg -> plus -> num -> ']' 
-
+    // grammar     : '[' -> reg -> plus -> num -> ']' 
+    // out grammar : command value register
     size_t inPos  = *inCodePos;
     size_t outPos = *outCodePos;
     
@@ -298,7 +298,7 @@ static AssemblerErrors AssemblerParseCommandWithoutLabels
             commandId = num;                        \
         else                                        \
     
-    #include "Common/Commands.h"
+    #include "Commands/Commands.h"
 
     /* else */
     {
