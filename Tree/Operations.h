@@ -2,9 +2,7 @@
 #define GENERATE_OPERATION_CMD(...)
 #endif
 
-//TODO: половина инфы не нужна, стереть. 
-
-// GENERATE_OPERATION_CMD(NAME, IS_UNARY, SHORT_STRING, CALC_FUNC, ...)
+// GENERATE_OPERATION_CMD(NAME, CALC_FUNC, ...)
 
 #define CALC_CHECK()            \
 do                              \
@@ -13,35 +11,35 @@ do                              \
     assert(isfinite(val2));     \
 } while (0)
 
-GENERATE_OPERATION_CMD(ADD, false,
+GENERATE_OPERATION_CMD(ADD,
 {
     CALC_CHECK();
 
     return val1 + val2;
 })
 
-GENERATE_OPERATION_CMD(SUB, false,
+GENERATE_OPERATION_CMD(SUB,
 {
     CALC_CHECK();
 
     return val1 - val2;
 })
 
-GENERATE_OPERATION_CMD(UNARY_SUB, true,
+GENERATE_OPERATION_CMD(UNARY_SUB,
 {
     assert(isfinite(val1));
 
     return -val1;
 })
 
-GENERATE_OPERATION_CMD(MUL, false,
+GENERATE_OPERATION_CMD(MUL,
 {
     CALC_CHECK();
 
     return val1 * val2;
 })
 
-GENERATE_OPERATION_CMD(DIV, false,
+GENERATE_OPERATION_CMD(DIV,
 {
     CALC_CHECK();
     assert(!DoubleEqual(val2, 0));
@@ -49,14 +47,14 @@ GENERATE_OPERATION_CMD(DIV, false,
     return val1 / val2;
 })
 
-GENERATE_OPERATION_CMD(POW, false,
+GENERATE_OPERATION_CMD(POW,
 {
     CALC_CHECK();
 
     return pow(val1, val2);
 })
 
-GENERATE_OPERATION_CMD(SQRT, true,
+GENERATE_OPERATION_CMD(SQRT,
 {
     CALC_CHECK();
 
@@ -72,28 +70,28 @@ do                          \
     assert(isfinite(val1)); \
 } while (0)
 
-GENERATE_OPERATION_CMD(SIN, true,
+GENERATE_OPERATION_CMD(SIN,
 {
     CALC_CHECK();
 
     return sin(val1);
 })
 
-GENERATE_OPERATION_CMD(COS, true,
+GENERATE_OPERATION_CMD(COS,
 {
     CALC_CHECK();
 
     return cos(val1);
 })
 
-GENERATE_OPERATION_CMD(TAN, true,
+GENERATE_OPERATION_CMD(TAN,
 {
     CALC_CHECK();
 
     return tan(val1);
 })
 
-GENERATE_OPERATION_CMD(COT, true,
+GENERATE_OPERATION_CMD(COT,
 {
     CALC_CHECK();
 
@@ -105,117 +103,117 @@ GENERATE_OPERATION_CMD(COT, true,
     return 1 / tan_val1;
 })
 
-GENERATE_OPERATION_CMD(ASSIGN, false,
+GENERATE_OPERATION_CMD(ASSIGN,
 {
     assert(false);
 
     return -1;
 })
 
-GENERATE_OPERATION_CMD(LINE_END, false, 
+GENERATE_OPERATION_CMD(LINE_END, 
 {
     assert(false);
 
     return -1; //TODO: 
 })
 
-GENERATE_OPERATION_CMD(IF, false, 
+GENERATE_OPERATION_CMD(IF, 
 {
     assert(false);
 
     return -1;
 })
 
-GENERATE_OPERATION_CMD(WHILE, false,
+GENERATE_OPERATION_CMD(WHILE,
 {
     assert(false);
 
     return -1;
 })
 
-GENERATE_OPERATION_CMD(LESS, false, 
+GENERATE_OPERATION_CMD(LESS, 
 {
 
 })
 
-GENERATE_OPERATION_CMD(GREATER, false, 
+GENERATE_OPERATION_CMD(GREATER, 
 {
 
 })
 
-GENERATE_OPERATION_CMD(LESS_EQ, false, 
+GENERATE_OPERATION_CMD(LESS_EQ, 
 {
 
 })
 
-GENERATE_OPERATION_CMD(GREATER_EQ, false,
+GENERATE_OPERATION_CMD(GREATER_EQ,
 {
 
 })
 
-GENERATE_OPERATION_CMD(EQ, false, 
+GENERATE_OPERATION_CMD(EQ, 
 {
 
 })
 
-GENERATE_OPERATION_CMD(NOT_EQ, false,
+GENERATE_OPERATION_CMD(NOT_EQ,
 {
 
 })
 
-GENERATE_OPERATION_CMD(AND, false,
+GENERATE_OPERATION_CMD(AND,
 {
 
 })
 
-GENERATE_OPERATION_CMD(OR, false,
+GENERATE_OPERATION_CMD(OR,
 {
 
 })
 
 //TODO: PRINT -> '{'
-GENERATE_OPERATION_CMD(PRINT, true,
+GENERATE_OPERATION_CMD(PRINT,
 {
 
 })
 
 //TODO: READ -> '{'
-GENERATE_OPERATION_CMD(READ, true,
+GENERATE_OPERATION_CMD(READ,
 {
 
 })
 
-GENERATE_OPERATION_CMD(COMMA, false,
+GENERATE_OPERATION_CMD(COMMA,
 {
 
 })
 
-GENERATE_OPERATION_CMD(TYPE_INT, false,
+GENERATE_OPERATION_CMD(TYPE_INT,
 {
 
 })
 
-GENERATE_OPERATION_CMD(TYPE, false,
+GENERATE_OPERATION_CMD(TYPE,
 {
 
 })
 
-GENERATE_OPERATION_CMD(NEW_FUNC, false,
+GENERATE_OPERATION_CMD(NEW_FUNC,
 {
 
 })
 
-GENERATE_OPERATION_CMD(FUNC, false,
+GENERATE_OPERATION_CMD(FUNC,
 {
 
 })
 
-GENERATE_OPERATION_CMD(FUNC_CALL, false,
+GENERATE_OPERATION_CMD(FUNC_CALL,
 {
 
 })
 
-GENERATE_OPERATION_CMD(RETURN, false,
+GENERATE_OPERATION_CMD(RETURN,
 {
 
 })

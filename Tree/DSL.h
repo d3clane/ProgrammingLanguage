@@ -36,7 +36,7 @@
 #define CRT_VAR(VAR_NAME) TreeVariableNodeCreate(VAR_NAME)
 
 #define GENERATE_OPERATION_CMD(NAME, ...)                                               \
-    TreeNodeType* MAKE_##NAME ##_NODE(TreeNodeType* left, TreeNodeType* right = nullptr);  \
+    TreeNode* MAKE_##NAME ##_NODE(TreeNode* left, TreeNode* right = nullptr);  \
 
 #include "Operations.h"
 

@@ -57,34 +57,34 @@ static void DescentStateDtor(DescentState* state);
 // NUM              ::= ['0'-'9']+
 // VAR              ::= ['a'-'z' 'A'-'Z' '_']+ ['a'-'z' 'A'-'Z' '_' '0'-'9']*
 
-static TreeNodeType* GetVar              (DescentState* state, bool* outErr);
-static TreeNodeType* AddVar              (DescentState* state, bool* outErr);
-static TreeNodeType* GetGrammar          (DescentState* state, bool* outErr);
-static TreeNodeType* GetAddSub           (DescentState* state, bool* outErr);
-static TreeNodeType* GetType             (DescentState* state, bool* outErr);
-static TreeNodeType* GetFuncDef          (DescentState* state, bool* outErr);
-static TreeNodeType* GetFunc             (DescentState* state, bool* outErr);
-static TreeNodeType* GetFuncVarsDef      (DescentState* state, bool* outErr);
-static TreeNodeType* GetPrint            (DescentState* state, bool* outErr);
-static TreeNodeType* GetRead             (DescentState* state, bool* outErr);
-static TreeNodeType* GetVarDef           (DescentState* state, bool* outErr);
-static TreeNodeType* GetFuncCall         (DescentState* state, bool* outErr);
-static TreeNodeType* GetFuncVarsCall     (DescentState* state, bool* outErr);
-static TreeNodeType* GetWhile            (DescentState* state, bool* outErr);
-static TreeNodeType* GetIf               (DescentState* state, bool* outErr);
-static TreeNodeType* GetOp               (DescentState* state, bool* outErr);
-static TreeNodeType* GetAssign           (DescentState* state, bool* outErr);
-static TreeNodeType* GetAnd              (DescentState* state, bool* outErr);
-static TreeNodeType* GetOr               (DescentState* state, bool* outErr);
-static TreeNodeType* GetCmp              (DescentState* state, bool* outErr);
-static TreeNodeType* GetMulDiv           (DescentState* state, bool* outErr);
-static TreeNodeType* GetPow              (DescentState* state, bool* outErr);
-static TreeNodeType* GetMadeFuncCall     (DescentState* state, bool* outErr);
-static TreeNodeType* GetBuiltInFuncCall  (DescentState* state, bool* outErr);
-static TreeNodeType* GetExpr             (DescentState* state, bool* outErr);
-static TreeNodeType* GetArg              (DescentState* state, bool* outErr);
-static TreeNodeType* GetNum              (DescentState* state, bool* outErr);
-static TreeNodeType* GetReturn           (DescentState* state, bool* outErr);
+static TreeNode* GetVar              (DescentState* state, bool* outErr);
+static TreeNode* AddVar              (DescentState* state, bool* outErr);
+static TreeNode* GetGrammar          (DescentState* state, bool* outErr);
+static TreeNode* GetAddSub           (DescentState* state, bool* outErr);
+static TreeNode* GetType             (DescentState* state, bool* outErr);
+static TreeNode* GetFuncDef          (DescentState* state, bool* outErr);
+static TreeNode* GetFunc             (DescentState* state, bool* outErr);
+static TreeNode* GetFuncVarsDef      (DescentState* state, bool* outErr);
+static TreeNode* GetPrint            (DescentState* state, bool* outErr);
+static TreeNode* GetRead             (DescentState* state, bool* outErr);
+static TreeNode* GetVarDef           (DescentState* state, bool* outErr);
+static TreeNode* GetFuncCall         (DescentState* state, bool* outErr);
+static TreeNode* GetFuncVarsCall     (DescentState* state, bool* outErr);
+static TreeNode* GetWhile            (DescentState* state, bool* outErr);
+static TreeNode* GetIf               (DescentState* state, bool* outErr);
+static TreeNode* GetOp               (DescentState* state, bool* outErr);
+static TreeNode* GetAssign           (DescentState* state, bool* outErr);
+static TreeNode* GetAnd              (DescentState* state, bool* outErr);
+static TreeNode* GetOr               (DescentState* state, bool* outErr);
+static TreeNode* GetCmp              (DescentState* state, bool* outErr);
+static TreeNode* GetMulDiv           (DescentState* state, bool* outErr);
+static TreeNode* GetPow              (DescentState* state, bool* outErr);
+static TreeNode* GetMadeFuncCall     (DescentState* state, bool* outErr);
+static TreeNode* GetBuiltInFuncCall  (DescentState* state, bool* outErr);
+static TreeNode* GetExpr             (DescentState* state, bool* outErr);
+static TreeNode* GetArg              (DescentState* state, bool* outErr);
+static TreeNode* GetNum              (DescentState* state, bool* outErr);
+static TreeNode* GetReturn           (DescentState* state, bool* outErr);
 
 static inline Token* GetLastToken(DescentState* state)
 {
@@ -226,7 +226,7 @@ void CodeParse(const char* str, SyntaxParserErrors* outErr, FILE* outStream)
 {
     assert(str);
 
-    TreeType expression = {};
+    Tree expression = {};
 
     DescentState state = {};
     DescentStateCtor(&state, str);
@@ -248,17 +248,17 @@ void CodeParse(const char* str, SyntaxParserErrors* outErr, FILE* outStream)
     DescentStateDtor(&state);
 }
 
-static TreeNodeType* GetGrammar(DescentState* state, bool* outErr)
+static TreeNode* GetGrammar(DescentState* state, bool* outErr)
 {
     assert(state);
     assert(outErr);
 
-    TreeNodeType* root = GetFunc(state, outErr);
+    TreeNode* root = GetFunc(state, outErr);
     IF_ERR_RET(outErr, root, nullptr);
 
     while (!PickToken(state, TokenId::PROGRAM_END))
     {
-        TreeNodeType* tmpNode = GetFunc(state, outErr);
+        TreeNode* tmpNode = GetFunc(state, outErr);
         IF_ERR_RET(outErr, root, tmpNode);
 
         root = MAKE_NEW_FUNC_NODE(root, tmpNode);
@@ -270,25 +270,25 @@ static TreeNodeType* GetGrammar(DescentState* state, bool* outErr)
     return root;
 }
 
-static TreeNodeType* GetFunc(DescentState* state, bool* outErr)
+static TreeNode* GetFunc(DescentState* state, bool* outErr)
 {
-    TreeNodeType* node = GetFuncDef(state, outErr);
+    TreeNode* node = GetFuncDef(state, outErr);
     IF_ERR_RET(outErr, node, nullptr);
 
     return node;
 }
 
-static TreeNodeType* GetFuncDef(DescentState* state, bool* outErr)
+static TreeNode* GetFuncDef(DescentState* state, bool* outErr)
 {
     NameTableType* localNameTable = nullptr;
     NameTableCtor(&localNameTable);
 
-    TreeNodeType* func = nullptr;
+    TreeNode* func = nullptr;
 
-    TreeNodeType* typeNode = GetType(state, outErr);
+    TreeNode* typeNode = GetType(state, outErr);
     IF_ERR_RET(outErr, typeNode, nullptr);
 
-    TreeNodeType* funcName = AddVar(state, outErr);
+    TreeNode* funcName = AddVar(state, outErr);
     IF_ERR_RET(outErr, typeNode, funcName);
     
     //TODO: create set table function maybe
@@ -296,14 +296,14 @@ static TreeNodeType* GetFuncDef(DescentState* state, bool* outErr)
     state->currentLocalTable = localNameTable;
     func = MAKE_FUNC_NODE(funcName);
 
-    TreeNodeType* funcVars = GetFuncVarsDef(state, outErr);
+    TreeNode* funcVars = GetFuncVarsDef(state, outErr);
     funcName->left = funcVars;
     IF_ERR_RET(outErr, func, typeNode);
 
     SynAssert(state, PickToken(state, TokenId::FIFTY_SEVEN), outErr);
     IF_ERR_RET(outErr, func, typeNode);
     
-    TreeNodeType* funcCode = GetOp(state, outErr);
+    TreeNode* funcCode = GetOp(state, outErr);
     funcName->right = funcCode;
     IF_ERR_RET(outErr, func, typeNode);
 
@@ -312,26 +312,26 @@ static TreeNodeType* GetFuncDef(DescentState* state, bool* outErr)
     return func;
 }
 
-static TreeNodeType* GetType(DescentState* state, bool* outErr)
+static TreeNode* GetType(DescentState* state, bool* outErr)
 {
     ConsumeToken(state, TokenId::TYPE_INT, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
     return TreeNodeCreate(TreeNodeOpValueCreate(TreeOperationId::TYPE_INT), 
-                                                    TreeNodeValueTypeof::OPERATION);
+                                                    TreeNodeValueType::OPERATION);
 }
 
-static TreeNodeType* GetFuncVarsDef(DescentState* state, bool* outErr)
+static TreeNode* GetFuncVarsDef(DescentState* state, bool* outErr)
 {
-    TreeNodeType* varsDefNode = nullptr;
+    TreeNode* varsDefNode = nullptr;
         
     if (!PickToken(state, TokenId::TYPE_INT))
         return nullptr;
     
-    TreeNodeType* varType = GetType(state, outErr);
+    TreeNode* varType = GetType(state, outErr);
     IF_ERR_RET(outErr, varType, nullptr);
     
-    TreeNodeType* varName = AddVar(state, outErr);
+    TreeNode* varName = AddVar(state, outErr);
     IF_ERR_RET(outErr, varType, varName);
 
     varsDefNode = MAKE_TYPE_NODE(varType, varName);
@@ -342,7 +342,7 @@ static TreeNodeType* GetFuncVarsDef(DescentState* state, bool* outErr)
         IF_ERR_RET(outErr, varsDefNode, varType);
 
         varName = AddVar(state, outErr);
-        TreeNodeType* tmpVar = MAKE_TYPE_NODE(varType, varName);
+        TreeNode* tmpVar = MAKE_TYPE_NODE(varType, varName);
         IF_ERR_RET(outErr, tmpVar, varsDefNode);
 
         varsDefNode = MAKE_COMMA_NODE(varsDefNode, tmpVar);
@@ -351,9 +351,9 @@ static TreeNodeType* GetFuncVarsDef(DescentState* state, bool* outErr)
     return varsDefNode;
 }
 
-static TreeNodeType* GetOp(DescentState* state, bool* outErr)
+static TreeNode* GetOp(DescentState* state, bool* outErr)
 {
-    TreeNodeType* opNode = nullptr;
+    TreeNode* opNode = nullptr;
 
     if (PickToken(state, TokenId::IF))
     {
@@ -380,12 +380,12 @@ static TreeNodeType* GetOp(DescentState* state, bool* outErr)
         ConsumeToken(state, TokenId::FIFTY_SEVEN, outErr);
         IF_ERR_RET(outErr, opNode, nullptr);
 
-        TreeNodeType* jointNode = MAKE_LINE_END_NODE(nullptr, nullptr);
+        TreeNode* jointNode = MAKE_LINE_END_NODE(nullptr, nullptr);
         opNode = jointNode;
         while (true)
         {
             //printf(RED_TEXT("Going in op recursively\n"));
-            TreeNodeType* opInNode = GetOp(state, outErr);
+            TreeNode* opInNode = GetOp(state, outErr);
             IF_ERR_RET(outErr, opNode, opInNode);
 
             jointNode->left = opInNode;
@@ -416,64 +416,64 @@ static TreeNodeType* GetOp(DescentState* state, bool* outErr)
     return opNode;
 }
 
-static TreeNodeType* GetReturn(DescentState* state, bool* outErr)
+static TreeNode* GetReturn(DescentState* state, bool* outErr)
 {
     return MAKE_RETURN_NODE(GetOr(state, outErr));
 }
 
-static TreeNodeType* GetIf(DescentState* state, bool* outErr)
+static TreeNode* GetIf(DescentState* state, bool* outErr)
 {
     ConsumeToken(state, TokenId::IF, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
-    TreeNodeType* condition = GetOr(state, outErr);
+    TreeNode* condition = GetOr(state, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
 
     ConsumeToken(state, TokenId::FIFTY_SEVEN, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
 
-    TreeNodeType* op = GetOp(state, outErr);
+    TreeNode* op = GetOp(state, outErr);
     IF_ERR_RET(outErr, condition, op);
 
     return MAKE_IF_NODE(condition, op);
 }
 
-static TreeNodeType* GetWhile(DescentState* state, bool* outErr)
+static TreeNode* GetWhile(DescentState* state, bool* outErr)
 {
     ConsumeToken(state, TokenId::WHILE, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
-    TreeNodeType* condition = GetOr(state, outErr);
+    TreeNode* condition = GetOr(state, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
 
     ConsumeToken(state, TokenId::FIFTY_SEVEN, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
 
-    TreeNodeType* op = GetOp(state, outErr);
+    TreeNode* op = GetOp(state, outErr);
     IF_ERR_RET(outErr, condition, op);
 
     return MAKE_WHILE_NODE(condition, op);
 }
 
-static TreeNodeType* GetVarDef(DescentState* state, bool* outErr)
+static TreeNode* GetVarDef(DescentState* state, bool* outErr)
 {
-    TreeNodeType* typeNode = GetType(state, outErr);
+    TreeNode* typeNode = GetType(state, outErr);
     IF_ERR_RET(outErr, typeNode, nullptr);
 
-    TreeNodeType* varName = AddVar(state, outErr);
+    TreeNode* varName = AddVar(state, outErr);
     IF_ERR_RET(outErr, typeNode, varName);
 
     ConsumeToken(state, TokenId::ASSIGN, outErr);
     IF_ERR_RET(outErr, typeNode, varName);
 
-    TreeNodeType* expr   = GetOr(state, outErr);
-    TreeNodeType* assign = MAKE_ASSIGN_NODE(varName, expr);
+    TreeNode* expr   = GetOr(state, outErr);
+    TreeNode* assign = MAKE_ASSIGN_NODE(varName, expr);
     IF_ERR_RET(outErr, expr, typeNode);
 
     return MAKE_TYPE_NODE(typeNode, assign);
 }
 
-static TreeNodeType* GetExpr(DescentState* state, bool* outErr)
+static TreeNode* GetExpr(DescentState* state, bool* outErr)
 {
     if (!PickToken(state, TokenId::L_BRACKET))
         return GetArg(state, outErr);
@@ -481,7 +481,7 @@ static TreeNodeType* GetExpr(DescentState* state, bool* outErr)
     ConsumeToken(state, TokenId::L_BRACKET, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
     
-    TreeNodeType* inBracketsExpr = GetOr(state, outErr);
+    TreeNode* inBracketsExpr = GetOr(state, outErr);
     IF_ERR_RET(outErr, inBracketsExpr, nullptr);
 
     ConsumeToken(state, TokenId::R_BRACKET, outErr); //Здесь изменение, раньше не было сдвига pos, предполагаю что баг
@@ -490,18 +490,18 @@ static TreeNodeType* GetExpr(DescentState* state, bool* outErr)
     return inBracketsExpr;
 }
 
-static TreeNodeType* GetPrint(DescentState* state, bool* outErr)
+static TreeNode* GetPrint(DescentState* state, bool* outErr)
 {
     ConsumeToken(state, TokenId::L_BRACE, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
-    TreeNodeType* arg = GetArg(state, outErr);
+    TreeNode* arg = GetArg(state, outErr);
     IF_ERR_RET(outErr, arg, nullptr);
 
     return MAKE_PRINT_NODE(arg);
 }
 
-static TreeNodeType* GetRead(DescentState* state, bool* outErr)
+static TreeNode* GetRead(DescentState* state, bool* outErr)
 {
     ConsumeToken(state, TokenId::L_BRACE, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
@@ -509,29 +509,29 @@ static TreeNodeType* GetRead(DescentState* state, bool* outErr)
     return MAKE_READ_NODE(nullptr, nullptr);
 }
 
-static TreeNodeType* GetAssign(DescentState* state, bool* outErr)
+static TreeNode* GetAssign(DescentState* state, bool* outErr)
 {
-    TreeNodeType* var = GetVar(state, outErr);
+    TreeNode* var = GetVar(state, outErr);
     IF_ERR_RET(outErr, var, nullptr);
 
     ConsumeToken(state, TokenId::ASSIGN, outErr);
     IF_ERR_RET(outErr, var, nullptr);
 
-    TreeNodeType* rightExpr = GetOr(state, outErr);
+    TreeNode* rightExpr = GetOr(state, outErr);
     IF_ERR_RET(outErr, rightExpr, var);
 
     return MAKE_ASSIGN_NODE(var, rightExpr);
 }
 
-static TreeNodeType* GetMadeFuncCall(DescentState* state, bool* outErr)
+static TreeNode* GetMadeFuncCall(DescentState* state, bool* outErr)
 {
-    TreeNodeType* funcName = GetVar(state, outErr);
+    TreeNode* funcName = GetVar(state, outErr);
     IF_ERR_RET(outErr, funcName, nullptr);
 
     ConsumeToken(state, TokenId::L_BRACE, outErr);
     IF_ERR_RET(outErr, funcName, nullptr);
 
-    TreeNodeType* funcVars = GetFuncVarsCall(state, outErr);
+    TreeNode* funcVars = GetFuncVarsCall(state, outErr);
     IF_ERR_RET(outErr, funcName, funcVars);
     funcName->left = funcVars;
 
@@ -541,17 +541,17 @@ static TreeNodeType* GetMadeFuncCall(DescentState* state, bool* outErr)
     return MAKE_FUNC_CALL_NODE(funcName);
 }
 
-static TreeNodeType* GetFuncVarsCall(DescentState* state, bool* outErr)
+static TreeNode* GetFuncVarsCall(DescentState* state, bool* outErr)
 {
     if (PickToken(state, TokenId::FIFTY_SEVEN))
         return nullptr;
 
-    TreeNodeType* vars = GetOr(state, outErr);
+    TreeNode* vars = GetOr(state, outErr);
     IF_ERR_RET(outErr, vars, nullptr);
 
     while (!PickToken(state, TokenId::FIFTY_SEVEN))
     {
-        TreeNodeType* tmpVar = GetOr(state, outErr);
+        TreeNode* tmpVar = GetOr(state, outErr);
         IF_ERR_RET(outErr, vars, tmpVar);
 
         vars = MAKE_COMMA_NODE(vars, tmpVar);
@@ -560,9 +560,9 @@ static TreeNodeType* GetFuncVarsCall(DescentState* state, bool* outErr)
     return vars;
 }
 
-static TreeNodeType* GetOr(DescentState* state, bool* outErr)
+static TreeNode* GetOr(DescentState* state, bool* outErr)
 {
-    TreeNodeType* allExpr = GetAnd(state, outErr);
+    TreeNode* allExpr = GetAnd(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
     while (PickToken(state, TokenId::OR))
@@ -570,7 +570,7 @@ static TreeNodeType* GetOr(DescentState* state, bool* outErr)
         ConsumeToken(state, TokenId::OR, outErr);
         IF_ERR_RET(outErr, allExpr, nullptr);
 
-        TreeNodeType* tmpExpr = GetAnd(state, outErr);
+        TreeNode* tmpExpr = GetAnd(state, outErr);
         IF_ERR_RET(outErr, tmpExpr, allExpr);
 
         allExpr = MAKE_OR_NODE(allExpr, tmpExpr);
@@ -579,9 +579,9 @@ static TreeNodeType* GetOr(DescentState* state, bool* outErr)
     return allExpr;
 }
 
-static TreeNodeType* GetAnd(DescentState* state, bool* outErr)
+static TreeNode* GetAnd(DescentState* state, bool* outErr)
 {
-    TreeNodeType* allExpr = GetCmp(state, outErr);
+    TreeNode* allExpr = GetCmp(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
     while (PickToken(state, TokenId::AND))
@@ -589,7 +589,7 @@ static TreeNodeType* GetAnd(DescentState* state, bool* outErr)
         ConsumeToken(state, TokenId::OR, outErr);
         IF_ERR_RET(outErr, allExpr, nullptr);
 
-        TreeNodeType* tmpExpr = GetCmp(state, outErr);
+        TreeNode* tmpExpr = GetCmp(state, outErr);
         IF_ERR_RET(outErr, tmpExpr, allExpr);
 
         allExpr = MAKE_AND_NODE(allExpr, tmpExpr);
@@ -598,9 +598,9 @@ static TreeNodeType* GetAnd(DescentState* state, bool* outErr)
     return allExpr;
 }
 
-static TreeNodeType* GetCmp(DescentState* state, bool* outErr)
+static TreeNode* GetCmp(DescentState* state, bool* outErr)
 {
-    TreeNodeType* allExpr = GetAddSub(state, outErr);
+    TreeNode* allExpr = GetAddSub(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
     while (PickToken(state, TokenId::LESS)    || PickToken(state, TokenId::LESS_EQ)     ||
@@ -610,7 +610,7 @@ static TreeNodeType* GetCmp(DescentState* state, bool* outErr)
         TokenId tokenId = GetLastTokenId(state);
         POS(state)++;
 
-        TreeNodeType* newExpr = GetAddSub(state, outErr);
+        TreeNode* newExpr = GetAddSub(state, outErr);
         IF_ERR_RET(outErr, allExpr, newExpr);
 
         switch (tokenId)
@@ -648,9 +648,9 @@ static TreeNodeType* GetCmp(DescentState* state, bool* outErr)
     return allExpr;
 }
 
-static TreeNodeType* GetAddSub(DescentState* state, bool* outErr)
+static TreeNode* GetAddSub(DescentState* state, bool* outErr)
 {
-    TreeNodeType* allExpr = GetMulDiv(state, outErr);
+    TreeNode* allExpr = GetMulDiv(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
     while (PickToken(state, TokenId::ADD) || PickToken(state, TokenId::SUB))
@@ -658,7 +658,7 @@ static TreeNodeType* GetAddSub(DescentState* state, bool* outErr)
         TokenId tokenId = GetLastTokenId(state);
         POS(state)++;
 
-        TreeNodeType* newExpr = GetMulDiv(state, outErr);
+        TreeNode* newExpr = GetMulDiv(state, outErr);
         IF_ERR_RET(outErr, allExpr, newExpr);
 
         switch (tokenId)
@@ -681,9 +681,9 @@ static TreeNodeType* GetAddSub(DescentState* state, bool* outErr)
     return allExpr;
 }
 
-static TreeNodeType* GetMulDiv(DescentState* state, bool* outErr)
+static TreeNode* GetMulDiv(DescentState* state, bool* outErr)
 {
-    TreeNodeType* allExpr = GetPow(state, outErr);
+    TreeNode* allExpr = GetPow(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
     while (PickToken(state, TokenId::MUL) || PickToken(state, TokenId::DIV))
@@ -691,7 +691,7 @@ static TreeNodeType* GetMulDiv(DescentState* state, bool* outErr)
         TokenId tokenId = GetLastTokenId(state);
         POS(state)++;
 
-        TreeNodeType* newExpr = GetPow(state, outErr);
+        TreeNode* newExpr = GetPow(state, outErr);
         IF_ERR_RET(outErr, allExpr, newExpr);
 
         switch (tokenId)
@@ -714,9 +714,9 @@ static TreeNodeType* GetMulDiv(DescentState* state, bool* outErr)
     return allExpr;
 }
 
-static TreeNodeType* GetPow(DescentState* state, bool* outErr)
+static TreeNode* GetPow(DescentState* state, bool* outErr)
 {
-    TreeNodeType* allExpr = GetFuncCall(state, outErr);
+    TreeNode* allExpr = GetFuncCall(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
     while (PickToken(state, TokenId::POW))
@@ -724,7 +724,7 @@ static TreeNodeType* GetPow(DescentState* state, bool* outErr)
         TokenId tokenId = GetLastTokenId(state);
         POS(state)++;
 
-        TreeNodeType* newExpr = GetFuncCall(state, outErr);
+        TreeNode* newExpr = GetFuncCall(state, outErr);
         IF_ERR_RET(outErr, allExpr, newExpr);
         
         assert(tokenId == TokenId::POW);
@@ -734,7 +734,7 @@ static TreeNodeType* GetPow(DescentState* state, bool* outErr)
     return allExpr;
 }
 
-static TreeNodeType* GetFuncCall(DescentState* state, bool* outErr)
+static TreeNode* GetFuncCall(DescentState* state, bool* outErr)
 {
     if (PickToken(state, TokenId::SIN)  || PickToken(state, TokenId::COS) ||
         PickToken(state, TokenId::TAN)  || PickToken(state, TokenId::COT) ||
@@ -747,7 +747,7 @@ static TreeNodeType* GetFuncCall(DescentState* state, bool* outErr)
     return GetArg(state, outErr);
 }
 
-static TreeNodeType* GetBuiltInFuncCall(DescentState* state, bool* outErr)
+static TreeNode* GetBuiltInFuncCall(DescentState* state, bool* outErr)
 {
     if (PickToken(state, TokenId::L_BRACE))
         return GetRead(state, outErr);
@@ -762,7 +762,7 @@ static TreeNodeType* GetBuiltInFuncCall(DescentState* state, bool* outErr)
     ConsumeToken(state, TokenId::L_BRACKET, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
-    TreeNodeType* expr = GetOr(state, outErr);
+    TreeNode* expr = GetOr(state, outErr);
     IF_ERR_RET(outErr, expr, nullptr);
 
     ConsumeToken(state, TokenId::R_BRACKET, outErr);
@@ -799,9 +799,9 @@ static TreeNodeType* GetBuiltInFuncCall(DescentState* state, bool* outErr)
     return expr;
 }
 
-static TreeNodeType* GetArg(DescentState* state, bool* outErr)
+static TreeNode* GetArg(DescentState* state, bool* outErr)
 {
-    TreeNodeType* arg = nullptr;
+    TreeNode* arg = nullptr;
 
     if (PickNum(state))
         arg = GetNum(state, outErr);
@@ -813,18 +813,18 @@ static TreeNodeType* GetArg(DescentState* state, bool* outErr)
     return arg;
 }
 
-static TreeNodeType* GetNum(DescentState* state, bool* outErr)
+static TreeNode* GetNum(DescentState* state, bool* outErr)
 {
     SynAssert(state, PickNum(state), outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
-    TreeNodeType* num = CRT_NUM(state->tokens.data[POS(state)].value.num);
+    TreeNode* num = CRT_NUM(state->tokens.data[POS(state)].value.num);
     POS(state)++;
 
     return num;
 }
 
-static TreeNodeType* AddVar(DescentState* state, bool* outErr)
+static TreeNode* AddVar(DescentState* state, bool* outErr)
 {
     SynAssert(state, PickName(state), outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
@@ -836,7 +836,7 @@ static TreeNodeType* AddVar(DescentState* state, bool* outErr)
         .localNameTable = nullptr,
     };
 
-    TreeNodeType* varNode = nullptr;
+    TreeNode* varNode = nullptr;
 
     NameTablePush(state->currentLocalTable, pushName);
     NameTablePush(state->allNamesTable, pushName);
@@ -848,7 +848,7 @@ static TreeNodeType* AddVar(DescentState* state, bool* outErr)
 }
 
 //TODO: сюда передавать localNameTable, тут его сувать(мб)
-static TreeNodeType* GetVar(DescentState* state, bool* outErr)
+static TreeNode* GetVar(DescentState* state, bool* outErr)
 {
     //TODO: создать отдельную функцию createName
     Name pushName = 
@@ -859,7 +859,7 @@ static TreeNodeType* GetVar(DescentState* state, bool* outErr)
     };
 
     //TODO: здесь проверки на то, что мы пушим (в плане того, чтобы не было конфликтов имен и т.д, пока похуй)
-    TreeNodeType* varNode = nullptr;
+    TreeNode* varNode = nullptr;
 
     Name* outName = nullptr;
     NameTableFind(state->allNamesTable, pushName.name, &outName);

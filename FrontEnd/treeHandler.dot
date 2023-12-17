@@ -2,140 +2,140 @@ digraph G{
 rankdir=TB;
 graph [bgcolor="#31353b"];
 edge[color="#00D0D0"];
-node0x122e17740[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "NEW_FUNC", color = "#D0D000"];
-node0x122e178b0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE", color = "#D0D000"];
-node0x122e15490[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE_INT", color = "#D0D000"];
-node0x122e168f0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "FUNC", color = "#D0D000"];
-node0x122e168d0[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "factorial", color = "#D0D000"];
-node0x122e17020[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE", color = "#D0D000"];
-node0x122e16910[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE_INT", color = "#D0D000"];
-node0x122e17000[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "n", color = "#D0D000"];
-node0x122e17040[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "LINE_END", color = "#D0D000"];
-node0x122e16600[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "IF", color = "#D0D000"];
-node0x122e16c60[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "EQ", color = "#D0D000"];
-node0x122e17060[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "n", color = "#D0D000"];
-node0x122e16c40[shape=Mrecord, style=filled, fillcolor="#7293ba", label = "0", color = "#D0D000"];
-node0x122e16c80[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "LINE_END", color = "#D0D000"];
-node0x122e165e0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "RETURN", color = "#D0D000"];
-node0x122e16ca0[shape=Mrecord, style=filled, fillcolor="#7293ba", label = "1", color = "#D0D000"];
-node0x122e16620[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "LINE_END", color = "#D0D000"];
-node0x122e17890[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "RETURN", color = "#D0D000"];
-node0x122e17870[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "MUL", color = "#D0D000"];
-node0x122e16650[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "n", color = "#D0D000"];
-node0x122e17850[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "FUNC_CALL", color = "#D0D000"];
-node0x122e16680[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "factorial", color = "#D0D000"];
-node0x122e166f0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "SUB", color = "#D0D000"];
-node0x122e166b0[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "n", color = "#D0D000"];
-node0x122e166d0[shape=Mrecord, style=filled, fillcolor="#7293ba", label = "1", color = "#D0D000"];
-node0x122e17720[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE", color = "#D0D000"];
-node0x122e178f0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE_INT", color = "#D0D000"];
-node0x122e17930[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "FUNC", color = "#D0D000"];
-node0x122e17910[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "main", color = "#D0D000"];
-node0x122e17950[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "LINE_END", color = "#D0D000"];
-node0x122e17a00[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE", color = "#D0D000"];
-node0x122e17970[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE_INT", color = "#D0D000"];
-node0x122e179e0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "ASSIGN", color = "#D0D000"];
-node0x122e179a0[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "n", color = "#D0D000"];
-node0x122e179c0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "READ", color = "#D0D000"];
-node0x122e17a20[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "LINE_END", color = "#D0D000"];
-node0x122e17690[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE", color = "#D0D000"];
-node0x122e175a0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE_INT", color = "#D0D000"];
-node0x122e17670[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "ASSIGN", color = "#D0D000"];
-node0x122e175d0[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "fac", color = "#D0D000"];
-node0x122e17650[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "FUNC_CALL", color = "#D0D000"];
-node0x122e17600[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "factorial", color = "#D0D000"];
-node0x122e17630[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "n", color = "#D0D000"];
-node0x122e176b0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "LINE_END", color = "#D0D000"];
-node0x122e17700[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "PRINT", color = "#D0D000"];
-node0x122e176e0[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "fac", color = "#D0D000"];
-node0x122e17740;
-node0x122e17740->node0x122e178b0;
-node0x122e178b0->node0x122e15490;
+node0x132806090[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "NEW_FUNC", color = "#D0D000"];
+node0x1328060b0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE", color = "#D0D000"];
+node0x1328060d0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE_INT", color = "#D0D000"];
+node0x1328060f0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "FUNC", color = "#D0D000"];
+node0x132806120[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "factorial", color = "#D0D000"];
+node0x132806140[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE", color = "#D0D000"];
+node0x132806160[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE_INT", color = "#D0D000"];
+node0x132806190[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "n", color = "#D0D000"];
+node0x1328061b0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "LINE_END", color = "#D0D000"];
+node0x1328061d0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "IF", color = "#D0D000"];
+node0x1328061f0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "EQ", color = "#D0D000"];
+node0x132806220[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "n", color = "#D0D000"];
+node0x132806240[shape=Mrecord, style=filled, fillcolor="#7293ba", label = "0", color = "#D0D000"];
+node0x132806260[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "LINE_END", color = "#D0D000"];
+node0x132806280[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "RETURN", color = "#D0D000"];
+node0x1328062a0[shape=Mrecord, style=filled, fillcolor="#7293ba", label = "1", color = "#D0D000"];
+node0x1328062c0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "LINE_END", color = "#D0D000"];
+node0x1328062e0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "RETURN", color = "#D0D000"];
+node0x132806300[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "MUL", color = "#D0D000"];
+node0x132806330[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "n", color = "#D0D000"];
+node0x132806350[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "FUNC_CALL", color = "#D0D000"];
+node0x132806380[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "factorial", color = "#D0D000"];
+node0x1328063a0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "SUB", color = "#D0D000"];
+node0x1328063d0[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "n", color = "#D0D000"];
+node0x1328063f0[shape=Mrecord, style=filled, fillcolor="#7293ba", label = "1", color = "#D0D000"];
+node0x132806410[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE", color = "#D0D000"];
+node0x132806430[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE_INT", color = "#D0D000"];
+node0x132806450[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "FUNC", color = "#D0D000"];
+node0x132806480[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "main", color = "#D0D000"];
+node0x1328064a0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "LINE_END", color = "#D0D000"];
+node0x1328064c0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE", color = "#D0D000"];
+node0x1328064e0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE_INT", color = "#D0D000"];
+node0x132806500[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "ASSIGN", color = "#D0D000"];
+node0x132806530[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "n", color = "#D0D000"];
+node0x132806550[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "READ", color = "#D0D000"];
+node0x132806570[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "LINE_END", color = "#D0D000"];
+node0x132806590[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE", color = "#D0D000"];
+node0x1328065b0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "TYPE_INT", color = "#D0D000"];
+node0x1328065d0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "ASSIGN", color = "#D0D000"];
+node0x132806600[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "fac", color = "#D0D000"];
+node0x132806620[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "FUNC_CALL", color = "#D0D000"];
+node0x132806650[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "factorial", color = "#D0D000"];
+node0x132806680[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "n", color = "#D0D000"];
+node0x1328066a0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "LINE_END", color = "#D0D000"];
+node0x1328066c0[shape=Mrecord, style=filled, fillcolor="#89AC76", label = "PRINT", color = "#D0D000"];
+node0x1328066f0[shape=Mrecord, style=filled, fillcolor="#78DBE2", label = "fac", color = "#D0D000"];
+node0x132806090;
+node0x132806090->node0x1328060b0;
+node0x1328060b0->node0x1328060d0;
 
 
-node0x122e178b0->node0x122e168f0;
-node0x122e168f0->node0x122e168d0;
-node0x122e168d0->node0x122e17020;
-node0x122e17020->node0x122e16910;
+node0x1328060b0->node0x1328060f0;
+node0x1328060f0->node0x132806120;
+node0x132806120->node0x132806140;
+node0x132806140->node0x132806160;
 
 
-node0x122e17020->node0x122e17000;
+node0x132806140->node0x132806190;
 
 
-node0x122e168d0->node0x122e17040;
-node0x122e17040->node0x122e16600;
-node0x122e16600->node0x122e16c60;
-node0x122e16c60->node0x122e17060;
+node0x132806120->node0x1328061b0;
+node0x1328061b0->node0x1328061d0;
+node0x1328061d0->node0x1328061f0;
+node0x1328061f0->node0x132806220;
 
 
-node0x122e16c60->node0x122e16c40;
+node0x1328061f0->node0x132806240;
 
 
-node0x122e16600->node0x122e16c80;
-node0x122e16c80->node0x122e165e0;
-node0x122e165e0->node0x122e16ca0;
-
-
-
-
-node0x122e17040->node0x122e16620;
-node0x122e16620->node0x122e17890;
-node0x122e17890->node0x122e17870;
-node0x122e17870->node0x122e16650;
-
-
-node0x122e17870->node0x122e17850;
-node0x122e17850->node0x122e16680;
-node0x122e16680->node0x122e166f0;
-node0x122e166f0->node0x122e166b0;
-
-
-node0x122e166f0->node0x122e166d0;
+node0x1328061d0->node0x132806260;
+node0x132806260->node0x132806280;
+node0x132806280->node0x1328062a0;
 
 
 
 
+node0x1328061b0->node0x1328062c0;
+node0x1328062c0->node0x1328062e0;
+node0x1328062e0->node0x132806300;
+node0x132806300->node0x132806330;
 
 
-
-node0x122e17740->node0x122e17720;
-node0x122e17720->node0x122e178f0;
-
-
-node0x122e17720->node0x122e17930;
-node0x122e17930->node0x122e17910;
-
-node0x122e17910->node0x122e17950;
-node0x122e17950->node0x122e17a00;
-node0x122e17a00->node0x122e17970;
+node0x132806300->node0x132806350;
+node0x132806350->node0x132806380;
+node0x132806380->node0x1328063a0;
+node0x1328063a0->node0x1328063d0;
 
 
-node0x122e17a00->node0x122e179e0;
-node0x122e179e0->node0x122e179a0;
-
-
-node0x122e179e0->node0x122e179c0;
-
-
-node0x122e17950->node0x122e17a20;
-node0x122e17a20->node0x122e17690;
-node0x122e17690->node0x122e175a0;
-
-
-node0x122e17690->node0x122e17670;
-node0x122e17670->node0x122e175d0;
-
-
-node0x122e17670->node0x122e17650;
-node0x122e17650->node0x122e17600;
-node0x122e17600->node0x122e17630;
+node0x1328063a0->node0x1328063f0;
 
 
 
 
-node0x122e17a20->node0x122e176b0;
-node0x122e176b0->node0x122e17700;
-node0x122e17700->node0x122e176e0;
+
+
+
+node0x132806090->node0x132806410;
+node0x132806410->node0x132806430;
+
+
+node0x132806410->node0x132806450;
+node0x132806450->node0x132806480;
+
+node0x132806480->node0x1328064a0;
+node0x1328064a0->node0x1328064c0;
+node0x1328064c0->node0x1328064e0;
+
+
+node0x1328064c0->node0x132806500;
+node0x132806500->node0x132806530;
+
+
+node0x132806500->node0x132806550;
+
+
+node0x1328064a0->node0x132806570;
+node0x132806570->node0x132806590;
+node0x132806590->node0x1328065b0;
+
+
+node0x132806590->node0x1328065d0;
+node0x1328065d0->node0x132806600;
+
+
+node0x1328065d0->node0x132806620;
+node0x132806620->node0x132806650;
+node0x132806650->node0x132806680;
+
+
+
+
+node0x132806570->node0x1328066a0;
+node0x1328066a0->node0x1328066c0;
+node0x1328066c0->node0x1328066f0;
 
 
 

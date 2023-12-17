@@ -23,5 +23,12 @@ int main(int argc, char* argv[])
     fclose(inStream);
     fclose(outStream);
 
+    inStream = fopen("ParseTree.txt", "r");
+    Tree tree = {};
+    TreeCtor(&tree);
+    NameTableType* nameTable = nullptr;
+    TreeReadPrefixFormat(&tree, &nameTable, inStream);
+
+    TreeGraphicDump(&tree, true, nameTable);
     return (int)err;
 }

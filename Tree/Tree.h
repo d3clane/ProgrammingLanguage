@@ -20,25 +20,25 @@ union TreeNodeValue
     TreeOperationId operation;
 }; 
 
-enum class TreeNodeValueTypeof
+enum class TreeNodeValueType
 {
-    VALUE,
-    VARIABLE,
+    NUM,
+    NAME,
     OPERATION, 
 };
 
-struct TreeNodeType
+struct TreeNode
 {
     TreeNodeValue        value;
-    TreeNodeValueTypeof  valueType;
+    TreeNodeValueType  valueType;
     
-    TreeNodeType*  left;
-    TreeNodeType* right;
+    TreeNode*  left;
+    TreeNode* right;
 };
 
-struct TreeType
+struct Tree
 {
-    TreeNodeType* root;
+    TreeNode* root;
 };
 
 enum class TreeErrors
@@ -61,60 +61,51 @@ enum class TreeErrors
 
 //-------------Expression main funcs----------
 
-TreeErrors TreeCtor(TreeType* tree);
-void TreeDtor(TreeType* tree);
+TreeErrors TreeCtor(Tree* tree);
+void TreeDtor(Tree* tree);
 
-TreeNodeType* TreeNodeCreate(TreeNodeValue value, 
-                                            TreeNodeValueTypeof valueType,
-                                            TreeNodeType* left  = nullptr,
-                                            TreeNodeType* right = nullptr);
-void TreeNodeDtor(TreeNodeType* node);
-void TreeNodeDeepDtor(TreeNodeType* node);
+TreeNode* TreeNodeCreate(TreeNodeValue value, TreeNodeValueType valueType,
+                             TreeNode* left  = nullptr, TreeNode* right = nullptr);
 
-TreeErrors TreeVerify     (const TreeType*      tree);
-TreeErrors TreeVerify     (const TreeNodeType* node);
+void TreeNodeDtor(TreeNode* node);
+void TreeNodeDeepDtor(TreeNode* node);
+
+TreeErrors TreeVerify     (const Tree*      tree);
+TreeErrors TreeVerify     (const TreeNode* node);
 
 TreeNodeValue TreeNodeNumValueCreate(int value);
 TreeNodeValue TreeNodeOpValueCreate(TreeOperationId operationId);
 TreeNodeValue TreeNodeVarValueCreate(int varId);
 
-TreeNodeType* TreeNumericNodeCreate(int value);
-TreeNodeType* TreeVariableNodeCreate(int varId);
+TreeNode* TreeNumericNodeCreate(int value);
+TreeNode* TreeVariableNodeCreate(int varId);
 
-#define TREE_TEXT_DUMP(tree) TreeTextDump((tree), __FILE__, \
-                                                  __func__, \
-                                                  __LINE__)
+#define TREE_TEXT_DUMP(tree) TreeTextDump((tree), __FILE__, __func__, __LINE__)
 
-void TreeTextDump(const TreeType* tree, 
+void TreeTextDump(const Tree* tree, 
                   const char* fileName, const char* funcName, const int line,
                   const NameTableType* nameTable);
 
-void TreeGraphicDump(const TreeType* tree, bool openImg, const NameTableType* nameTable);
+void TreeGraphicDump(const Tree* tree, bool openImg, const NameTableType* nameTable);
 
-#define TREE_DUMP(tree) TreeDump((tree), __FILE__,  \
-                                                                          __func__,  \
-                                                                          __LINE__)
+#define TREE_DUMP(tree) TreeDump((tree), __FILE__, __func__, __LINE__)
 
-void TreeDump(const TreeType* tree, 
-              const char* fileName, const char* funcName, const int line,
-              const NameTableType* nameTable);
+void TreeDump(const Tree* tree, const char* fileName, const char* funcName, const int line,
+                                                                 const NameTableType* nameTable);
 
-void TreeNodeSetEdges(TreeNodeType* node, TreeNodeType* left, 
-                                                         TreeNodeType* right);
+void TreeNodeSetEdges(TreeNode* node, TreeNode* left, TreeNode* right);
 
-//TreeType       TreeCopy(const TreeType* tree);
-//TreeNodeType* TreeNodeCopy(const TreeNodeType* node);
+//Tree       TreeCopy(const Tree* tree);
+//TreeNode* TreeNodeCopy(const TreeNode* node);
 
-TreeErrors TreePrintPrefixFormat(const TreeType* tree, FILE* outStream,
+TreeErrors TreePrintPrefixFormat(const Tree* tree, FILE* outStream,
                                  const NameTableType* nameTable);
 
-//TreeErrors TreeReadPrefixFormat  (TreeType* tree, FILE* inStream = stdin);
+TreeErrors TreeReadPrefixFormat(Tree* tree, NameTableType** allNamesTable, FILE* inStream = stdin);
 
 //-------------Operations funcs-----------
 
 int  TreeOperationGetId(const char* string);
 const char* TreeOperationGetLongName (const  TreeOperationId operation);
-const char* TreeOperationGetShortName(const TreeOperationId operation);
-bool TreeOperationIsUnary(const TreeOperationId operation);
 
 #endif
