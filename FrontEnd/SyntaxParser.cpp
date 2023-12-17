@@ -32,13 +32,13 @@ static void DescentStateDtor(DescentState* state);
 
 // G                ::= FUNC+ '\0'
 // FUNC             ::= FUNC_DEF
-// FUNC_DEF         ::= TYPE VAR FUNC_VARS_DEF '57' OP '}' CHANGE!!!
+// FUNC_DEF         ::= TYPE VAR FUNC_VARS_DEF '57' OP '{'
 // FUNC_VAR_DEF     ::= {TYPE VAR}*
-// OP               ::= {IF | WHILE | '57' OP+ '{'} | { {VAR_DEF | PRINT | ASSIGN | RET} '57' }
+// OP               ::= {IF | WHILE | '57' OP+ '{' | { {VAR_DEF | PRINT | ASSIGN | RET} '57' }
 // IF               ::= '57?' OR '57' OP
 // WHILE            ::= '57!' OR '57' OP
-// RET              ::= OR CHANGE!!!!
-// VAR_DEF          ::= TYPE VAR '==' OR CHANGE!!!!!
+// RET              ::= OR
+// VAR_DEF          ::= TYPE VAR '==' OR
 // PRINT            ::= '{' ARG 
 // READ             ::= '{'
 // ASSIGN           ::= VAR '==' OR
@@ -300,52 +300,17 @@ static TreeNodeType* GetFuncDef(DescentState* state, bool* outErr)
     funcName->left = funcVars;
     IF_ERR_RET(outErr, func, typeNode);
 
-    //TODO: consume func instead of 3 code lines 
     SynAssert(state, PickToken(state, TokenId::FIFTY_SEVEN), outErr);
-    IF_ERR_RET(outErr, func, typeNode); //Checking for function code start
+    IF_ERR_RET(outErr, func, typeNode);
     
     TreeNodeType* funcCode = GetOp(state, outErr);
     funcName->right = funcCode;
     IF_ERR_RET(outErr, func, typeNode);
 
-    /*SynAssert(state, T_IS_K_WORD(state) && T_CMP_WORD(state, "5757"), outErr);
-    IF_ERR_RET(outErr, func, typeNode);
-    POS(state)++;*/ 
-    // OP HAS ALREADY CHECKED AND MOVED
-
     func = MAKE_TYPE_NODE(typeNode, func);
 
     return func;
 }
-
-/*static TreeNodeType* GetFuncDecl(DescentState* state, bool* outErr)
-{
-    TreeNodeType* func = nullptr;
-
-    TreeNodeType* typeNode = GetType(state, outErr);
-    IF_ERR_RET(outErr, typeNode, nullptr);
-
-    TreeNodeType* funcName = GetVar(state, outErr, AddVar::ADD_TO_GLOBAL);
-    IF_ERR_RET(outErr, typeNode, funcName);
-
-    func = MAKE_FUNC_NODE(funcName);
-
-    SynAssert(state, T_CMP_OP(state, TokenId::FIFTY_SEVEN), outErr);
-    IF_ERR_RET(outErr, func, typeNode);
-    POS(state)++;
-
-    TreeNodeType* funcVars = GetFuncVarsDef(state, outErr, AddVar::DONT_ADD);
-    funcName->left = funcVars;
-    IF_ERR_RET(outErr, func, typeNode);
-
-    SynAssert(state, T_CMP_OP(state, TokenId::FIFTY_SEVEN), outErr);
-    IF_ERR_RET(outErr, func, typeNode);
-    POS(state)++;
-
-    func = MAKE_TYPE_NODE(typeNode, func);
-
-    return func;
-}*/
 
 static TreeNodeType* GetType(DescentState* state, bool* outErr)
 {
@@ -390,7 +355,6 @@ static TreeNodeType* GetOp(DescentState* state, bool* outErr)
 {
     TreeNodeType* opNode = nullptr;
 
-    //TODO: peek - check and don't move
     if (PickToken(state, TokenId::IF))
     {
         opNode = GetIf(state, outErr);
