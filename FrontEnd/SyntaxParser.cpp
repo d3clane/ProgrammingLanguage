@@ -223,7 +223,7 @@ static inline TokenId GetLastTokenId(DescentState* state)
     return state->tokens.data[POS(state)].value.tokenId;
 }
 
-TreeType CodeParse(const char* str, SyntaxParserErrors* outErr)
+void CodeParse(const char* str, SyntaxParserErrors* outErr, FILE* outStream)
 {
     assert(str);
 
@@ -241,11 +241,12 @@ TreeType CodeParse(const char* str, SyntaxParserErrors* outErr)
         *outErr = SyntaxParserErrors::SYNTAX_ERR; 
 
     if (!err)
+    {
         TreeGraphicDump(&expression, true, state.allNamesTable);
+        TreePrintPrefixFormat(&expression, outStream, state.allNamesTable);
+    }
 
     DescentStateDtor(&state);
-    
-    return expression;
 }
 
 static TreeNodeType* GetGrammar(DescentState* state, bool* outErr)
