@@ -15,7 +15,7 @@ enum class LexicalParserErrors
 
 Token TokenCopy(const Token* token);
 Token TokenCreate(TokenValue value, TokenValueType valueType,   const size_t line, 
-                                                                    const size_t pos);
+                                                                const size_t pos);
 
 TokenValue TokenValueCreateName(const char* name);
 TokenValue TokenValueCreateNum(int value);

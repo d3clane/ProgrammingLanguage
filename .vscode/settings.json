@@ -20,6 +20,7 @@
         "__node_handle": "cpp",
         "span": "cpp",
         "string": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "locale": "cpp"
     }
 }

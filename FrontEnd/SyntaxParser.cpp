@@ -11,7 +11,7 @@
 #include "Common/Colors.h"
 #include "Common/Log.h"
 
-struct DescentStorage
+struct DescentState
 {
     TokensArr tokens;
 
@@ -26,17 +26,10 @@ struct DescentStorage
     const char* codeString;
 };
 
-enum class AddVar
-{
-    ADD_TO_GLOBAL,
-    ADD_TO_LOCAL,
-    DONT_ADD,
-};
+static void DescentStateCtor(DescentState* state, const char* codeString);
+static void DescentStateDtor(DescentState* state);
 
-static void DescentStorageCtor(DescentStorage* storage, const char* codeString);
-static void DescentStorageDtor(DescentStorage* storage);
-
-#define POS(storage) storage->tokenPos
+#define POS(state) state->tokenPos
 
 // G                ::= FUNC+ '\0'
 // FUNC             ::= FUNC_DEF
@@ -65,167 +58,47 @@ static void DescentStorageDtor(DescentStorage* storage);
 // NUM              ::= ['0'-'9']+
 // VAR              ::= ['a'-'z' 'A'-'Z' '_']+ ['a'-'z' 'A'-'Z' '_' '0'-'9']*
 
-static inline TreeNodeType* GetVar              (DescentStorage* storage, bool* outErr, AddVar addVarEnum);
-static inline TreeNodeType* GetGrammar          (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetAddSub           (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetType             (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetFuncDef          (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetFunc             (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetFuncVarsDef      (DescentStorage* storage, bool* outErr, AddVar addvarEnum);
-static inline TreeNodeType* GetPrint            (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetRead             (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetVarDef           (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetFuncCall         (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetFuncVarsCall     (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetWhile            (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetIf               (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetOp               (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetAssign           (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetAnd              (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetOr               (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetCmp              (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetMulDiv           (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetPow              (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetMadeFuncCall     (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetInBuiltFuncCall  (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetExpr             (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetArg              (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetNum              (DescentStorage* storage, bool* outErr);
-static inline TreeNodeType* GetReturn           (DescentStorage* storage, bool* outErr);
+static TreeNodeType* GetVar              (DescentState* state, bool* outErr);
+static TreeNodeType* AddVar              (DescentState* state, bool* outErr);
+static TreeNodeType* GetGrammar          (DescentState* state, bool* outErr);
+static TreeNodeType* GetAddSub           (DescentState* state, bool* outErr);
+static TreeNodeType* GetType             (DescentState* state, bool* outErr);
+static TreeNodeType* GetFuncDef          (DescentState* state, bool* outErr);
+static TreeNodeType* GetFunc             (DescentState* state, bool* outErr);
+static TreeNodeType* GetFuncVarsDef      (DescentState* state, bool* outErr);
+static TreeNodeType* GetPrint            (DescentState* state, bool* outErr);
+static TreeNodeType* GetRead             (DescentState* state, bool* outErr);
+static TreeNodeType* GetVarDef           (DescentState* state, bool* outErr);
+static TreeNodeType* GetFuncCall         (DescentState* state, bool* outErr);
+static TreeNodeType* GetFuncVarsCall     (DescentState* state, bool* outErr);
+static TreeNodeType* GetWhile            (DescentState* state, bool* outErr);
+static TreeNodeType* GetIf               (DescentState* state, bool* outErr);
+static TreeNodeType* GetOp               (DescentState* state, bool* outErr);
+static TreeNodeType* GetAssign           (DescentState* state, bool* outErr);
+static TreeNodeType* GetAnd              (DescentState* state, bool* outErr);
+static TreeNodeType* GetOr               (DescentState* state, bool* outErr);
+static TreeNodeType* GetCmp              (DescentState* state, bool* outErr);
+static TreeNodeType* GetMulDiv           (DescentState* state, bool* outErr);
+static TreeNodeType* GetPow              (DescentState* state, bool* outErr);
+static TreeNodeType* GetMadeFuncCall     (DescentState* state, bool* outErr);
+static TreeNodeType* GetBuiltInFuncCall  (DescentState* state, bool* outErr);
+static TreeNodeType* GetExpr             (DescentState* state, bool* outErr);
+static TreeNodeType* GetArg              (DescentState* state, bool* outErr);
+static TreeNodeType* GetNum              (DescentState* state, bool* outErr);
+static TreeNodeType* GetReturn           (DescentState* state, bool* outErr);
 
-static inline Token* T_LAST_TOKEN(const DescentStorage* storage)
+static inline Token* GetLastToken(DescentState* state)
 {
-    return &storage->tokens.data[storage->tokenPos];
+    assert(state);
+
+    return &state->tokens.data[POS(state)];
 }
 
-static inline const char* T_WORD(const DescentStorage* storage)
-{
-    return storage->tokens.data[storage->tokenPos].value.name;
-}
-
-static inline const char* T_WORD(const DescentStorage* storage, const size_t pos)
-{
-    return storage->tokens.data[pos].value.name;
-}
-
-static inline TokenId T_OP(const DescentStorage* storage)
-{
-    return storage->tokens.data[storage->tokenPos].value.tokenId;
-}
-
-static inline TokenId T_OP(const DescentStorage* storage, const size_t pos)
-{
-    return storage->tokens.data[pos].value.tokenId;
-}
-
-static inline int T_NUM(const DescentStorage* storage)
-{
-    return storage->tokens.data[storage->tokenPos].value.num;
-}
-
-static inline int T_NUM(const DescentStorage* storage, const size_t pos)
-{
-    return storage->tokens.data[pos].value.num;
-}
-
-static inline bool T_IS_OP(const DescentStorage* storage)
-{
-    return storage->tokens.data[storage->tokenPos].valueType == TokenValueType::TOKEN;
-}
-
-static inline bool T_IS_OP(const DescentStorage* storage, const size_t pos)
-{
-    return storage->tokens.data[pos].valueType == TokenValueType::TOKEN;
-}
-
-static inline bool T_CMP_OP(const DescentStorage* storage, TokenId tokenId)
-{
-    return T_IS_OP(storage) && T_OP(storage) == tokenId;
-}
-
-static inline bool T_CMP_OP(const DescentStorage* storage, const size_t pos, 
-                            TokenId tokenId)
-{
-    return T_IS_OP(storage, pos) && T_OP(storage, pos) == tokenId;
-}
-
-static inline bool T_IS_NUM(const DescentStorage* storage)
-{
-    return storage->tokens.data[storage->tokenPos].valueType == TokenValueType::NUM;
-}
-
-static inline bool T_IS_NUM(const DescentStorage* storage, const size_t pos)
-{
-    return storage->tokens.data[pos].valueType == TokenValueType::NUM;
-}
-
-static inline bool T_CMP_NUM(const DescentStorage* storage, int value)
-{
-    return T_IS_NUM(storage) && T_NUM(storage) == value;
-}
-
-static inline bool T_CMP_NUM(const DescentStorage* storage, const size_t pos, int value)
-{
-    return T_IS_NUM(storage, pos) && T_NUM(storage, pos) == value;
-}
-
-static inline bool T_IS_VAR(const DescentStorage* storage)
-{
-    return storage->tokens.data[storage->tokenPos].valueType == TokenValueType::NAME;
-}
-
-static inline bool T_IS_VAR(const DescentStorage* storage, const size_t pos)
-{
-    return storage->tokens.data[pos].valueType == TokenValueType::NAME;
-}
-
-static inline bool T_CMP_WORD(const DescentStorage* storage, const char* str)
-{
-    return T_IS_VAR(storage) && strcmp(T_WORD(storage), str) == 0;
-}
-
-static inline bool T_CMP_WORD(const DescentStorage* storage, const size_t pos, const char* str)
-{
-    return T_IS_VAR(storage, pos) && strcmp(T_WORD(storage, pos), str) == 0;
-}
-
-static inline bool T_CMP_WORD(const TokensArr* tokens, const size_t pos, const char* str)
-{
-    return strcmp(tokens->data[pos].value.name, str) == 0;
-}
-
-TreeType CodeParse(const char* str, SyntaxParserErrors* outErr)
-{
-    assert(str);
-
-    TreeType expression = {};
-
-    DescentStorage storage = {};
-    DescentStorageCtor(&storage, str);
-
-    ParseOnTokens(str, &storage.tokens);
-
-    bool err = false;
-    expression.root = GetGrammar(&storage, &err);
-
-    if (err)
-        *outErr = SyntaxParserErrors::SYNTAX_ERR; 
-
-    if (!err)
-        TreeGraphicDump(&expression, true, storage.allNamesTable);
-
-    DescentStorageDtor(&storage);
-    
-    return expression;
-}
-
-//-------------------Recursive descent-----------------
-
-#define SynAssert(storage, statement, outErr)               \
+#define SynAssert(state, statement, outErr)               \
 do                                                          \
 {                                                           \
     assert(outErr);                                         \
-    SYN_ASSERT(storage, statement, outErr);                 \
+    SYN_ASSERT(state, statement, outErr);                 \
     /*printf("func - %s, line - %d\n", __func__, __LINE__);*/  \
     LOG_BEGIN();                                            \
     Log("func - %s, line - %d\n", __func__, __LINE__);      \
@@ -243,807 +116,825 @@ do                                                      \
     }                                                   \
 } while (0)
 
-static inline void SYN_ASSERT(DescentStorage* storage, bool statement, bool* outErr)
+static inline void SYN_ASSERT(DescentState* state, bool statement, bool* outErr)
 {
-    assert(storage);
+    assert(state);
     assert(outErr);
 
     if (statement)
         return;
 
-    printf(RED_TEXT("Syntax error in line %zu, pos %zu\n"), T_LAST_TOKEN(storage)->line,
-                                                            T_LAST_TOKEN(storage)->pos);
+    printf(RED_TEXT("Syntax error in line %zu, pos %zu\n"), GetLastToken(state)->line,
+                                                            GetLastToken(state)->pos);
     *outErr = true;
 }
 
-
-
-static inline TreeNodeType* GetGrammar(DescentStorage* storage, bool* outErr)
+static inline bool PickToken(DescentState* state, TokenId tokenId)
 {
-    assert(storage);
-    assert(outErr);
+    assert(state);
 
-    TreeNodeType* root = GetFunc(storage, outErr);
-    IF_ERR_RET(outErr, root, nullptr);
+    if (state->tokens.data[POS(state)].valueType     == TokenValueType::TOKEN &&
+        state->tokens.data[POS(state)].value.tokenId == tokenId)
+        return true;
+    
+    return false;
+}
 
-    while (!T_CMP_OP(storage, TokenId::PROGRAMM_END))
+static inline bool PickNum(DescentState* state)
+{
+    assert(state);
+
+    if (state->tokens.data[POS(state)].valueType == TokenValueType::NUM)
+        return true;
+
+    return false;
+}
+
+static inline bool PickName(DescentState* state)
+{
+    assert(state);
+
+    if (state->tokens.data[POS(state)].valueType == TokenValueType::NAME)
+        return true;
+
+    return false;
+}
+
+static inline bool ConsumeToken(DescentState* state, TokenId tokenId, bool* outErr)
+{
+    assert(state);
+
+    if (PickToken(state, tokenId))
     {
-        TreeNodeType* tmpNode = GetFunc(storage, outErr);
-        IF_ERR_RET(outErr, root, tmpNode);
+        POS(state)++;
 
-        root = _NEW_FUNC(root, tmpNode);
+        return true;
     }
 
-    SynAssert(storage, T_CMP_OP(storage, TokenId::PROGRAMM_END), outErr);
+    SynAssert(state, false, outErr);
+    *outErr = true;
+    return false;
+}
+
+static inline bool ConsumeNum(DescentState* state)
+{
+    assert(state);
+
+    if (PickNum(state))
+    {
+        POS(state)++;
+
+        return true;
+    }
+
+    return false;
+}
+
+static inline bool ConsumeName(DescentState* state)
+{
+    assert(state);
+
+    if (PickName(state))
+    {
+        POS(state)++;
+
+        return true;
+    }
+
+    return false;
+}
+
+static inline bool PickTokenOnPos(DescentState* state, const size_t pos, TokenId tokenId)
+{
+    assert(state);
+
+    if (state->tokens.data[pos].valueType     == TokenValueType::TOKEN &&
+        state->tokens.data[pos].value.tokenId == tokenId)
+        return true;
+    
+    return false;
+}
+
+static inline TokenId GetLastTokenId(DescentState* state)
+{
+    assert(state);
+    assert(state->tokens.data[POS(state)].valueType == TokenValueType::TOKEN);
+
+    return state->tokens.data[POS(state)].value.tokenId;
+}
+
+TreeType CodeParse(const char* str, SyntaxParserErrors* outErr)
+{
+    assert(str);
+
+    TreeType expression = {};
+
+    DescentState state = {};
+    DescentStateCtor(&state, str);
+
+    ParseOnTokens(str, &state.tokens);
+
+    bool err = false;
+    expression.root = GetGrammar(&state, &err);
+
+    if (err)
+        *outErr = SyntaxParserErrors::SYNTAX_ERR; 
+
+    if (!err)
+        TreeGraphicDump(&expression, true, state.allNamesTable);
+
+    DescentStateDtor(&state);
+    
+    return expression;
+}
+
+static TreeNodeType* GetGrammar(DescentState* state, bool* outErr)
+{
+    assert(state);
+    assert(outErr);
+
+    TreeNodeType* root = GetFunc(state, outErr);
+    IF_ERR_RET(outErr, root, nullptr);
+
+    while (!PickToken(state, TokenId::PROGRAMM_END))
+    {
+        TreeNodeType* tmpNode = GetFunc(state, outErr);
+        IF_ERR_RET(outErr, root, tmpNode);
+
+        root = MAKE_NEW_FUNC_NODE(root, tmpNode);
+    }
+
+    SynAssert(state, PickToken(state, TokenId::PROGRAMM_END), outErr);
     IF_ERR_RET(outErr, root, nullptr);
 
     return root;
 }
 
-static inline TreeNodeType* GetFunc(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetFunc(DescentState* state, bool* outErr)
 {
-    TreeNodeType* node = GetFuncDef(storage, outErr);
+    TreeNodeType* node = GetFuncDef(state, outErr);
     IF_ERR_RET(outErr, node, nullptr);
 
     return node;
 }
 
-static inline TreeNodeType* GetFuncDef(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetFuncDef(DescentState* state, bool* outErr)
 {
     NameTableType* localNameTable = nullptr;
     NameTableCtor(&localNameTable);
 
     TreeNodeType* func = nullptr;
 
-    TreeNodeType* typeNode = GetType(storage, outErr);
+    TreeNodeType* typeNode = GetType(state, outErr);
     IF_ERR_RET(outErr, typeNode, nullptr);
 
-    TreeNodeType* funcName = GetVar(storage, outErr, AddVar::ADD_TO_GLOBAL);
+    TreeNodeType* funcName = AddVar(state, outErr);
     IF_ERR_RET(outErr, typeNode, funcName);
     
     //TODO: create set table function maybe
-    storage->globalTable->data[funcName->value.varId].localNameTable = (void*)localNameTable;
-    storage->currentLocalTable = localNameTable;
-    func = _FUNC(funcName);
+    state->globalTable->data[funcName->value.varId].localNameTable = (void*)localNameTable;
+    state->currentLocalTable = localNameTable;
+    func = MAKE_FUNC_NODE(funcName);
 
-    TreeNodeType* funcVars = GetFuncVarsDef(storage, outErr, AddVar::ADD_TO_LOCAL);
+    TreeNodeType* funcVars = GetFuncVarsDef(state, outErr);
     funcName->left = funcVars;
     IF_ERR_RET(outErr, func, typeNode);
 
     //TODO: consume func instead of 3 code lines 
-    SynAssert(storage, T_CMP_OP(storage, TokenId::FIFTY_SEVEN), outErr);
+    SynAssert(state, PickToken(state, TokenId::FIFTY_SEVEN), outErr);
     IF_ERR_RET(outErr, func, typeNode); //Checking for function code start
     
-    TreeNodeType* funcCode = GetOp(storage, outErr);
+    TreeNodeType* funcCode = GetOp(state, outErr);
     funcName->right = funcCode;
     IF_ERR_RET(outErr, func, typeNode);
 
-    /*SynAssert(storage, T_IS_K_WORD(storage) && T_CMP_WORD(storage, "5757"), outErr);
+    /*SynAssert(state, T_IS_K_WORD(state) && T_CMP_WORD(state, "5757"), outErr);
     IF_ERR_RET(outErr, func, typeNode);
-    POS(storage)++;*/ 
+    POS(state)++;*/ 
     // OP HAS ALREADY CHECKED AND MOVED
 
-    func = _TYPE(typeNode, func);
+    func = MAKE_TYPE_NODE(typeNode, func);
 
     return func;
 }
 
-/*static inline TreeNodeType* GetFuncDecl(DescentStorage* storage, bool* outErr)
+/*static TreeNodeType* GetFuncDecl(DescentState* state, bool* outErr)
 {
     TreeNodeType* func = nullptr;
 
-    TreeNodeType* typeNode = GetType(storage, outErr);
+    TreeNodeType* typeNode = GetType(state, outErr);
     IF_ERR_RET(outErr, typeNode, nullptr);
 
-    TreeNodeType* funcName = GetVar(storage, outErr, AddVar::ADD_TO_GLOBAL);
+    TreeNodeType* funcName = GetVar(state, outErr, AddVar::ADD_TO_GLOBAL);
     IF_ERR_RET(outErr, typeNode, funcName);
 
-    func = _FUNC(funcName);
+    func = MAKE_FUNC_NODE(funcName);
 
-    SynAssert(storage, T_CMP_OP(storage, TokenId::FIFTY_SEVEN), outErr);
+    SynAssert(state, T_CMP_OP(state, TokenId::FIFTY_SEVEN), outErr);
     IF_ERR_RET(outErr, func, typeNode);
-    POS(storage)++;
+    POS(state)++;
 
-    TreeNodeType* funcVars = GetFuncVarsDef(storage, outErr, AddVar::DONT_ADD);
+    TreeNodeType* funcVars = GetFuncVarsDef(state, outErr, AddVar::DONT_ADD);
     funcName->left = funcVars;
     IF_ERR_RET(outErr, func, typeNode);
 
-    SynAssert(storage, T_CMP_OP(storage, TokenId::FIFTY_SEVEN), outErr);
+    SynAssert(state, T_CMP_OP(state, TokenId::FIFTY_SEVEN), outErr);
     IF_ERR_RET(outErr, func, typeNode);
-    POS(storage)++;
+    POS(state)++;
 
-    func = _TYPE(typeNode, func);
+    func = MAKE_TYPE_NODE(typeNode, func);
 
     return func;
 }*/
 
-static inline TreeNodeType* GetType(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetType(DescentState* state, bool* outErr)
 {
-    if (T_CMP_OP(storage, TokenId::TYPE_INT))
-    {
-        POS(storage)++;
-        return TreeNodeCreate(TreeNodeOpValueCreate(TreeOperationId::TYPE_INT), 
-                                                        TreeNodeValueTypeof::OPERATION);
-    }
-    
-
-    SynAssert(storage, false, outErr);
+    ConsumeToken(state, TokenId::TYPE_INT, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
-    return nullptr;
+    return TreeNodeCreate(TreeNodeOpValueCreate(TreeOperationId::TYPE_INT), 
+                                                    TreeNodeValueTypeof::OPERATION);
 }
 
-static inline TreeNodeType* GetFuncVarsDef(DescentStorage* storage, bool* outErr,
-                                                                    AddVar addVarEnum)
+static TreeNodeType* GetFuncVarsDef(DescentState* state, bool* outErr)
 {
     TreeNodeType* varsDefNode = nullptr;
         
-    if (!T_CMP_OP(storage, TokenId::TYPE_INT))
+    if (!PickToken(state, TokenId::TYPE_INT))
         return nullptr;
     
-    TreeNodeType* varType = GetType(storage, outErr);
+    TreeNodeType* varType = GetType(state, outErr);
     IF_ERR_RET(outErr, varType, nullptr);
     
-    TreeNodeType* varName = GetVar(storage, outErr, addVarEnum);
+    TreeNodeType* varName = AddVar(state, outErr);
     IF_ERR_RET(outErr, varType, varName);
 
-    varsDefNode = _TYPE(varType, varName);
+    varsDefNode = MAKE_TYPE_NODE(varType, varName);
 
-    while (!(T_CMP_OP(storage, TokenId::FIFTY_SEVEN)))
+    while (!PickToken(state, TokenId::FIFTY_SEVEN))
     {
-        varType = GetType(storage, outErr);
+        varType = GetType(state, outErr);
         IF_ERR_RET(outErr, varsDefNode, varType);
 
-        varName = GetVar(storage, outErr, addVarEnum);
-        TreeNodeType* tmpVar = _TYPE(varType, varName);
+        varName = AddVar(state, outErr);
+        TreeNodeType* tmpVar = MAKE_TYPE_NODE(varType, varName);
         IF_ERR_RET(outErr, tmpVar, varsDefNode);
 
-        varsDefNode = _COMMA(varsDefNode, tmpVar);
+        varsDefNode = MAKE_COMMA_NODE(varsDefNode, tmpVar);
     }
 
     return varsDefNode;
 }
 
-static inline TreeNodeType* GetOp(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetOp(DescentState* state, bool* outErr)
 {
     TreeNodeType* opNode = nullptr;
 
     //TODO: peek - check and don't move
-    if (T_CMP_OP(storage, TokenId::IF))
+    if (PickToken(state, TokenId::IF))
     {
-        opNode = GetIf(storage, outErr);
+        opNode = GetIf(state, outErr);
         IF_ERR_RET(outErr, opNode, nullptr);
 
         return opNode;
     }
-    else if (T_CMP_OP(storage, TokenId::WHILE))
+    else if (PickToken(state, TokenId::WHILE))
     {
-        opNode = GetWhile(storage, outErr);
+        opNode = GetWhile(state, outErr);
         IF_ERR_RET(outErr, opNode, nullptr);
 
         return opNode;
     }
-    else if (T_CMP_OP(storage, TokenId::L_BRACE))
-        opNode = GetPrint(storage, outErr);
-    else if (T_CMP_OP(storage, TokenId::TYPE_INT))
-        opNode = GetVarDef(storage, outErr);
-    else if (T_CMP_OP(storage, storage->tokenPos + 1, TokenId::ASSIGN))
-        opNode = GetAssign(storage, outErr);
-    else if (T_CMP_OP(storage, TokenId::FIFTY_SEVEN))
+    else if (PickToken(state, TokenId::L_BRACE))
+        opNode = GetPrint(state, outErr);
+    else if (PickToken(state, TokenId::TYPE_INT))
+        opNode = GetVarDef(state, outErr);
+    else if (PickTokenOnPos(state, state->tokenPos + 1, TokenId::ASSIGN))
+        opNode = GetAssign(state, outErr);
+    else if (PickToken(state, TokenId::FIFTY_SEVEN))
     {
-        POS(storage)++;
+        ConsumeToken(state, TokenId::FIFTY_SEVEN, outErr);
+        IF_ERR_RET(outErr, opNode, nullptr);
 
-        TreeNodeType* jointNode = _LINE_END(nullptr, nullptr);
+        TreeNodeType* jointNode = MAKE_LINE_END_NODE(nullptr, nullptr);
         opNode = jointNode;
         while (true)
         {
             //printf(RED_TEXT("Going in op recursively\n"));
-            TreeNodeType* opInNode = GetOp(storage, outErr);
+            TreeNodeType* opInNode = GetOp(state, outErr);
             IF_ERR_RET(outErr, opNode, opInNode);
 
             jointNode->left = opInNode;
 
-            if (T_CMP_OP(storage, TokenId::L_BRACE) && 
-                !T_CMP_OP(storage, storage->tokenPos + 2, TokenId::FIFTY_SEVEN))
+            if (PickToken(state, TokenId::L_BRACE) && 
+                !PickTokenOnPos(state, state->tokenPos + 2, TokenId::FIFTY_SEVEN))
                 break;
 
-            jointNode->right = _LINE_END(nullptr, nullptr);
+            jointNode->right = MAKE_LINE_END_NODE(nullptr, nullptr);
             jointNode        = jointNode->right;
         }
 
         //printf(GREEN_TEXT("OUT OF RECURSION\n"));
 
-        SynAssert(storage, T_CMP_OP(storage, TokenId::L_BRACE), outErr);
+        ConsumeToken(state, TokenId::L_BRACE, outErr);
         IF_ERR_RET(outErr, opNode, nullptr);
-        POS(storage)++;
 
         return opNode;
     }
     else
-        opNode = GetReturn(storage, outErr);
+        opNode = GetReturn(state, outErr);
 
     IF_ERR_RET(outErr, opNode, nullptr);
 
-    SynAssert(storage, T_CMP_OP(storage, TokenId::FIFTY_SEVEN), outErr);
+    ConsumeToken(state, TokenId::FIFTY_SEVEN, outErr);
     IF_ERR_RET(outErr, opNode, nullptr);
-    POS(storage)++;
 
     return opNode;
 }
 
-static inline TreeNodeType* GetReturn(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetReturn(DescentState* state, bool* outErr)
 {
-    return _RETURN(GetOr(storage, outErr));
+    return MAKE_RETURN_NODE(GetOr(state, outErr));
 }
 
-static inline TreeNodeType* GetIf(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetIf(DescentState* state, bool* outErr)
 {
-    SynAssert(storage, T_CMP_OP(storage, TokenId::IF), outErr);
+    ConsumeToken(state, TokenId::IF, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
-    POS(storage)++;
 
-    TreeNodeType* condition = GetOr(storage, outErr);
+    TreeNodeType* condition = GetOr(state, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
 
-    SynAssert(storage, T_CMP_OP(storage, TokenId::FIFTY_SEVEN), outErr);
+    ConsumeToken(state, TokenId::FIFTY_SEVEN, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
-    POS(storage)++;
 
-    TreeNodeType* op = GetOp(storage, outErr);
+    TreeNodeType* op = GetOp(state, outErr);
     IF_ERR_RET(outErr, condition, op);
 
-    return _IF(condition, op);
+    return MAKE_IF_NODE(condition, op);
 }
 
-static inline TreeNodeType* GetWhile(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetWhile(DescentState* state, bool* outErr)
 {
-    SynAssert(storage, T_CMP_OP(storage, TokenId::WHILE), outErr);
+    ConsumeToken(state, TokenId::WHILE, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
-    POS(storage)++;
 
-    TreeNodeType* condition = GetOr(storage, outErr);
+    TreeNodeType* condition = GetOr(state, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
 
-    SynAssert(storage, T_CMP_OP(storage, TokenId::FIFTY_SEVEN), outErr);
+    ConsumeToken(state, TokenId::FIFTY_SEVEN, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
-    POS(storage)++;
 
-    TreeNodeType* op = GetOp(storage, outErr);
+    TreeNodeType* op = GetOp(state, outErr);
     IF_ERR_RET(outErr, condition, op);
 
-    return _WHILE(condition, op);
+    return MAKE_WHILE_NODE(condition, op);
 }
 
-static inline TreeNodeType* GetVarDef(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetVarDef(DescentState* state, bool* outErr)
 {
-    TreeNodeType* typeNode = GetType(storage, outErr);
+    TreeNodeType* typeNode = GetType(state, outErr);
     IF_ERR_RET(outErr, typeNode, nullptr);
 
-    TreeNodeType* varName = GetVar(storage, outErr, AddVar::ADD_TO_LOCAL);
+    TreeNodeType* varName = AddVar(state, outErr);
     IF_ERR_RET(outErr, typeNode, varName);
 
-    SynAssert(storage, T_CMP_OP(storage, TokenId::ASSIGN), outErr);
+    ConsumeToken(state, TokenId::ASSIGN, outErr);
     IF_ERR_RET(outErr, typeNode, varName);
-    POS(storage)++;
 
-    TreeNodeType* expr = GetOr(storage, outErr);
-    TreeNodeType* assign = _ASSIGN(varName, expr);
+    TreeNodeType* expr   = GetOr(state, outErr);
+    TreeNodeType* assign = MAKE_ASSIGN_NODE(varName, expr);
     IF_ERR_RET(outErr, expr, typeNode);
 
-    return _TYPE(typeNode, assign);
+    return MAKE_TYPE_NODE(typeNode, assign);
 }
 
-static inline TreeNodeType* GetExpr(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetExpr(DescentState* state, bool* outErr)
 {
-    if (!T_CMP_OP(storage, TokenId::L_BRACKET))
-        return GetArg(storage, outErr);
+    if (!PickToken(state, TokenId::L_BRACKET))
+        return GetArg(state, outErr);
 
-    POS(storage)++;
+    ConsumeToken(state, TokenId::L_BRACKET, outErr);
+    IF_ERR_RET(outErr, nullptr, nullptr);
     
-    TreeNodeType* inBracketsExpr = GetOr(storage, outErr);
+    TreeNodeType* inBracketsExpr = GetOr(state, outErr);
     IF_ERR_RET(outErr, inBracketsExpr, nullptr);
 
-    SynAssert(storage, T_CMP_OP(storage, TokenId::R_BRACKET), outErr);
+    ConsumeToken(state, TokenId::R_BRACKET, outErr); //Здесь изменение, раньше не было сдвига pos, предполагаю что баг
     IF_ERR_RET(outErr, inBracketsExpr, nullptr);
 
     return inBracketsExpr;
 }
 
-static inline TreeNodeType* GetPrint(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetPrint(DescentState* state, bool* outErr)
 {
-    SynAssert(storage, T_CMP_OP(storage, TokenId::L_BRACE), outErr);
+    ConsumeToken(state, TokenId::L_BRACE, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
-    POS(storage)++;
 
-    TreeNodeType* arg = GetArg(storage, outErr);
+    TreeNodeType* arg = GetArg(state, outErr);
     IF_ERR_RET(outErr, arg, nullptr);
 
-    return _PRINT(arg);
+    return MAKE_PRINT_NODE(arg);
 }
 
-static inline TreeNodeType* GetRead(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetRead(DescentState* state, bool* outErr)
 {
-    SynAssert(storage, T_CMP_OP(storage, TokenId::L_BRACE), outErr);
+    ConsumeToken(state, TokenId::L_BRACE, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
-    POS(storage)++;
 
-    return _READ(nullptr, nullptr);
+    return MAKE_READ_NODE(nullptr, nullptr);
 }
 
-static inline TreeNodeType* GetAssign(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetAssign(DescentState* state, bool* outErr)
 {
-    TreeNodeType* var = GetVar(storage, outErr, AddVar::DONT_ADD);
+    TreeNodeType* var = GetVar(state, outErr);
     IF_ERR_RET(outErr, var, nullptr);
 
-    SynAssert(storage, T_CMP_OP(storage, TokenId::ASSIGN), outErr);
+    ConsumeToken(state, TokenId::ASSIGN, outErr);
     IF_ERR_RET(outErr, var, nullptr);
-    POS(storage)++;
 
-    TreeNodeType* rightExpr = GetOr(storage, outErr);
+    TreeNodeType* rightExpr = GetOr(state, outErr);
     IF_ERR_RET(outErr, rightExpr, var);
 
-    return _ASSIGN(var, rightExpr);
+    return MAKE_ASSIGN_NODE(var, rightExpr);
 }
 
-static inline TreeNodeType* GetMadeFuncCall(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetMadeFuncCall(DescentState* state, bool* outErr)
 {
-    TreeNodeType* funcName = GetVar(storage, outErr, AddVar::DONT_ADD);
+    TreeNodeType* funcName = GetVar(state, outErr);
     IF_ERR_RET(outErr, funcName, nullptr);
 
-    SynAssert(storage, T_CMP_OP(storage, TokenId::L_BRACE), outErr);
+    ConsumeToken(state, TokenId::L_BRACE, outErr);
     IF_ERR_RET(outErr, funcName, nullptr);
-    POS(storage)++;
 
-    TreeNodeType* funcVars = GetFuncVarsCall(storage, outErr);
+    TreeNodeType* funcVars = GetFuncVarsCall(state, outErr);
     IF_ERR_RET(outErr, funcName, funcVars);
     funcName->left = funcVars;
 
-    SynAssert(storage, T_CMP_OP(storage, TokenId::FIFTY_SEVEN), outErr);
+    ConsumeToken(state, TokenId::FIFTY_SEVEN, outErr);
     IF_ERR_RET(outErr, funcName, funcVars);
-    POS(storage)++;
 
-    return _FUNC_CALL(funcName);
+    return MAKE_FUNC_CALL_NODE(funcName);
 }
 
-static inline TreeNodeType* GetFuncVarsCall(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetFuncVarsCall(DescentState* state, bool* outErr)
 {
-    if (T_CMP_OP(storage, TokenId::FIFTY_SEVEN))
+    if (PickToken(state, TokenId::FIFTY_SEVEN))
         return nullptr;
-    
-    TreeNodeType* vars = GetOr(storage, outErr);
+
+    TreeNodeType* vars = GetOr(state, outErr);
     IF_ERR_RET(outErr, vars, nullptr);
 
-    while (T_IS_NUM(storage) || T_IS_VAR(storage))
+    while (!PickToken(state, TokenId::FIFTY_SEVEN))
     {
-        TreeNodeType* tmpVar = GetOr(storage, outErr);
+        TreeNodeType* tmpVar = GetOr(state, outErr);
         IF_ERR_RET(outErr, vars, tmpVar);
 
-        vars = _COMMA(vars, tmpVar);
+        vars = MAKE_COMMA_NODE(vars, tmpVar);
     }
     
     return vars;
 }
 
-static inline TreeNodeType* GetOr(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetOr(DescentState* state, bool* outErr)
 {
-    TreeNodeType* allExpr = GetAnd(storage, outErr);
+    TreeNodeType* allExpr = GetAnd(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
-    while (T_CMP_OP(storage, TokenId::OR))
+    while (PickToken(state, TokenId::OR))
     {
-        POS(storage)++;
+        ConsumeToken(state, TokenId::OR, outErr);
+        IF_ERR_RET(outErr, allExpr, nullptr);
 
-        TreeNodeType* tmpExpr = GetAnd(storage, outErr);
+        TreeNodeType* tmpExpr = GetAnd(state, outErr);
         IF_ERR_RET(outErr, tmpExpr, allExpr);
 
-        allExpr = _OR(allExpr, tmpExpr);
+        allExpr = MAKE_OR_NODE(allExpr, tmpExpr);
     }
 
     return allExpr;
 }
 
-static inline TreeNodeType* GetAnd(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetAnd(DescentState* state, bool* outErr)
 {
-    TreeNodeType* allExpr = GetCmp(storage, outErr);
+    TreeNodeType* allExpr = GetCmp(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
-    while (T_CMP_OP(storage, TokenId::AND))
+    while (PickToken(state, TokenId::AND))
     {
-        POS(storage)++;
+        ConsumeToken(state, TokenId::OR, outErr);
+        IF_ERR_RET(outErr, allExpr, nullptr);
 
-        TreeNodeType* tmpExpr = GetCmp(storage, outErr);
+        TreeNodeType* tmpExpr = GetCmp(state, outErr);
         IF_ERR_RET(outErr, tmpExpr, allExpr);
 
-        allExpr = _AND(allExpr, tmpExpr);
+        allExpr = MAKE_AND_NODE(allExpr, tmpExpr);
     }
 
     return allExpr;
 }
 
-static inline int GetCmpOp(DescentStorage* storage)
+static TreeNodeType* GetCmp(DescentState* state, bool* outErr)
 {
-    int myOp = -1;
-
-    #define GENERATE_CMD(NAME)                          \
-        if (T_CMP_OP(storage, TokenId::NAME))   \
-            myOp = (int)TokenId::NAME;          \
-        else
-    
-    GENERATE_CMD(LESS)
-    GENERATE_CMD(LESS_EQ)
-    GENERATE_CMD(GREATER)
-    GENERATE_CMD(GREATER_EQ)
-    GENERATE_CMD(EQ)
-    GENERATE_CMD(NOT_EQ)
-
-    /* else */
-    {
-        myOp = -1;
-    }
-
-    #undef GENERATE_CMD
-
-    return myOp;
-}
-
-static inline TreeNodeType* GetCmp(DescentStorage* storage, bool* outErr)
-{
-    TreeNodeType* allExpr = GetAddSub(storage, outErr);
+    TreeNodeType* allExpr = GetAddSub(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
-    int myOp = GetCmpOp(storage);
-
-    while (myOp != -1)
+    while (PickToken(state, TokenId::LESS)    || PickToken(state, TokenId::LESS_EQ)     ||
+           PickToken(state, TokenId::GREATER) || PickToken(state, TokenId::GREATER_EQ)  ||
+           PickToken(state, TokenId::EQ)      || PickToken(state, TokenId::NOT_EQ))
     {
-        POS(storage)++;
+        TokenId tokenId = GetLastTokenId(state);
+        POS(state)++;
 
-        TreeNodeType* newExpr = GetAddSub(storage, outErr);
+        TreeNodeType* newExpr = GetAddSub(state, outErr);
         IF_ERR_RET(outErr, allExpr, newExpr);
 
-        #define GENERATE_CMD(NAME)                      \
-            if (myOp == (int)TokenId::NAME)     \
-                allExpr = _##NAME(allExpr, newExpr);    \
-            else 
+        switch (tokenId)
+        {
+            case TokenId::LESS:
+                allExpr = MAKE_LESS_NODE(allExpr, newExpr);
+                break;
+
+            case TokenId::LESS_EQ:
+                allExpr = MAKE_LESS_EQ_NODE(allExpr, newExpr);
+                break;
+            
+            case TokenId::GREATER:
+                allExpr = MAKE_GREATER_NODE(allExpr, newExpr);
+                break;
+
+            case TokenId::GREATER_EQ:
+                allExpr = MAKE_GREATER_EQ_NODE(allExpr, newExpr);
+                break;
+
+            case TokenId::EQ:
+                allExpr = MAKE_EQ_NODE(allExpr, newExpr);
+                break;
+
+            case TokenId::NOT_EQ:
+                allExpr = MAKE_NOT_EQ_NODE(allExpr, newExpr);
+                break;
+            default:
+                SynAssert(state, false, outErr);
+                IF_ERR_RET(outErr, allExpr, newExpr);
+                break;
+        }
+    }
+
+    return allExpr;
+}
+
+static TreeNodeType* GetAddSub(DescentState* state, bool* outErr)
+{
+    TreeNodeType* allExpr = GetMulDiv(state, outErr);
+    IF_ERR_RET(outErr, allExpr, nullptr);
+
+    while (PickToken(state, TokenId::ADD) || PickToken(state, TokenId::SUB))
+    {
+        TokenId tokenId = GetLastTokenId(state);
+        POS(state)++;
+
+        TreeNodeType* newExpr = GetMulDiv(state, outErr);
+        IF_ERR_RET(outErr, allExpr, newExpr);
+
+        switch (tokenId)
+        {
+            case TokenId::ADD:
+                allExpr = MAKE_ADD_NODE(allExpr, newExpr);
+                break;
+            
+            case TokenId::SUB:
+                allExpr = MAKE_SUB_NODE(allExpr, newExpr);
+                break;
+
+            default:
+                SynAssert(state, false, outErr);
+                IF_ERR_RET(outErr, allExpr, newExpr);
+                break;
+        }
+    }
+
+    return allExpr;
+}
+
+static TreeNodeType* GetMulDiv(DescentState* state, bool* outErr)
+{
+    TreeNodeType* allExpr = GetPow(state, outErr);
+    IF_ERR_RET(outErr, allExpr, nullptr);
+
+    while (PickToken(state, TokenId::MUL) || PickToken(state, TokenId::DIV))
+    {
+        TokenId tokenId = GetLastTokenId(state);
+        POS(state)++;
+
+        TreeNodeType* newExpr = GetPow(state, outErr);
+        IF_ERR_RET(outErr, allExpr, newExpr);
+
+        switch (tokenId)
+        {
+            case TokenId::MUL:
+                allExpr = MAKE_MUL_NODE(allExpr, newExpr);
+                break;
+            
+            case TokenId::DIV:
+                allExpr = MAKE_DIV_NODE(allExpr, newExpr);
+                break;
+
+            default:
+                SynAssert(state, false, outErr);
+                IF_ERR_RET(outErr, allExpr, newExpr);
+                break;
+        }
+    }
+
+    return allExpr;
+}
+
+static TreeNodeType* GetPow(DescentState* state, bool* outErr)
+{
+    TreeNodeType* allExpr = GetFuncCall(state, outErr);
+    IF_ERR_RET(outErr, allExpr, nullptr);
+
+    while (PickToken(state, TokenId::POW))
+    {
+        TokenId tokenId = GetLastTokenId(state);
+        POS(state)++;
+
+        TreeNodeType* newExpr = GetFuncCall(state, outErr);
+        IF_ERR_RET(outErr, allExpr, newExpr);
         
-        GENERATE_CMD(LESS)
-        GENERATE_CMD(LESS_EQ)
-        GENERATE_CMD(GREATER)
-        GENERATE_CMD(GREATER_EQ)
-        GENERATE_CMD(EQ)
-        GENERATE_CMD(NOT_EQ)
-
-        /* else */
-        {
-            SynAssert(storage, false, outErr);
-            IF_ERR_RET(outErr, allExpr, newExpr);
-        }
-
-        #undef GENERATE_CMD
-
-        myOp = GetCmpOp(storage);
+        assert(tokenId == TokenId::POW);
+        allExpr = MAKE_POW_NODE(allExpr, newExpr);
     }
 
     return allExpr;
 }
 
-static inline int GetAddSubOp(DescentStorage* storage)
+static TreeNodeType* GetFuncCall(DescentState* state, bool* outErr)
 {
-    int myOp = -1;
+    if (PickToken(state, TokenId::SIN)  || PickToken(state, TokenId::COS) ||
+        PickToken(state, TokenId::TAN)  || PickToken(state, TokenId::COT) ||
+        PickToken(state, TokenId::SQRT) || PickToken(state, TokenId::L_BRACE))
+        return GetBuiltInFuncCall(state, outErr);
 
-    if (T_CMP_OP(storage, TokenId::ADD))
-        myOp = (int)TokenId::ADD;
-    else if (T_CMP_OP(storage, TokenId::SUB))
-        myOp = (int)TokenId::SUB;
-    else
-        myOp = -1;
+    if (PickTokenOnPos(state, state->tokenPos + 1, TokenId::L_BRACE))
+        return GetMadeFuncCall(state, outErr);
     
-    return myOp;
+    return GetArg(state, outErr);
 }
 
-static inline TreeNodeType* GetAddSub(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetBuiltInFuncCall(DescentState* state, bool* outErr)
 {
-    TreeNodeType* allExpr = GetMulDiv(storage, outErr);
-    IF_ERR_RET(outErr, allExpr, nullptr);
+    if (PickToken(state, TokenId::L_BRACE))
+        return GetRead(state, outErr);
 
-    int myOp = GetAddSubOp(storage);
+    if (!(PickToken(state, TokenId::SIN) || PickToken(state, TokenId::COS) ||
+          PickToken(state, TokenId::TAN) || PickToken(state, TokenId::COT) ||
+          PickToken(state, TokenId::SQRT)))
+        return GetExpr(state, outErr);
 
-    while (myOp != -1)
-    {
-        POS(storage)++;
+    TokenId tokenId = GetLastTokenId(state);
 
-        TreeNodeType* newExpr = GetMulDiv(storage, outErr);
-        IF_ERR_RET(outErr, allExpr, newExpr);
-
-        if (myOp == (int)TokenId::ADD)
-            allExpr = _ADD(allExpr, newExpr);
-        else if (myOp == (int)TokenId::SUB)
-            allExpr = _SUB(allExpr, newExpr);
-        else 
-        {
-            SynAssert(storage, false, outErr);
-            IF_ERR_RET(outErr, allExpr, newExpr);
-        }
-
-        myOp = GetAddSubOp(storage);
-    }
-
-    return allExpr;
-}
-
-static inline int GetMulDivOp(DescentStorage* storage)
-{
-    int myOp = -1;
-
-    if (T_CMP_OP(storage, TokenId::MUL))
-        myOp = (int)TokenId::MUL;
-    else if (T_CMP_OP(storage, TokenId::DIV))
-        myOp = (int)TokenId::DIV;
-    else
-        myOp = -1;
-    
-    return myOp;
-}
-
-static inline TreeNodeType* GetMulDiv(DescentStorage* storage, bool* outErr)
-{
-    TreeNodeType* allExpr = GetPow(storage, outErr);
-    IF_ERR_RET(outErr, allExpr, nullptr);
-
-    int myOp = GetMulDivOp(storage);
-
-    while (myOp != -1)
-    {
-        POS(storage)++;
-
-        TreeNodeType* newExpr = GetPow(storage, outErr);
-        IF_ERR_RET(outErr, allExpr, newExpr);
-
-        if (myOp == (int)TokenId::MUL)
-            allExpr = _MUL(allExpr, newExpr);
-        else if (myOp == (int)TokenId::DIV)
-            allExpr = _DIV(allExpr, newExpr);
-        else 
-        {
-            SynAssert(storage, false, outErr);
-            IF_ERR_RET(outErr, allExpr, newExpr);
-        }
-
-        myOp = GetMulDivOp(storage);
-    }
-
-    return allExpr;
-}
-
-static inline int GetPowOp(DescentStorage* storage)
-{
-    int myOp = -1;
-
-    if (T_CMP_OP(storage, TokenId::POW))
-        myOp = (int)TokenId::POW;
-    else
-        myOp = -1;
-    
-    return myOp;
-}
-
-static inline TreeNodeType* GetPow(DescentStorage* storage, bool* outErr)
-{
-    TreeNodeType* allExpr = GetFuncCall(storage, outErr);
-    IF_ERR_RET(outErr, allExpr, nullptr);
-
-    int myOp = GetPowOp(storage);
-
-    while (myOp != -1)
-    {
-        POS(storage)++;
-
-        TreeNodeType* newExpr = GetFuncCall(storage, outErr);
-        IF_ERR_RET(outErr, allExpr, newExpr);
-
-        if (myOp == (int)TokenId::POW)
-            allExpr = _POW(allExpr, newExpr);
-        else 
-        {
-            SynAssert(storage, false, outErr);
-            IF_ERR_RET(outErr, allExpr, newExpr);
-        }
-
-        myOp = GetPowOp(storage);
-    }
-
-    return allExpr;
-}
-
-static inline TreeNodeType* GetFuncCall(DescentStorage* storage, bool* outErr)
-{
-    if (T_CMP_OP(storage, TokenId::SIN)  || T_CMP_OP(storage, TokenId::COS) ||
-        T_CMP_OP(storage, TokenId::TAN)  || T_CMP_OP(storage, TokenId::COT) ||
-        T_CMP_OP(storage, TokenId::SQRT) || T_CMP_OP(storage, TokenId::L_BRACE))
-        return GetInBuiltFuncCall(storage, outErr);
-
-    if (T_CMP_OP(storage, storage->tokenPos + 1, TokenId::L_BRACE))
-        return GetMadeFuncCall(storage, outErr);
-    
-    return GetArg(storage, outErr);
-}
-
-static inline int GetInBuiltFuncOp(DescentStorage* storage)
-{
-    int myOp = -1;
-
-    #define GENERATE_CMD(NAME)                          \
-        if (T_CMP_OP(storage, TokenId::NAME))   \
-            myOp = (int)TokenId::NAME;          \
-        else
-    
-    GENERATE_CMD(SIN)
-    GENERATE_CMD(COS)
-    GENERATE_CMD(TAN)
-    GENERATE_CMD(COT)
-    GENERATE_CMD(SQRT)
-
-    /* else */
-    {
-        myOp = -1;
-    }
-
-    #undef GENERATE_CMD
-
-    return myOp;
-}
-
-static inline TreeNodeType* GetInBuiltFuncCall(DescentStorage* storage, bool* outErr)
-{
-    if (T_CMP_OP(storage, TokenId::L_BRACE))
-        return GetRead(storage, outErr);
-
-    int myOp = GetInBuiltFuncOp(storage);
-
-    if (myOp == -1)
-        return GetExpr(storage, outErr);
-
-    assert(myOp != -1);
-
-    SynAssert(storage, T_CMP_OP(storage, TokenId::L_BRACKET), outErr);
+    ConsumeToken(state, TokenId::L_BRACKET, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
-    POS(storage)++;
 
-    TreeNodeType* expr = GetOr(storage, outErr);
+    TreeNodeType* expr = GetOr(state, outErr);
     IF_ERR_RET(outErr, expr, nullptr);
 
-    SynAssert(storage, T_CMP_OP(storage, TokenId::R_BRACKET), outErr);
+    ConsumeToken(state, TokenId::R_BRACKET, outErr);
     IF_ERR_RET(outErr, expr, nullptr);
-    POS(storage)++;
 
-    #define GENERATE_CMD(NAME)                      \
-        if (myOp == (int)TokenId::NAME)     \
-            expr = _##NAME(expr);                   \
-        else 
-    
-    GENERATE_CMD(SIN)
-    GENERATE_CMD(COS)
-    GENERATE_CMD(TAN)
-    GENERATE_CMD(COT)
-    GENERATE_CMD(SQRT)
-
-    /* else */
+    switch (tokenId)
     {
-        SynAssert(storage, false, outErr);
-        IF_ERR_RET(outErr, expr, nullptr);
-    }
+        case TokenId::SIN:
+            expr = MAKE_SIN_NODE(expr);
+            break;
 
-    #undef GENERATE_CMD    
+        case TokenId::COS:
+            expr = MAKE_COS_NODE(expr);
+            break;
+        
+        case TokenId::TAN:
+            expr = MAKE_TAN_NODE(expr);
+            break;
+
+        case TokenId::COT:
+            expr = MAKE_COT_NODE(expr);
+            break;
+
+        case TokenId::SQRT:
+            expr = MAKE_SQRT_NODE(expr);
+            break;
+
+        default:
+            SynAssert(state, false, outErr);
+            IF_ERR_RET(outErr, expr, nullptr);
+            break;
+    }
 
     return expr;
 }
 
-static inline TreeNodeType* GetArg(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetArg(DescentState* state, bool* outErr)
 {
     TreeNodeType* arg = nullptr;
 
-    if (T_IS_NUM(storage))
-        arg = GetNum(storage, outErr);
+    if (PickNum(state))
+        arg = GetNum(state, outErr);
     else 
-        arg = GetVar(storage, outErr, AddVar::DONT_ADD);
+        arg = GetVar(state, outErr);
 
     IF_ERR_RET(outErr, arg, nullptr);
 
     return arg;
 }
 
-static inline TreeNodeType* GetNum(DescentStorage* storage, bool* outErr)
+static TreeNodeType* GetNum(DescentState* state, bool* outErr)
 {
-    SynAssert(storage, T_IS_NUM(storage), outErr);
+    SynAssert(state, PickNum(state), outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
-    TreeNodeType* num = CRT_NUM(T_NUM(storage));
-    POS(storage)++;
+    TreeNodeType* num = CRT_NUM(state->tokens.data[POS(state)].value.num);
+    POS(state)++;
 
     return num;
 }
 
-//TODO: сюда передавать localNameTable, тут его сувать(мб)
-static inline TreeNodeType* GetVar(DescentStorage* storage, bool* outErr, AddVar addVarEnum)
+static TreeNodeType* AddVar(DescentState* state, bool* outErr)
 {
-    SynAssert(storage, T_IS_VAR(storage), outErr);
+    SynAssert(state, PickName(state), outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
+    Name pushName = 
+    {
+        .name           = strdup(state->tokens.data[POS(state)].value.name),
+
+        .localNameTable = nullptr,
+    };
+
     TreeNodeType* varNode = nullptr;
+
+    NameTablePush(state->currentLocalTable, pushName);
+    NameTablePush(state->allNamesTable, pushName);
+    varNode = CRT_VAR(state->allNamesTable->size - 1);
     
+    POS(state)++;
+
+    return varNode;
+}
+
+//TODO: сюда передавать localNameTable, тут его сувать(мб)
+static TreeNodeType* GetVar(DescentState* state, bool* outErr)
+{
     //TODO: создать отдельную функцию createName
     Name pushName = 
     {
-        .name           = strdup(T_WORD(storage)),
+        .name           = strdup(state->tokens.data[POS(state)].value.name),
 
         .localNameTable = nullptr,
     };
 
     //TODO: здесь проверки на то, что мы пушим (в плане того, чтобы не было конфликтов имен и т.д, пока похуй)
-    switch (addVarEnum)
-    {
-        case AddVar::ADD_TO_GLOBAL:
-        {
-            NameTablePush(storage->allNamesTable, pushName);
-            NameTablePush(storage->globalTable, pushName);
+    TreeNodeType* varNode = nullptr;
 
-            varNode = CRT_VAR(storage->allNamesTable->size - 1);
-            break;
-        }
+    Name* outName = nullptr;
+    NameTableFind(state->allNamesTable, pushName.name, &outName);
 
-        case AddVar::ADD_TO_LOCAL:
-        {
-            NameTablePush(storage->currentLocalTable, pushName);
-            NameTablePush(storage->allNamesTable, pushName);
-            varNode = CRT_VAR(storage->allNamesTable->size - 1);
-            break;
-        }
+    SynAssert(state, outName != nullptr, outErr);
+    IF_ERR_RET(outErr, varNode, nullptr);
 
-        case AddVar::DONT_ADD:
-        {
-            Name* outName = nullptr;
-            NameTableFind(storage->allNamesTable, T_WORD(storage), &outName);
-            //TODO: здесь пройтись по локали + глобали, проверить на существование переменную типо
-            varNode = CRT_VAR(outName - storage->allNamesTable->data);
-            break;
+    //TODO: здесь пройтись по локали + глобали, проверить на существование переменную типо
+    varNode = CRT_VAR(outName - state->allNamesTable->data);
 
-            SynAssert(storage, outName != nullptr, outErr);
-            IF_ERR_RET(outErr, varNode, nullptr);
-
-            varNode = CRT_VAR(outName - storage->globalTable->data);
-            break;
-        }
-
-        default:
-            break;
-    }
-
-    POS(storage)++;
+    POS(state)++;
 
     return varNode;
 }
 
 
-static void DescentStorageCtor(DescentStorage* storage, const char* str)
+static void DescentStateCtor(DescentState* state, const char* str)
 {
-    TokensArrCtor(&storage->tokens);
-    NameTableCtor(&storage->globalTable);
-    NameTableCtor(&storage->allNamesTable);
+    TokensArrCtor(&state->tokens);
+    NameTableCtor(&state->globalTable);
+    NameTableCtor(&state->allNamesTable);
 
-    storage->codeString       = str;
-    storage->tokenPos  = 0;
+    state->currentLocalTable = state->globalTable;
+
+    state->codeString       = str;
+    state->tokenPos  = 0;
 }
 
-static void DescentStorageDtor(DescentStorage* storage)
+static void DescentStateDtor(DescentState* state)
 {
     
-    for (size_t i = 0; i < storage->globalTable->size; ++i)
+    for (size_t i = 0; i < state->globalTable->size; ++i)
     {
-        if (storage->globalTable->data[i].localNameTable)
-            NameTableDtor((NameTableType*)storage->globalTable->data[i].localNameTable);
+        if (state->globalTable->data[i].localNameTable)
+            NameTableDtor((NameTableType*)state->globalTable->data[i].localNameTable);
     }
 
-    NameTableDtor(storage->globalTable);
+    NameTableDtor(state->globalTable);
 
-    TokensArrDtor(&storage->tokens);
-    storage->tokenPos = 0;
+    TokensArrDtor(&state->tokens);
+    state->tokenPos = 0;
 }

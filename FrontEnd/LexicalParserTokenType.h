@@ -37,8 +37,6 @@ enum class TokenId
     AND,
     OR,
     
-    PRINT,
-    READ,
     TYPE_INT,
 
     FIFTY_SEVEN,
