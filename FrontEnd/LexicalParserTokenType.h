@@ -25,7 +25,7 @@ enum class TokenId
     IF,
     WHILE,
 
-    PROGRAMM_END, 
+    PROGRAM_END, 
 
     LESS,
     GREATER,

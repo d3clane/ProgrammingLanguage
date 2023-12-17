@@ -398,7 +398,7 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
     if (error != LexicalParserErrors::NO_ERR)
         return error;
 
-    TokensArrPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::PROGRAMM_END), 
+    TokensArrPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::PROGRAM_END), 
                                                 TokenValueType::TOKEN, line, pos));
 
     return error;

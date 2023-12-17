@@ -256,7 +256,7 @@ static TreeNodeType* GetGrammar(DescentState* state, bool* outErr)
     TreeNodeType* root = GetFunc(state, outErr);
     IF_ERR_RET(outErr, root, nullptr);
 
-    while (!PickToken(state, TokenId::PROGRAMM_END))
+    while (!PickToken(state, TokenId::PROGRAM_END))
     {
         TreeNodeType* tmpNode = GetFunc(state, outErr);
         IF_ERR_RET(outErr, root, tmpNode);
@@ -264,7 +264,7 @@ static TreeNodeType* GetGrammar(DescentState* state, bool* outErr)
         root = MAKE_NEW_FUNC_NODE(root, tmpNode);
     }
 
-    SynAssert(state, PickToken(state, TokenId::PROGRAMM_END), outErr);
+    SynAssert(state, PickToken(state, TokenId::PROGRAM_END), outErr);
     IF_ERR_RET(outErr, root, nullptr);
 
     return root;
