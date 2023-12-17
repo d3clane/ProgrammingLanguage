@@ -818,7 +818,7 @@ static TreeNode* GetNum(DescentState* state, bool* outErr)
     SynAssert(state, PickNum(state), outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
-    TreeNode* num = CRT_NUM(state->tokens.data[POS(state)].value.num);
+    TreeNode* num = MAKE_NUM(state->tokens.data[POS(state)].value.num);
     POS(state)++;
 
     return num;
@@ -840,7 +840,7 @@ static TreeNode* AddVar(DescentState* state, bool* outErr)
 
     NameTablePush(state->currentLocalTable, pushName);
     NameTablePush(state->allNamesTable, pushName);
-    varNode = CRT_VAR(state->allNamesTable->size - 1);
+    varNode = MAKE_VAR(state->allNamesTable->size - 1);
     
     POS(state)++;
 
@@ -868,7 +868,7 @@ static TreeNode* GetVar(DescentState* state, bool* outErr)
     IF_ERR_RET(outErr, varNode, nullptr);
 
     //TODO: здесь пройтись по локали + глобали, проверить на существование переменную типо
-    varNode = CRT_VAR(outName - state->allNamesTable->data);
+    varNode = MAKE_VAR(outName - state->allNamesTable->data);
 
     POS(state)++;
 

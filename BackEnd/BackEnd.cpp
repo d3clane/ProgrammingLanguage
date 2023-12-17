@@ -26,11 +26,12 @@ static void AsmCodeBuildFuncCall(TreeNode* node, NameTableType* localTable,
 static void AsmCodeBuildEq(TreeNode* node, NameTableType* localTable, 
                               const NameTableType* allNamesTable, size_t* labelId, FILE* outStream);
 
-void AsmCodeBuild(Tree* tree, NameTableType* allNamesTable, FILE* outStream)
+void AsmCodeBuild(Tree* tree, NameTableType* allNamesTable, FILE* outStream, FILE* outBinStream)
 {
     assert(tree);
     assert(allNamesTable);
     assert(outStream);
+    assert(outBinStream);
 
     fprintf(outStream, "jmp main:\n\n");
 
