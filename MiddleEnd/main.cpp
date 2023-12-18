@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include <stdio.h>
 
 #include "MiddleEnd.h"
@@ -5,10 +7,11 @@
 
 int main(int argc, char* argv[])
 {
+    assert(argc > 2);
     LogOpen(argv[0]);
 
-    FILE* inStream  = fopen("ParseTree.txt", "r");
-    FILE* outStream = fopen("SimplifiedTree.txt", "w");
+    FILE* inStream  = fopen(argv[1], "r");
+    FILE* outStream = fopen(argv[2], "w");
 
     Tree tree = {};
     NameTableType* nameTable = nullptr;

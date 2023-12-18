@@ -6,13 +6,14 @@
 
 int main(int argc, char* argv[])
 {
+    assert(argc > 3);
+
     LogOpen(argv[0]);
     setbuf(stdout, nullptr);
-    FILE* inStream     = fopen("ParseTree.txt", "r");
-    FILE* outStream    = fopen("AsmCode.txt", "w");
-    FILE* outBinStream = fopen("code.bin", "w");
+    FILE* inStream     = fopen(argv[1], "r");
+    FILE* outStream    = fopen(argv[2], "w");
+    FILE* outBinStream = fopen(argv[3], "w");
 
-    assert(inStream);
     Tree tree = {};
     TreeCtor(&tree);
 
