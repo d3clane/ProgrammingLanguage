@@ -6,8 +6,9 @@
 int main(int argc, char* argv[])
 {
     LogOpen(argv[0]);
-    
-    FILE* inStream = fopen("ParseTree.txt", "r");
+
+    FILE* inStream  = fopen("ParseTree.txt", "r");
+    FILE* outStream = fopen("SimplifiedTree.txt", "w");
 
     Tree tree = {};
     NameTableType* nameTable = nullptr;
@@ -16,4 +17,10 @@ int main(int argc, char* argv[])
     TreeSimplify(&tree);
 
     TreeGraphicDump(&tree, true, nameTable);
+    TreePrintPrefixFormat(&tree, outStream, nameTable);
+
+    NameTableDtor(nameTable);
+    TreeDtor(&tree);
+    fclose(inStream);
+    fclose(outStream);
 }

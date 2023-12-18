@@ -107,9 +107,7 @@ static TreeNode* TreeSimplifyConstants (TreeNode* node, int* simplifiesCount)
 
     if (TreeNodeCanBeCalculated(node) && !IS_NUM(node))
     {
-        int val = TreeCalculate(node);
-        printf("Calculated value - %d\n", val);
-        TreeNode* numNode = MAKE_NUM(val);
+        TreeNode* numNode = MAKE_NUM(TreeCalculate(node));
         *simplifiesCount += 1;
         TreeNodeDtor(node);
         return numNode;
