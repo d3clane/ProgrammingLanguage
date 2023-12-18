@@ -292,7 +292,7 @@ static TreeNode* GetFuncDef(DescentState* state, bool* outErr)
     IF_ERR_RET(outErr, typeNode, funcName);
     
     //TODO: create set table function maybe
-    state->globalTable->data[funcName->value.varId].localNameTable = (void*)localNameTable;
+    state->globalTable->data[funcName->value.nameId].localNameTable = (void*)localNameTable;
     state->currentLocalTable = localNameTable;
     func = MAKE_FUNC_NODE(funcName);
 

@@ -32,7 +32,7 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
     {
         assert(!node->left && !node->right);
 
-        fprintf(outStream, "%s", allNamesTable->data[node->value.varId].name);
+        fprintf(outStream, "%s", allNamesTable->data[node->value.nameId].name);
         return;
     }
 
@@ -59,7 +59,7 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
 
         case TreeOperationId::FUNC:
         {
-            fprintf(outStream, "%s ", allNamesTable->data[node->left->value.varId].name);
+            fprintf(outStream, "%s ", allNamesTable->data[node->left->value.nameId].name);
 
             assert(numberOfTabs == 0);
 
@@ -119,7 +119,7 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
 
         case TreeOperationId::FUNC_CALL:
         {
-            fprintf(outStream, "%s { ", allNamesTable->data[node->left->value.varId].name);
+            fprintf(outStream, "%s { ", allNamesTable->data[node->left->value.nameId].name);
             
             CodeBuild(node->left->left, allNamesTable, outStream, numberOfTabs);
 

@@ -60,7 +60,7 @@ static void AsmCodeBuild(TreeNode* node, NameTableType* localTable,
         assert(!node->left && !node->right);
 
         Name* varName = nullptr;
-        NameTableFind(localTable, allNamesTable->data[node->value.varId].name, &varName);
+        NameTableFind(localTable, allNamesTable->data[node->value.nameId].name, &varName);
 
         assert(varName);
 
@@ -260,11 +260,11 @@ static void AsmCodeBuildFunc(TreeNode* node, const NameTableType* allNamesTable,
 {
     assert(node->left->valueType == TreeNodeValueType::NAME);
 
-    fprintf(outStream, "%s: \n", allNamesTable->data[node->left->value.varId].name);
+    fprintf(outStream, "%s: \n", allNamesTable->data[node->left->value.nameId].name);
 
     NameTableType* local = nullptr;
     NameTableCtor(&local);
-    allNamesTable->data[node->left->value.varId].localNameTable = local;
+    allNamesTable->data[node->left->value.nameId].localNameTable = local;
 
     NameTablePushFuncParams(node->left->left, local, allNamesTable, varRamId);
 
@@ -287,7 +287,7 @@ static void NameTablePushFuncParams(TreeNode* node, NameTableType* local,
     {
         Name pushName =
         {
-            .name = strdup(allNamesTable->data[node->value.varId].name),
+            .name = strdup(allNamesTable->data[node->value.nameId].name),
             
             .localNameTable = nullptr,
 
@@ -368,7 +368,7 @@ static void AsmCodeBuildAssign(TreeNode* node, NameTableType* localTable,
     assert(node->left->valueType == TreeNodeValueType::NAME);
     Name pushName = 
     {
-        .name = strdup(allNamesTable->data[node->left->value.varId].name),
+        .name = strdup(allNamesTable->data[node->left->value.nameId].name),
 
         .localNameTable = nullptr,
 
@@ -447,7 +447,7 @@ static void AsmCodeBuildFuncCall(TreeNode* node, NameTableType* localTable,
     AsmCodeBuild(node->left->left, localTable, allNamesTable, outStream);
 
     assert(node->left->valueType == TreeNodeValueType::NAME);
-    fprintf(outStream, "call %s:\n", allNamesTable->data[node->left->value.varId].name);
+    fprintf(outStream, "call %s:\n", allNamesTable->data[node->left->value.nameId].name);
 
 }
 

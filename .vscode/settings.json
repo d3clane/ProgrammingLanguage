@@ -25,7 +25,8 @@
         "optional": "cpp",
         "system_error": "cpp",
         "chrono": "cpp",
-        "format": "cpp"
+        "format": "cpp",
+        "__config": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

@@ -3,8 +3,23 @@
 
 #include "Tree.h"
 
-#define MAKE_NUM(VALUE)    TreeNumericNodeCreate(VALUE)
-#define MAKE_VAR(NAME)     TreeVariableNodeCreate(NAME)
+//TODO: change token on node
+
+#define L(token)            token->left
+#define R(token)            token->right
+
+#define   IS_NUM(token)  (token->valueType        == TreeNodeValueType::NUM)
+#define L_IS_NUM(token)  (token->left->valueType  == TreeNodeValueType::NUM)
+#define R_IS_NUM(token)  (token->right->valueType == TreeNodeValueType::NUM)
+#define    IS_OP(token)  (token->valueType        == TreeNodeValueType::OPERATION)
+#define   IS_NAME(token) (token->valueType        == TreeNodeValueType::NAME)
+
+#define L_NUM(token) token->left->value.num
+#define R_NUM(token) token->right->value.num
+
+
+#define MAKE_NUM(VALUE)     TreeNumericNodeCreate(VALUE)
+#define MAKE_VAR(NAME)      TreeVariableNodeCreate(NAME)
 
 #define GENERATE_OPERATION_CMD(NAME, ...)                                               \
     TreeNode* MAKE_##NAME ##_NODE(TreeNode* left, TreeNode* right = nullptr);  \

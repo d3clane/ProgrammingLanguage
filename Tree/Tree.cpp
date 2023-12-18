@@ -109,7 +109,7 @@ void TreeNodeDtor(TreeNode* node)
 {
     node->left         = nullptr;
     node->right        = nullptr;
-    node->value.varId  =      -1;
+    node->value.nameId  =      -1;
 
     free(node);
 }
@@ -233,9 +233,9 @@ static void DotFileCreateNodes(const TreeNode* node, FILE* outDotFile,
     }
     else if (node->valueType == TreeNodeValueType::NAME)
     {
-        //printf("VAR ID: %d\n", node->value.varId);
+        //printf("VAR ID: %d\n", node->value.nameId);
         fprintf(outDotFile, "fillcolor=\"#78DBE2\", label = \"%s\", ",
-                                nameTable->data[node->value.varId].name);
+                                nameTable->data[node->value.nameId].name);
     }
     else 
         fprintf(outDotFile, "fillcolor=\"#FF0000\", label = \"ERROR\", ");
@@ -245,11 +245,11 @@ static void DotFileCreateNodes(const TreeNode* node, FILE* outDotFile,
     const NameTableType* localNameTable = nameTable;
 
     if (node->valueType == TreeNodeValueType::NAME && 
-        nameTable->data[node->value.varId].localNameTable)
+        nameTable->data[node->value.nameId].localNameTable)
     {
-        printf("VAR id - %d\n", node->value.varId);
-        printf("VAR NAME - %s\n", nameTable->data[node->value.varId].name);
-        localNameTable = (NameTableType*)nameTable->data[node->value.varId].localNameTable;
+        printf("VAR id - %d\n", node->value.nameId);
+        printf("VAR NAME - %s\n", nameTable->data[node->value.nameId].name);
+        localNameTable = (NameTableType*)nameTable->data[node->value.nameId].localNameTable;
         printf("LOCAL name table size - %zu\n", localNameTable->size);
     }
 
@@ -358,11 +358,11 @@ TreeNodeValue TreeNodeOpValueCreate(TreeOperationId operation)
     return value;
 }
 
-TreeNodeValue TreeNodeVarValueCreate(int varId)
+TreeNodeValue TreeNodeVarValueCreate(int nameId)
 {
     TreeNodeValue value = 
     {
-        .varId = varId,
+        .nameId = nameId,
     };
 
     return value;
@@ -377,9 +377,9 @@ TreeNode* TreeNumericNodeCreate(int value)
     return TreeNodeCreate(nodeVal, TreeNodeValueType::NUM);
 }
 
-TreeNode* TreeVariableNodeCreate(int varId)
+TreeNode* TreeVariableNodeCreate(int nameId)
 {
-    TreeNodeValue nodeVal  = TreeNodeVarValueCreate(varId);
+    TreeNodeValue nodeVal  = TreeNodeVarValueCreate(nameId);
 
     return TreeNodeCreate(nodeVal, TreeNodeValueType::NAME);
 }
@@ -426,7 +426,7 @@ static TreeErrors TreePrintPrefixFormat(const TreeNode* node, FILE* outStream,
     if (node->valueType == TreeNodeValueType::NUM)
         PRINT(outStream, "%d ", node->value.num);
     else if (node->valueType == TreeNodeValueType::NAME)
-        PRINT(outStream, "%s ", nameTable->data[node->value.varId].name);
+        PRINT(outStream, "%s ", nameTable->data[node->value.nameId].name);
     else
         PRINT(outStream, "%s ", TreeOperationGetLongName(node->value.operation));
 
