@@ -24,7 +24,7 @@ enum class TreeNodeValueType
 {
     NUM,
     NAME,
-    OPERATION, 
+    OPERATION,
 };
 
 struct TreeNode

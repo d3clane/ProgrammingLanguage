@@ -231,6 +231,37 @@ static size_t Parse5(const char* str, const size_t posStart, const size_t line,
     return pos;
 }
 
+static size_t ParseQuotes(const char* str, const size_t posStart, const size_t line,
+                                                                        TokensArr* tokensArr)
+{
+    assert(str);
+    assert(tokensArr);
+
+    size_t pos = posStart;
+
+    static const size_t maxWordLength  = 1024;
+    static char    word[maxWordLength] =   "";
+
+    size_t wordPos = 0;
+
+    do
+    {
+        word[wordPos] = str[pos];
+        wordPos++;
+        pos++;
+
+        assert(wordPos < maxWordLength);
+    } while (str[pos] != '"');
+
+    word[wordPos] = str[pos];
+    pos++;
+
+    TokensArrPush(tokensArr, TokenCreate(TokenValueCreateName(word), 
+                                                TokenValueType::NAME, line, posStart));
+
+    return pos;                                                
+}
+
 LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
 {
     size_t pos  = 0;
@@ -322,6 +353,11 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
                 break; 
             }
 
+            case '"':
+            {
+                pos = ParseQuotes(str, pos, line, tokens);
+                break;
+            }
 
             case '\t':
             case ' ':

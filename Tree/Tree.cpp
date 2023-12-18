@@ -233,9 +233,12 @@ static void DotFileCreateNodes(const TreeNode* node, FILE* outDotFile,
     }
     else if (node->valueType == TreeNodeValueType::NAME)
     {
-        //printf("VAR ID: %d\n", node->value.nameId);
-        fprintf(outDotFile, "fillcolor=\"#78DBE2\", label = \"%s\", ",
-                                nameTable->data[node->value.nameId].name);
+        if (nameTable->data[node->value.nameId].name[0] == '"')
+            fprintf(outDotFile, "fillcolor=\"#78DBE2\", label = %s, ",
+                                    nameTable->data[node->value.nameId].name);   
+        else
+            fprintf(outDotFile, "fillcolor=\"#78DBE2\", label = \"%s\", ",
+                                    nameTable->data[node->value.nameId].name);
     }
     else 
         fprintf(outDotFile, "fillcolor=\"#FF0000\", label = \"ERROR\", ");

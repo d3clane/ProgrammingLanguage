@@ -50,5 +50,7 @@
     575757 b == { 57
     575757 c == { 57
 
+    { "RESHAEM KVADRATNOE URAVNENIE" 57
+    
     SolveQuadraticEquation { a b c 57 57
 {

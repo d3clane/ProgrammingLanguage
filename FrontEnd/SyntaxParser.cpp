@@ -39,7 +39,7 @@ static void DescentStateDtor(DescentState* state);
 // WHILE            ::= '57!' OR '57' OP
 // RET              ::= OR
 // VAR_DEF          ::= TYPE VAR '==' OR
-// PRINT            ::= '{' ARG 
+// PRINT            ::= '{' { ARG | CONST_STRING }
 // READ             ::= '{'
 // ASSIGN           ::= VAR '==' OR
 // OR               ::= AND {and AND}*
@@ -56,6 +56,7 @@ static void DescentStateDtor(DescentState* state);
 // ARG              ::= NUM | GET_VAR
 // NUM              ::= ['0'-'9']+
 // VAR              ::= ['a'-'z' 'A'-'Z' '_']+ ['a'-'z' 'A'-'Z' '_' '0'-'9']*
+// CONST_STRING     ::= '"' [ANY_ASCII_CHAR]+ '"'
 
 static TreeNode* GetVar              (DescentState* state, bool* outErr);
 static TreeNode* AddVar              (DescentState* state, bool* outErr);
@@ -85,6 +86,7 @@ static TreeNode* GetExpr             (DescentState* state, bool* outErr);
 static TreeNode* GetArg              (DescentState* state, bool* outErr);
 static TreeNode* GetNum              (DescentState* state, bool* outErr);
 static TreeNode* GetReturn           (DescentState* state, bool* outErr);
+static TreeNode* GetConstString      (DescentState* state, bool* outErr);
 
 static inline Token* GetLastToken(DescentState* state)
 {
@@ -495,7 +497,12 @@ static TreeNode* GetPrint(DescentState* state, bool* outErr)
     ConsumeToken(state, TokenId::L_BRACE, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
-    TreeNode* arg = GetArg(state, outErr);
+    TreeNode* arg = nullptr;
+    if (PickName(state) && state->tokens.data[state->tokenPos].value.name[0] == '"')
+        arg = GetConstString(state, outErr);
+    else
+        arg = GetArg(state, outErr);
+
     IF_ERR_RET(outErr, arg, nullptr);
 
     return MAKE_PRINT_NODE(arg);
@@ -759,7 +766,7 @@ static TreeNode* GetBuiltInFuncCall(DescentState* state, bool* outErr)
 
     TokenId tokenId = GetLastTokenId(state);
     POS(state)++;
-    
+
     ConsumeToken(state, TokenId::L_BRACKET, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
@@ -876,6 +883,28 @@ static TreeNode* GetVar(DescentState* state, bool* outErr)
     return varNode;
 }
 
+static TreeNode* GetConstString(DescentState* state, bool* outErr)
+{
+    //TODO: создать отдельную функцию createName
+    Name pushName = 
+    {
+        .name           = strdup(state->tokens.data[POS(state)].value.name),
+
+        .localNameTable = nullptr,
+    };
+
+    //TODO: здесь проверки на то, что мы пушим (в плане того, чтобы не было конфликтов имен и т.д, пока похуй)
+    TreeNode* varNode = nullptr;
+
+    NameTablePush(state->allNamesTable, pushName);
+
+    //TODO: здесь пройтись по локали + глобали, проверить на существование переменную типо
+    varNode = MAKE_VAR(state->allNamesTable->size - 1);
+
+    POS(state)++;
+
+    return varNode;
+}
 
 static void DescentStateCtor(DescentState* state, const char* str)
 {
