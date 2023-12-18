@@ -337,6 +337,13 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
                 break;
             }
 
+            case '@':
+            {
+                const char* strPtr = SkipSymbolsUntilStopChar(str + pos, '\n');
+                pos = strPtr - str;
+                break;
+            }
+
             case '0':
             case '1':
             case '2':

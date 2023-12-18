@@ -98,7 +98,7 @@ do                                                          \
 {                                                           \
     assert(outErr);                                         \
     SYN_ASSERT(state, statement, outErr);                 \
-    /*printf("func - %s, line - %d\n", __func__, __LINE__);*/  \
+    printf("func - %s, line - %d\n", __func__, __LINE__);  \
     LOG_BEGIN();                                            \
     Log("func - %s, line - %d\n", __func__, __LINE__);      \
     LOG_END();                                              \
@@ -123,8 +123,8 @@ static inline void SYN_ASSERT(DescentState* state, bool statement, bool* outErr)
     if (statement)
         return;
 
-    printf(RED_TEXT("Syntax error in line %zu, pos %zu\n"), GetLastToken(state)->line,
-                                                            GetLastToken(state)->pos);
+    printf(RED_TEXT("Syntax error in line %zu, string - %s\n"), 
+           GetLastToken(state)->line, state->codeString + GetLastToken(state)->pos);
     *outErr = true;
 }
 
@@ -758,7 +758,8 @@ static TreeNode* GetBuiltInFuncCall(DescentState* state, bool* outErr)
         return GetExpr(state, outErr);
 
     TokenId tokenId = GetLastTokenId(state);
-
+    POS(state)++;
+    
     ConsumeToken(state, TokenId::L_BRACKET, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
