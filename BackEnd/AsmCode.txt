@@ -18,9 +18,9 @@ ret
 end_if_1:
 
 push [0]
+push -1
 push [0]
-push 1
-sub
+add
 call factorial:
 mul
 ret

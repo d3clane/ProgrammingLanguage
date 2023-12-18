@@ -25,6 +25,17 @@ static void AsmCodeBuildFuncCall(TreeNode* node, NameTableType* localTable,
                                  const NameTableType* allNamesTable, FILE* outStream);
 static void AsmCodeBuildEq(TreeNode* node, NameTableType* localTable, 
                               const NameTableType* allNamesTable, size_t* labelId, FILE* outStream);
+static void AsmCodeBuildNotEq(TreeNode* node, NameTableType* localTable, 
+                              const NameTableType* allNamesTable, size_t* labelId, FILE* outStream);
+static void AsmCodeBuildGreaterEq(TreeNode* node, NameTableType* localTable, 
+                              const NameTableType* allNamesTable, size_t* labelId, FILE* outStream);
+static void AsmCodeBuildLessEq(TreeNode* node, NameTableType* localTable, 
+                              const NameTableType* allNamesTable, size_t* labelId, FILE* outStream);
+static void AsmCodeBuildLess(TreeNode* node, NameTableType* localTable, 
+                              const NameTableType* allNamesTable, size_t* labelId, FILE* outStream);
+static void AsmCodeBuildGreater(TreeNode* node, NameTableType* localTable, 
+                              const NameTableType* allNamesTable, size_t* labelId, FILE* outStream);
+
 
 void AsmCodeBuild(Tree* tree, NameTableType* allNamesTable, FILE* outStream, FILE* outBinStream)
 {
@@ -231,6 +242,31 @@ static void AsmCodeBuild(TreeNode* node, NameTableType* localTable,
         case TreeOperationId::EQ:
         {
             AsmCodeBuildEq(node, localTable, allNamesTable, &labelId, outStream);
+            break;
+        }
+        case TreeOperationId::NOT_EQ:
+        {
+            AsmCodeBuildNotEq(node, localTable, allNamesTable, &labelId, outStream);
+            break;
+        }
+        case TreeOperationId::LESS:
+        {
+            AsmCodeBuildLess(node, localTable, allNamesTable, &labelId, outStream);
+            break;
+        }
+        case TreeOperationId::LESS_EQ:
+        {
+            AsmCodeBuildLessEq(node, localTable, allNamesTable, &labelId, outStream);
+            break;
+        }
+        case TreeOperationId::GREATER:
+        {
+            AsmCodeBuildGreater(node, localTable, allNamesTable, &labelId, outStream);
+            break;
+        }
+        case TreeOperationId::GREATER_EQ:
+        {
+            AsmCodeBuildGreaterEq(node, localTable, allNamesTable, &labelId, outStream);
             break;
         }
 
@@ -464,6 +500,91 @@ static void AsmCodeBuildEq(TreeNode* node, NameTableType* localTable,
                        "EQ_%zu:\n"
                        "push 1\n"
                        "AFTER_EQ_%zu:\n",
+                       id, id, id, id); 
+    *labelId += 1;
+}
+
+static void AsmCodeBuildNotEq(TreeNode* node, NameTableType* localTable, 
+                              const NameTableType* allNamesTable, size_t* labelId, FILE* outStream)
+{
+    AsmCodeBuild(node->left,  localTable, allNamesTable, outStream);
+    AsmCodeBuild(node->right, localTable, allNamesTable, outStream);
+
+    size_t id = *labelId;
+    fprintf(outStream, "jne NOT_EQ_%zu:\n"
+                       "push 0\n"
+                       "jmp AFTER_NOT_EQ_%zu:\n"
+                       "NOT_EQ_%zu:\n"
+                       "push 1\n"
+                       "AFTER_NOT_EQ_%zu:\n",
+                       id, id, id, id); 
+    *labelId += 1;
+}
+
+static void AsmCodeBuildLess(TreeNode* node, NameTableType* localTable, 
+                              const NameTableType* allNamesTable, size_t* labelId, FILE* outStream)
+{
+    AsmCodeBuild(node->left,  localTable, allNamesTable, outStream);
+    AsmCodeBuild(node->right, localTable, allNamesTable, outStream);
+
+    size_t id = *labelId;
+    fprintf(outStream, "jb LESS_%zu:\n"
+                       "push 0\n"
+                       "jmp AFTER_LESS_%zu:\n"
+                       "LESS_%zu:\n"
+                       "push 1\n"
+                       "AFTER_LESS_%zu:\n",
+                       id, id, id, id); 
+    *labelId += 1;
+}
+
+static void AsmCodeBuildLessEq(TreeNode* node, NameTableType* localTable, 
+                              const NameTableType* allNamesTable, size_t* labelId, FILE* outStream)
+{
+    AsmCodeBuild(node->left,  localTable, allNamesTable, outStream);
+    AsmCodeBuild(node->right, localTable, allNamesTable, outStream);
+
+    size_t id = *labelId;
+    fprintf(outStream, "jbe LESS_EQ_%zu:\n"
+                       "push 0\n"
+                       "jmp AFTER_LESS_EQ_%zu:\n"
+                       "LESS_EQ_%zu:\n"
+                       "push 1\n"
+                       "AFTER_LESS_EQ_%zu:\n",
+                       id, id, id, id); 
+    *labelId += 1;
+}
+
+static void AsmCodeBuildGreater(TreeNode* node, NameTableType* localTable, 
+                              const NameTableType* allNamesTable, size_t* labelId, FILE* outStream)
+{
+    AsmCodeBuild(node->left,  localTable, allNamesTable, outStream);
+    AsmCodeBuild(node->right, localTable, allNamesTable, outStream);
+
+    size_t id = *labelId;
+    fprintf(outStream, "ja GREATER_%zu:\n"
+                       "push 0\n"
+                       "jmp AFTER_GREATER_%zu:\n"
+                       "GREATER_%zu:\n"
+                       "push 1\n"
+                       "AFTER_GREATER_%zu:\n",
+                       id, id, id, id); 
+    *labelId += 1;
+}
+
+static void AsmCodeBuildGreaterEq(TreeNode* node, NameTableType* localTable, 
+                              const NameTableType* allNamesTable, size_t* labelId, FILE* outStream)
+{
+    AsmCodeBuild(node->left,  localTable, allNamesTable, outStream);
+    AsmCodeBuild(node->right, localTable, allNamesTable, outStream);
+
+    size_t id = *labelId;
+    fprintf(outStream, "jae GREATER_EQ_%zu:\n"
+                       "push 0\n"
+                       "jmp AFTER_GREATER_EQ_%zu:\n"
+                       "GREATER_EQ_%zu:\n"
+                       "push 1\n"
+                       "AFTER_GREATER_EQ_%zu:\n",
                        id, id, id, id); 
     *labelId += 1;
 }
