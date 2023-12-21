@@ -83,6 +83,7 @@ static void AsmCodeBuild(TreeNode* node, NameTableType* localTable,
     if (node == nullptr)
         return;
 
+    printf("HERE\n");
     if (node->valueType == TreeNodeValueType::NUM)
     {
         FprintfLine(outStream, numberOfTabs, "push %d\n", node->value.num);

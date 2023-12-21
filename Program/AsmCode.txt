@@ -1,0 +1,489 @@
+jmp main:
+
+GetnumberOfRootss: 
+    pop [0]
+    pop [1]
+    pop [2]
+
+    push [0]
+    push 0
+    je EQ_0:
+    push 0
+    jmp AFTER_EQ_0:
+    EQ_0:
+    push 1
+    AFTER_EQ_0:
+
+    push 0
+    je end_if_1:
+
+        push [1]
+        push 0
+        je EQ_2:
+        push 0
+        jmp AFTER_EQ_2:
+        EQ_2:
+        push 1
+        AFTER_EQ_2:
+
+        push 0
+        je end_if_3:
+
+            push [2]
+            push 0
+            jne NOT_EQ_4:
+            push 0
+            jmp AFTER_NOT_EQ_4:
+            NOT_EQ_4:
+            push 1
+            AFTER_NOT_EQ_4:
+
+            push 0
+            je end_if_5:
+                push 0
+                ret
+            end_if_5:
+
+
+            push [2]
+            push 0
+            je EQ_6:
+            push 0
+            jmp AFTER_EQ_6:
+            EQ_6:
+            push 1
+            AFTER_EQ_6:
+
+            push 0
+            je end_if_7:
+                push 3
+                ret
+            end_if_7:
+
+        end_if_3:
+
+
+        push [1]
+        push 0
+        jne NOT_EQ_8:
+        push 0
+        jmp AFTER_NOT_EQ_8:
+        NOT_EQ_8:
+        push 1
+        AFTER_NOT_EQ_8:
+
+        push 0
+        je end_if_9:
+            push 1
+            ret
+        end_if_9:
+
+    end_if_1:
+
+    push [1]
+    push [1]
+    mul
+    push 4
+    push [0]
+    mul
+    push [2]
+    mul
+    sub
+    pop [3]
+
+    push [3]
+    push 0
+    je EQ_10:
+    push 0
+    jmp AFTER_EQ_10:
+    EQ_10:
+    push 1
+    AFTER_EQ_10:
+
+    push 0
+    je end_if_11:
+        push 1
+        ret
+    end_if_11:
+
+
+    push [3]
+    push 0
+    jb LESS_12:
+    push 0
+    jmp AFTER_LESS_12:
+    LESS_12:
+    push 1
+    AFTER_LESS_12:
+
+    push 0
+    je end_if_13:
+        push 0
+        ret
+    end_if_13:
+
+    push 2
+    ret
+
+GetFirstRoot: 
+    pop [4]
+    pop [5]
+    pop [6]
+
+    push [4]
+    push 0
+    je EQ_14:
+    push 0
+    jmp AFTER_EQ_14:
+    EQ_14:
+    push 1
+    AFTER_EQ_14:
+
+    push 0
+    je end_if_15:
+        push 0
+        push [6]
+        push [5]
+        div
+        sub
+        ret
+    end_if_15:
+
+    push [5]
+    push [5]
+    mul
+    push 4
+    push [4]
+    mul
+    push [6]
+    mul
+    sub
+    pop [7]
+    push [7]
+    sqrt
+    pop [8]
+    push 0
+    push [5]
+    sub
+    push [8]
+    sub
+    push 2
+    div
+    push [4]
+    div
+    ret
+
+GetSecondRoot: 
+    pop [9]
+    pop [10]
+    pop [11]
+    push [10]
+    push [10]
+    mul
+    push 4
+    push [9]
+    mul
+    push [11]
+    mul
+    sub
+    pop [12]
+    push [12]
+    sqrt
+    pop [13]
+    push 0
+    push [10]
+    sub
+    push [13]
+    add
+    push 2
+    div
+    push [9]
+    div
+    ret
+
+main: 
+    in
+    pop [14]
+    in
+    pop [15]
+    in
+    pop [16]
+    push [16]
+    push [15]
+    push [14]
+    call GetnumberOfRootss:
+    pop [17]
+
+    push [17]
+    push 3
+    je EQ_16:
+    push 0
+    jmp AFTER_EQ_16:
+    EQ_16:
+    push 1
+    AFTER_EQ_16:
+
+    push 0
+    je end_if_17:
+        push 105
+        outc
+        pop
+        push 110
+        outc
+        pop
+        push 102
+        outc
+        pop
+        push 105
+        outc
+        pop
+        push 110
+        outc
+        pop
+        push 105
+        outc
+        pop
+        push 116
+        outc
+        pop
+        push 101
+        outc
+        pop
+        push 32
+        outc
+        pop
+        push 110
+        outc
+        pop
+        push 117
+        outc
+        pop
+        push 109
+        outc
+        pop
+        push 98
+        outc
+        pop
+        push 101
+        outc
+        pop
+        push 114
+        outc
+        pop
+        push 32
+        outc
+        pop
+        push 111
+        outc
+        pop
+        push 102
+        outc
+        pop
+        push 32
+        outc
+        pop
+        push 114
+        outc
+        pop
+        push 111
+        outc
+        pop
+        push 111
+        outc
+        pop
+        push 116
+        outc
+        pop
+        push 115
+        outc
+        pop
+    end_if_17:
+
+
+    push [17]
+    push 3
+    jne NOT_EQ_18:
+    push 0
+    jmp AFTER_NOT_EQ_18:
+    NOT_EQ_18:
+    push 1
+    AFTER_NOT_EQ_18:
+
+    push 0
+    je end_if_19:
+        push 110
+        outc
+        pop
+        push 117
+        outc
+        pop
+        push 109
+        outc
+        pop
+        push 98
+        outc
+        pop
+        push 101
+        outc
+        pop
+        push 114
+        outc
+        pop
+        push 32
+        outc
+        pop
+        push 111
+        outc
+        pop
+        push 102
+        outc
+        pop
+        push 32
+        outc
+        pop
+        push 114
+        outc
+        pop
+        push 111
+        outc
+        pop
+        push 111
+        outc
+        pop
+        push 116
+        outc
+        pop
+        push 115
+        outc
+        pop
+        push 58
+        outc
+        pop
+        push 32
+        outc
+        pop
+        push [17]
+        out
+        pop
+
+        push [17]
+        push 1
+        jae GREATER_EQ_20:
+        push 0
+        jmp AFTER_GREATER_EQ_20:
+        GREATER_EQ_20:
+        push 1
+        AFTER_GREATER_EQ_20:
+
+        push 0
+        je end_if_21:
+            push 102
+            outc
+            pop
+            push 105
+            outc
+            pop
+            push 114
+            outc
+            pop
+            push 115
+            outc
+            pop
+            push 116
+            outc
+            pop
+            push 32
+            outc
+            pop
+            push 114
+            outc
+            pop
+            push 111
+            outc
+            pop
+            push 111
+            outc
+            pop
+            push 116
+            outc
+            pop
+            push 58
+            outc
+            pop
+            push 32
+            outc
+            pop
+            push [16]
+            push [15]
+            push [14]
+            call GetFirstRoot:
+            pop [18]
+            push [18]
+            out
+            pop
+        end_if_21:
+
+
+        push [17]
+        push 2
+        jae GREATER_EQ_22:
+        push 0
+        jmp AFTER_GREATER_EQ_22:
+        GREATER_EQ_22:
+        push 1
+        AFTER_GREATER_EQ_22:
+
+        push 0
+        je end_if_23:
+            push 115
+            outc
+            pop
+            push 101
+            outc
+            pop
+            push 99
+            outc
+            pop
+            push 111
+            outc
+            pop
+            push 110
+            outc
+            pop
+            push 100
+            outc
+            pop
+            push 32
+            outc
+            pop
+            push 114
+            outc
+            pop
+            push 111
+            outc
+            pop
+            push 111
+            outc
+            pop
+            push 116
+            outc
+            pop
+            push 58
+            outc
+            pop
+            push 32
+            outc
+            pop
+            push [16]
+            push [15]
+            push [14]
+            call GetSecondRoot:
+            pop [19]
+            push [19]
+            out
+            pop
+        end_if_23:
+
+    end_if_19:
+
+    hlt
