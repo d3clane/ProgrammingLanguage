@@ -68,7 +68,7 @@ void AsmCodeBuild(Tree* tree, NameTableType* allNamesTable, FILE* outStream, FIL
     assert(outBinStream);
 
     fprintf(outStream, "jmp main:\n\n");
-
+    
     AsmCodeBuild(tree->root, nullptr, allNamesTable, outStream, 0);
 
     fprintf(outStream, "    hlt\n");
@@ -520,12 +520,26 @@ static void AsmCodeBuildFuncCall(TreeNode* node, NameTableType* localTable,
                                  const NameTableType* allNamesTable, FILE* outStream,
                                  size_t numberOfTabs)
 {
+    for (size_t i = 0; i < localTable->size; ++i)
+    {
+        FprintfLine(outStream, numberOfTabs, "push [%zu]\n", localTable->data[i].varRamId);
+    }
+
     AsmCodeBuild(node->left->left, localTable, allNamesTable, outStream, numberOfTabs);
 
     assert(node->left->valueType == TreeNodeValueType::NAME);
 
     FprintfLine(outStream, numberOfTabs, 
                     "call %s:\n", allNamesTable->data[node->left->value.nameId].name);
+
+    FprintfLine(outStream, numberOfTabs, "pop rax\n");
+
+    for (int i = (int)localTable->size - 1; i > -1; --i)
+    {
+        FprintfLine(outStream, numberOfTabs, "pop [%zu]\n", localTable->data[i].varRamId);
+    }
+
+    FprintfLine(outStream, numberOfTabs, "push rax\n");
 }
 
 static void AsmCodeBuildEq(TreeNode* node, NameTableType* localTable, 
