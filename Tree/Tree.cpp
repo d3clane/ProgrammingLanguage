@@ -554,15 +554,17 @@ static const char* TreeReadNodeValue(TreeNodeValue* value, TreeNodeValueType* va
 
         inputString[inputStringPos] = *stringPtr;
         stringPtr++;
+        inputStringPos++;
 
+        inputString[inputStringPos] = '\0';
         Name pushName = //TODO: вынести в функцию
         {
             .name = strdup(inputString),
         };
 
         NameTablePush(allNamesTable, pushName);
-        
-        *value     = TreeNodeNameValueCreate(allNamesTable->size - 1); //TODO: TreeNodeConstStringCreate чет такое бы
+
+        *value     = TreeNodeNameValueCreate(allNamesTable->size - 1);
         *valueType = TreeNodeValueType::STRING_LITERAL;
         return stringPtr;
     }
