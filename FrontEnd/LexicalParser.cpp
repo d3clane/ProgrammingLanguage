@@ -19,7 +19,8 @@ static inline void SyntaxError(const size_t line, const size_t posErr, const cha
     size_t pos = posErr;
     while (str[pos] != '\n' && str[pos] != '\0')
     {
-        putchar(str[pos]);
+        printf("%c(%d)", str[pos], str[pos]);
+        
         ++pos;
     }
     putchar('\n');
@@ -255,6 +256,10 @@ static size_t ParseQuotes(const char* str, const size_t posStart, const size_t l
 
     word[wordPos] = str[pos];
     pos++;
+    wordPos++;
+    word[wordPos] = '\0';
+
+    printf(RED_TEXT("WORD - %s\n"), word);
 
     TokensArrPush(tokensArr, TokenCreate(TokenValueCreateName(word), 
                                                 TokenValueType::NAME, line, posStart));
@@ -296,7 +301,7 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
             }
             case '^':
             {
-                TokensArrPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::SUB), 
+                TokensArrPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::POW), 
                                                 TokenValueType::TOKEN, line, pos));
                 pos++;
                 break; 
@@ -402,6 +407,8 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
 
             default:
             {
+                printf("STR[%zu] - %c(%d)\n", pos, str[pos], str[pos]);
+
                 if (isalpha(str[pos]) || str[pos] == '_')
                 {
                     pos = ParseWord(str, pos, line, tokens);
@@ -415,11 +422,13 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
         }
     }
 
+    assert(error == LexicalParserErrors::NO_ERR);
+
     /*
     for (size_t i = 0; i < tokens->size; ++i)
     {
         printf("--------------------------------\n");
-        printf("line - %zu, pos - %zu\n", tokens->data[i].line, tokens->data[i].pos);
+        printf("line - %zu, pos - %zu, token - %zu\n", tokens->data[i].line, tokens->data[i].pos, i);
         switch (tokens->data[i].valueType)
         {
             case TokenValueType::TOKEN:
@@ -437,7 +446,6 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
         }
     }
     */
-
     if (error != LexicalParserErrors::NO_ERR)
         return error;
 

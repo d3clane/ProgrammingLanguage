@@ -27,7 +27,8 @@
         "chrono": "cpp",
         "format": "cpp",
         "__config": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "typeinfo": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

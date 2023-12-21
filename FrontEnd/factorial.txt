@@ -2,19 +2,16 @@
 57
     57? n != 0 57
     57
-        1 57
+        n + n - 1 57
     {
     n / factorial {  0 + 1 / 2 - 2 + 3 + 4 / 1 - 3 - 3 - n 57 57
 {
 
-575757 SolveLinearEquation 575757 a 575757 b   @ ax + b = 0
-57
-    0 + b * a 57
-{
 
 575757 main
 57
     575757 n == { 57
     575757 fac == factorial { n 57 57
+    { "factorial: " 57
     { fac 57
 {

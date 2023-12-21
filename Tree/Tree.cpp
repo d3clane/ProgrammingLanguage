@@ -233,12 +233,13 @@ static void DotFileCreateNodes(const TreeNode* node, FILE* outDotFile,
     }
     else if (node->valueType == TreeNodeValueType::NAME)
     {
-        if (nameTable->data[node->value.nameId].name[0] == '"')
-            fprintf(outDotFile, "fillcolor=\"#78DBE2\", label = %s, ",
-                                    nameTable->data[node->value.nameId].name);   
-        else
-            fprintf(outDotFile, "fillcolor=\"#78DBE2\", label = \"%s\", ",
-                                    nameTable->data[node->value.nameId].name);
+        fprintf(outDotFile, "fillcolor=\"#78DBE2\", label = \"%s\", ",
+                                nameTable->data[node->value.nameId].name);
+    }
+    else if (node->valueType == TreeNodeValueType::STRING_LITERAL)
+    {
+        fprintf(outDotFile, "fillcolor=\"#78DBE2\", label = %s, ",
+                                nameTable->data[node->value.nameId].name);   
     }
     else 
         fprintf(outDotFile, "fillcolor=\"#FF0000\", label = \"ERROR\", ");
@@ -250,10 +251,7 @@ static void DotFileCreateNodes(const TreeNode* node, FILE* outDotFile,
     if (node->valueType == TreeNodeValueType::NAME && 
         nameTable->data[node->value.nameId].localNameTable)
     {
-        printf("VAR id - %d\n", node->value.nameId);
-        printf("VAR NAME - %s\n", nameTable->data[node->value.nameId].name);
         localNameTable = (NameTableType*)nameTable->data[node->value.nameId].localNameTable;
-        printf("LOCAL name table size - %zu\n", localNameTable->size);
     }
 
     DotFileCreateNodes(node->left,  outDotFile, localNameTable);
@@ -361,7 +359,7 @@ TreeNodeValue TreeNodeOpValueCreate(TreeOperationId operation)
     return value;
 }
 
-TreeNodeValue TreeNodeVarValueCreate(int nameId)
+TreeNodeValue TreeNodeNameValueCreate(int nameId)
 {
     TreeNodeValue value = 
     {
@@ -380,11 +378,18 @@ TreeNode* TreeNumericNodeCreate(int value)
     return TreeNodeCreate(nodeVal, TreeNodeValueType::NUM);
 }
 
-TreeNode* TreeVariableNodeCreate(int nameId)
+TreeNode* TreeNameNodeCreate(int nameId)
 {
-    TreeNodeValue nodeVal  = TreeNodeVarValueCreate(nameId);
+    TreeNodeValue nodeVal  = TreeNodeNameValueCreate(nameId);
 
     return TreeNodeCreate(nodeVal, TreeNodeValueType::NAME);
+}
+
+TreeNode* TreeStringLiteralNodeCreate(int literalId)
+{
+    TreeNodeValue nodeVal  = TreeNodeNameValueCreate(literalId);
+
+    return TreeNodeCreate(nodeVal, TreeNodeValueType::STRING_LITERAL);
 }
 
 //---------------------------------------------------------------------------------------
@@ -429,6 +434,8 @@ static TreeErrors TreePrintPrefixFormat(const TreeNode* node, FILE* outStream,
     if (node->valueType == TreeNodeValueType::NUM)
         PRINT(outStream, "%d ", node->value.num);
     else if (node->valueType == TreeNodeValueType::NAME)
+        PRINT(outStream, "%s ", nameTable->data[node->value.nameId].name);
+    else if (node->valueType == TreeNodeValueType::STRING_LITERAL)
         PRINT(outStream, "%s ", nameTable->data[node->value.nameId].name);
     else
         PRINT(outStream, "%s ", TreeOperationGetLongName(node->value.operation));
@@ -529,10 +536,37 @@ static const char* TreeReadNodeValue(TreeNodeValue* value, TreeNodeValueType* va
 
     shift = 0;
 
-    static const size_t      maxInputStringSize  = 128;
+    static const size_t      maxInputStringSize  = 1024;
     static char  inputString[maxInputStringSize] =  "";
 
     const char* stringPtr = string;
+    if (*string == '"')
+    {
+        size_t inputStringPos = 0;
+        do
+        {
+            inputString[inputStringPos] = *stringPtr;
+            inputStringPos++;
+            stringPtr++;
+
+            assert(inputStringPos < maxInputStringSize);
+        } while (*stringPtr != '"');
+
+        inputString[inputStringPos] = *stringPtr;
+        stringPtr++;
+
+        Name pushName = //TODO: вынести в функцию
+        {
+            .name = strdup(inputString),
+        };
+
+        NameTablePush(allNamesTable, pushName);
+        
+        *value     = TreeNodeNameValueCreate(allNamesTable->size - 1); //TODO: TreeNodeConstStringCreate чет такое бы
+        *valueType = TreeNodeValueType::STRING_LITERAL;
+        return stringPtr;
+    }
+
     sscanf(string, "%s%n", inputString, &shift);
 
     stringPtr = string + shift;
@@ -555,7 +589,7 @@ static const char* TreeReadNodeValue(TreeNodeValue* value, TreeNodeValueType* va
 
     NameTablePush(allNamesTable, pushName);
 
-    *value = TreeNodeVarValueCreate(allNamesTable->size - 1);
+    *value = TreeNodeNameValueCreate(allNamesTable->size - 1);
     *valueType   = TreeNodeValueType::NAME;
 
     return stringPtr;

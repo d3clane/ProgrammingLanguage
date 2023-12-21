@@ -8,8 +8,13 @@
 
 static void AsmCodeBuild(TreeNode* node, NameTableType* localTable, 
                          const NameTableType* allNamesTable, FILE* outStream, size_t numberOfTabs);
+
 static void AsmCodeBuildFunc(TreeNode* node, const NameTableType* allNamesTable, 
                              size_t* varRamId, FILE* outStream, size_t numberOfTabs);
+
+static void AsmCodePrintStringLiteral(TreeNode* node, NameTableType* localTable, 
+                          const NameTableType* allNamesTable, FILE* outStream, size_t numberOfTabs);   
+
 static void NameTablePushFuncParams(TreeNode* node, NameTableType* local, 
                                     const NameTableType* allNamesTable, size_t* varRamId);
 static void AsmCodeBuildIf(TreeNode* node, NameTableType* localTable, 
@@ -48,6 +53,9 @@ static void AsmCodeBuildLess(TreeNode* node, NameTableType* localTable,
 static void AsmCodeBuildGreater(TreeNode* node, NameTableType* localTable, 
                                 const NameTableType* allNamesTable, size_t* labelId, FILE* outStream,
                                 size_t numberOfTabs);
+
+static void AsmCodeBuildPrint(TreeNode* node, NameTableType* localTable, 
+                        const NameTableType* allNamesTable, FILE* outStream, size_t numberOfTabs);
 
 static void PrintTabs(const size_t numberOfTabs, FILE* outStream);
 static void FprintfLine(FILE* outStream, const size_t numberOfTabs, const char* format, ...);
@@ -91,9 +99,18 @@ static void AsmCodeBuild(TreeNode* node, NameTableType* localTable,
         assert(varName);
 
         FprintfLine(outStream, numberOfTabs, "push [%zu]\n", varName->varRamId);
+
         return;
     }
 
+    if (node->valueType == TreeNodeValueType::STRING_LITERAL)
+    {
+        AsmCodePrintStringLiteral(node, localTable, allNamesTable, outStream, numberOfTabs);
+
+        return;
+    }
+
+    printf("Z4\n");
     assert(node->valueType == TreeNodeValueType::OPERATION);
 
     switch (node->value.operation)
@@ -289,11 +306,8 @@ static void AsmCodeBuild(TreeNode* node, NameTableType* localTable,
 
         case TreeOperationId::PRINT:
         {
-            AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
+            AsmCodeBuildPrint(node, localTable, allNamesTable, outStream, numberOfTabs);
 
-            FprintfLine(outStream, numberOfTabs, "out\n");
-            FprintfLine(outStream, numberOfTabs, "pop\n");
-    
             break;
         }
 
@@ -619,6 +633,43 @@ static void AsmCodeBuildGreaterEq(TreeNode* node, NameTableType* localTable,
     FprintfLine(outStream, numberOfTabs, "AFTER_GREATER_EQ_%zu:\n\n", id);
 
     *labelId += 1;
+}
+
+static void AsmCodePrintStringLiteral(TreeNode* node, NameTableType* localTable, 
+                          const NameTableType* allNamesTable, FILE* outStream, size_t numberOfTabs)
+{
+    const char* string = allNamesTable->data[node->value.nameId].name;
+
+    size_t pos = 1; //skipping " char
+
+    while (string[pos] != '"')
+    {
+        FprintfLine(outStream, numberOfTabs, "push %d\n", string[pos]);
+        FprintfLine(outStream, numberOfTabs, "outc\n");
+        FprintfLine(outStream, numberOfTabs, "pop\n");
+        ++pos;
+    }
+}
+
+static void AsmCodeBuildPrint(TreeNode* node, NameTableType* localTable, 
+                        const NameTableType* allNamesTable, FILE* outStream, size_t numberOfTabs)
+{
+    assert(node->left);
+
+    printf("H1\n");
+    if (node->left->valueType == TreeNodeValueType::STRING_LITERAL)
+    {
+        printf("H2\n");
+        AsmCodePrintStringLiteral(node->left, localTable, allNamesTable, outStream, numberOfTabs);
+
+        return;
+    }
+
+    printf("H3\n");
+    AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
+
+    FprintfLine(outStream, numberOfTabs, "out\n");
+    FprintfLine(outStream, numberOfTabs, "pop\n");
 }
 
 static void PrintTabs(const size_t numberOfTabs, FILE* outStream)

@@ -25,6 +25,7 @@ enum class TreeNodeValueType
     NUM,
     NAME,
     OPERATION,
+    STRING_LITERAL,
 };
 
 struct TreeNode
@@ -75,10 +76,11 @@ TreeErrors TreeVerify     (const TreeNode* node);
 
 TreeNodeValue TreeNodeNumValueCreate(int value);
 TreeNodeValue TreeNodeOpValueCreate(TreeOperationId operationId);
-TreeNodeValue TreeNodeVarValueCreate(int nameId);
+TreeNodeValue TreeNodeNameValueCreate(int nameId);
 
-TreeNode* TreeNumericNodeCreate(int value);
-TreeNode* TreeVariableNodeCreate(int nameId);
+TreeNode* TreeNumericNodeCreate      (int value);
+TreeNode* TreeNameNodeCreate         (int nameId);
+TreeNode* TreeStringLiteralNodeCreate(int literalId);
 
 #define TREE_TEXT_DUMP(tree) TreeTextDump((tree), __FILE__, __func__, __LINE__)
 

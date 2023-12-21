@@ -355,6 +355,7 @@ static TreeNode* GetFuncVarsDef(DescentState* state, bool* outErr)
 
 static TreeNode* GetOp(DescentState* state, bool* outErr)
 {
+    printf("BEBRA\n");
     TreeNode* opNode = nullptr;
 
     if (PickToken(state, TokenId::IF))
@@ -386,7 +387,6 @@ static TreeNode* GetOp(DescentState* state, bool* outErr)
         opNode = jointNode;
         while (true)
         {
-            //printf(RED_TEXT("Going in op recursively\n"));
             TreeNode* opInNode = GetOp(state, outErr);
             IF_ERR_RET(outErr, opNode, opInNode);
 
@@ -431,8 +431,12 @@ static TreeNode* GetIf(DescentState* state, bool* outErr)
     TreeNode* condition = GetOr(state, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
 
+    printf("HERE\n");
+    
     ConsumeToken(state, TokenId::FIFTY_SEVEN, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
+
+    printf("CHLEN\n");
 
     TreeNode* op = GetOp(state, outErr);
     IF_ERR_RET(outErr, condition, op);
@@ -569,6 +573,7 @@ static TreeNode* GetFuncVarsCall(DescentState* state, bool* outErr)
 
 static TreeNode* GetOr(DescentState* state, bool* outErr)
 {
+    //printf("R;\n");
     TreeNode* allExpr = GetAnd(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
@@ -588,6 +593,7 @@ static TreeNode* GetOr(DescentState* state, bool* outErr)
 
 static TreeNode* GetAnd(DescentState* state, bool* outErr)
 {
+    //printf("R3\n");
     TreeNode* allExpr = GetCmp(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
@@ -607,6 +613,7 @@ static TreeNode* GetAnd(DescentState* state, bool* outErr)
 
 static TreeNode* GetCmp(DescentState* state, bool* outErr)
 {
+    //printf("R2\n");
     TreeNode* allExpr = GetAddSub(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
@@ -657,6 +664,7 @@ static TreeNode* GetCmp(DescentState* state, bool* outErr)
 
 static TreeNode* GetAddSub(DescentState* state, bool* outErr)
 {
+    //printf("R1\n");
     TreeNode* allExpr = GetMulDiv(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
@@ -690,6 +698,7 @@ static TreeNode* GetAddSub(DescentState* state, bool* outErr)
 
 static TreeNode* GetMulDiv(DescentState* state, bool* outErr)
 {
+    //printf("R5\n");
     TreeNode* allExpr = GetPow(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
@@ -723,6 +732,8 @@ static TreeNode* GetMulDiv(DescentState* state, bool* outErr)
 
 static TreeNode* GetPow(DescentState* state, bool* outErr)
 {
+    //printf("R6\n");
+
     TreeNode* allExpr = GetFuncCall(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
@@ -743,19 +754,23 @@ static TreeNode* GetPow(DescentState* state, bool* outErr)
 
 static TreeNode* GetFuncCall(DescentState* state, bool* outErr)
 {
+    //printf("R7\n");
+
     if (PickToken(state, TokenId::SIN)  || PickToken(state, TokenId::COS) ||
         PickToken(state, TokenId::TAN)  || PickToken(state, TokenId::COT) ||
         PickToken(state, TokenId::SQRT) || PickToken(state, TokenId::L_BRACE))
         return GetBuiltInFuncCall(state, outErr);
 
-    if (PickTokenOnPos(state, state->tokenPos + 1, TokenId::L_BRACE))
+    if (PickTokenOnPos(state, state->tokenPos + 1, TokenId::L_BRACE) && PickName(state))
         return GetMadeFuncCall(state, outErr);
     
-    return GetArg(state, outErr);
+    return GetExpr(state, outErr);
 }
 
 static TreeNode* GetBuiltInFuncCall(DescentState* state, bool* outErr)
 {
+    //printf("R8\n");
+
     if (PickToken(state, TokenId::L_BRACE))
         return GetRead(state, outErr);
 
@@ -809,6 +824,7 @@ static TreeNode* GetBuiltInFuncCall(DescentState* state, bool* outErr)
 
 static TreeNode* GetArg(DescentState* state, bool* outErr)
 {
+    //printf("R9\n");
     TreeNode* arg = nullptr;
 
     if (PickNum(state))
@@ -823,6 +839,7 @@ static TreeNode* GetArg(DescentState* state, bool* outErr)
 
 static TreeNode* GetNum(DescentState* state, bool* outErr)
 {
+    //printf("R10\n");
     SynAssert(state, PickNum(state), outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
@@ -834,6 +851,7 @@ static TreeNode* GetNum(DescentState* state, bool* outErr)
 
 static TreeNode* AddVar(DescentState* state, bool* outErr)
 {
+    //printf("R11\n");
     SynAssert(state, PickName(state), outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
@@ -858,7 +876,23 @@ static TreeNode* AddVar(DescentState* state, bool* outErr)
 //TODO: сюда передавать localNameTable, тут его сувать(мб)
 static TreeNode* GetVar(DescentState* state, bool* outErr)
 {
+    //printf("R12\n");
     //TODO: создать отдельную функцию createName
+
+    assert(state);
+    printf("Tokens arr size - %zu, pos - %zu\n", state->tokens.size, state->tokenPos);
+
+    SynAssert(state, state->tokens.data[POS(state)].value.name, outErr);
+    IF_ERR_RET(outErr, nullptr, nullptr);
+
+    //printf("R13\n");
+    assert(state->tokens.data);
+    assert(state->tokens.data[POS(state)].value.name);
+
+    printf(RED_TEXT("NAME - %p, line - %zu\n"), state->tokens.data[POS(state)].value.name, 
+                                                state->tokens.data[POS(state)].line);
+
+    //printf("R14\n");
     Name pushName = 
     {
         .name           = strdup(state->tokens.data[POS(state)].value.name),
@@ -866,18 +900,21 @@ static TreeNode* GetVar(DescentState* state, bool* outErr)
         .localNameTable = nullptr,
     };
 
+    //printf("Z1\n");
     //TODO: здесь проверки на то, что мы пушим (в плане того, чтобы не было конфликтов имен и т.д, пока похуй)
     TreeNode* varNode = nullptr;
 
     Name* outName = nullptr;
     NameTableFind(state->allNamesTable, pushName.name, &outName);
+    //printf("Z2\n");
 
     SynAssert(state, outName != nullptr, outErr);
     IF_ERR_RET(outErr, varNode, nullptr);
 
     //TODO: здесь пройтись по локали + глобали, проверить на существование переменную типо
     varNode = MAKE_VAR(outName - state->allNamesTable->data);
-
+    
+    //printf("Z3\n");
     POS(state)++;
 
     return varNode;
@@ -899,7 +936,7 @@ static TreeNode* GetConstString(DescentState* state, bool* outErr)
     NameTablePush(state->allNamesTable, pushName);
 
     //TODO: здесь пройтись по локали + глобали, проверить на существование переменную типо
-    varNode = MAKE_VAR(state->allNamesTable->size - 1);
+    varNode = MAKE_STRING_LITERAL(state->allNamesTable->size - 1);
 
     POS(state)++;
 

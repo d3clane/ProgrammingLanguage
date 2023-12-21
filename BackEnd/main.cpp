@@ -20,5 +20,7 @@ int main(int argc, char* argv[])
     NameTableType* allNamesTable = nullptr;
     TreeReadPrefixFormat(&tree, &allNamesTable, inStream);
 
-    AsmCodeBuild(&tree, allNamesTable, outStream, outBinStream);
+    TreeGraphicDump(&tree, true, allNamesTable);
+
+    //AsmCodeBuild(&tree, allNamesTable, outStream, outBinStream);
 }
