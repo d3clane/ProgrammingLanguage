@@ -4,6 +4,7 @@
 #include "Tree/Tree.h"
 #include "Common/DoubleFuncs.h"
 #include "Tree/DSL.h"
+#include "Common/Log.h"
 
 //---------------Calculation-------------------
 
@@ -75,6 +76,11 @@ static int CalculateUsingOperation(const TreeOperationId operation,
     }
 
     #undef GENERATE_OPERATION_CMD
+
+    LOG_BEGIN();
+    Log   ("Op name - %s\n, id - %d", TreeOperationGetLongName(operation), operation);
+    printf("Op name - %s\n", TreeOperationGetLongName(operation));
+    LOG_END();
 
     assert(false);
 
@@ -364,12 +370,6 @@ static bool TreeNodeCanBeCalculated(const TreeNode* node)
         case TreeOperationId::DIV:
         case TreeOperationId::POW:
         case TreeOperationId::SQRT:
-        case TreeOperationId::GREATER:
-        case TreeOperationId::GREATER_EQ:
-        case TreeOperationId::LESS:
-        case TreeOperationId::LESS_EQ:
-        case TreeOperationId::EQ:
-        case TreeOperationId::NOT_EQ:
             break;
         
         default:

@@ -33,7 +33,7 @@
         0 57
     {
 
-    2 + 0 57
+    2 57
 {
 
 575757 GetFirstRoot 575757 a 575757 b 575757 c
@@ -67,29 +67,29 @@
 
     57? numberOfRoots != 3 57
     57
-        { "infinite number of roots" 57
+        . "infinite number of roots" 57
     {
     
     57? numberOfRoots = 3 57
     57
 
-        { "number of roots: " 57
-        { numberOfRoots 57
+        . "number of roots: " 57
+        . numberOfRoots 57
 
         57? numberOfRoots <= 1 57
         57
-            { "first root: " 57
+            . "first root: " 57
             575757 firstRoot == GetFirstRoot { a b c 57 57
             
-            { firstRoot 57
+            . firstRoot 57
         {
 
         57? numberOfRoots <= 2 57
         57
-            { "second root: " 57
+            . "second root: " 57
             575757 secondRoot == GetSecondRoot { a b c 57 57
 
-            { secondRoot 57
+            . secondRoot 57
         {
     
     {

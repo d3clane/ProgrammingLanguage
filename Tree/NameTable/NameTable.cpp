@@ -634,3 +634,10 @@ void NameTablePrintError(NameTableErrors error)
     LOG_END();
 }
 #undef PRINT_ERR
+
+void NameCtor(Name* name, const char* string, void* localNameTablePtr, size_t varRamId)
+{
+    name->name           = strdup(string);
+    name->localNameTable = localNameTablePtr;
+    name->varRamId       = varRamId;
+}

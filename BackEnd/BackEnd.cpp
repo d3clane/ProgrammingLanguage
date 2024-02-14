@@ -67,11 +67,12 @@ void AsmCodeBuild(Tree* tree, NameTableType* allNamesTable, FILE* outStream, FIL
     assert(outStream);
     assert(outBinStream);
 
-    fprintf(outStream, "jmp main:\n\n");
+    fprintf(outStream, "call main:\n"
+                       "hlt\n\n");
     
     AsmCodeBuild(tree->root, nullptr, allNamesTable, outStream, 0);
 
-    fprintf(outStream, "    hlt\n");
+    fprintf(outStream, "    ret\n");
 }
 
 static void AsmCodeBuild(TreeNode* node, NameTableType* localTable, 
@@ -83,7 +84,6 @@ static void AsmCodeBuild(TreeNode* node, NameTableType* localTable,
     if (node == nullptr)
         return;
 
-    printf("HERE\n");
     if (node->valueType == TreeNodeValueType::NUM)
     {
         FprintfLine(outStream, numberOfTabs, "push %d\n", node->value.num);
@@ -111,7 +111,6 @@ static void AsmCodeBuild(TreeNode* node, NameTableType* localTable,
         return;
     }
 
-    printf("Z4\n");
     assert(node->valueType == TreeNodeValueType::OPERATION);
 
     switch (node->value.operation)
@@ -352,14 +351,8 @@ static void NameTablePushFuncParams(TreeNode* node, NameTableType* local,
 
     if (node->valueType == TreeNodeValueType::NAME)
     {
-        Name pushName =
-        {
-            .name = strdup(allNamesTable->data[node->value.nameId].name),
-            
-            .localNameTable = nullptr,
-
-            .varRamId       = *varRamId,
-        };
+        Name pushName = {};
+        NameCtor(&pushName, strdup(allNamesTable->data[node->value.nameId].name), nullptr, *varRamId);
 
         *varRamId += 1;
 
@@ -388,7 +381,7 @@ static void NameTablePushFuncParams(TreeNode* node, NameTableType* local,
 
         default:
         {
-            assert(false); //TODO: 
+            assert(false);
             break;
         }
     }
@@ -399,18 +392,20 @@ static void AsmCodeBuildIf(TreeNode* node, NameTableType* localTable,
                            size_t numberOfTabs)
 {
     fprintf(outStream, "\n");
+    FprintfLine(outStream, numberOfTabs, "@ if condition:\n");
 
     AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
 
-    //TODO: коммент в асме о том что это if
     size_t id = *labelId;
     FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "je end_if_%zu:\n", id);
+    FprintfLine(outStream, numberOfTabs, "je END_IF_%zu:\n", id);
     *labelId += 1;
+
+    FprintfLine(outStream, numberOfTabs, "@ if code block:\n");
 
     AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs + 1);
     
-    FprintfLine(outStream, numberOfTabs, "end_if_%zu:\n\n", id);
+    FprintfLine(outStream, numberOfTabs, "END_IF_%zu:\n\n", id);
 }
 
 static void AsmCodeBuildWhile(TreeNode* node, NameTableType* localTable, 
@@ -424,16 +419,20 @@ static void AsmCodeBuildWhile(TreeNode* node, NameTableType* localTable,
     FprintfLine(outStream, numberOfTabs, "while_%zu:\n", id);
 
     *labelId += 1;
+    FprintfLine(outStream, numberOfTabs, "@ while condition: \n");
+
     AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
 
     FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "je end_while_%zu:\n", id);
+    FprintfLine(outStream, numberOfTabs, "je END_WHILE_%zu:\n", id);
 
     *labelId += 1;
 
+    FprintfLine(outStream, numberOfTabs, "@ while code block: \n");
+
     AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs + 1);
 
-    FprintfLine(outStream, numberOfTabs, "end_while_%zu:\n\n", id);
+    FprintfLine(outStream, numberOfTabs, "END_WHILE_%zu:\n\n", id);
 }
 
 static void AsmCodeBuildAssign(TreeNode* node, NameTableType* localTable, 
@@ -443,14 +442,8 @@ static void AsmCodeBuildAssign(TreeNode* node, NameTableType* localTable,
     AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
 
     assert(node->left->valueType == TreeNodeValueType::NAME);
-    Name pushName = 
-    {
-        .name = strdup(allNamesTable->data[node->left->value.nameId].name),
-
-        .localNameTable = nullptr,
-
-        .varRamId = *varRamId,
-    };
+    Name pushName = {};
+    NameCtor(&pushName, strdup(allNamesTable->data[node->left->value.nameId].name), nullptr, *varRamId);
 
     *varRamId += 1;
 
@@ -520,17 +513,22 @@ static void AsmCodeBuildFuncCall(TreeNode* node, NameTableType* localTable,
                                  const NameTableType* allNamesTable, FILE* outStream,
                                  size_t numberOfTabs)
 {
+    FprintfLine(outStream, numberOfTabs, "@ pushing func local vars:\n");
+
     for (size_t i = 0; i < localTable->size; ++i)
     {
         FprintfLine(outStream, numberOfTabs, "push [%zu]\n", localTable->data[i].varRamId);
     }
 
+    FprintfLine(outStream, numberOfTabs, "@ pushing func args:\n");
     AsmCodeBuild(node->left->left, localTable, allNamesTable, outStream, numberOfTabs);
 
     assert(node->left->valueType == TreeNodeValueType::NAME);
 
     FprintfLine(outStream, numberOfTabs, 
                     "call %s:\n", allNamesTable->data[node->left->value.nameId].name);
+
+    FprintfLine(outStream, numberOfTabs, "@ saving func return\n");
 
     FprintfLine(outStream, numberOfTabs, "pop rax\n");
 
@@ -664,6 +662,10 @@ static void AsmCodePrintStringLiteral(TreeNode* node, NameTableType* localTable,
         FprintfLine(outStream, numberOfTabs, "pop\n");
         ++pos;
     }
+
+    FprintfLine(outStream, numberOfTabs, "push 10\n");
+    FprintfLine(outStream, numberOfTabs, "outc\n");
+    FprintfLine(outStream, numberOfTabs, "pop\n");
 }
 
 static void AsmCodeBuildPrint(TreeNode* node, NameTableType* localTable, 
@@ -671,16 +673,13 @@ static void AsmCodeBuildPrint(TreeNode* node, NameTableType* localTable,
 {
     assert(node->left);
 
-    printf("H1\n");
     if (node->left->valueType == TreeNodeValueType::STRING_LITERAL)
     {
-        printf("H2\n");
         AsmCodePrintStringLiteral(node->left, localTable, allNamesTable, outStream, numberOfTabs);
 
         return;
     }
 
-    printf("H3\n");
     AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
 
     FprintfLine(outStream, numberOfTabs, "out\n");

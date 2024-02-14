@@ -42,6 +42,8 @@ enum class TokenId
     FIFTY_SEVEN,
 
     L_BRACE,
+    PRINT,
+    
 };
 
 union TokenValue

@@ -17,6 +17,8 @@ int main(int argc, char* argv[])
     NameTableType* nameTable = nullptr;
     TreeReadPrefixFormat(&tree, &nameTable, inStream);
 
+    TreeGraphicDump(&tree, true, nameTable);
+    
     TreeSimplify(&tree);
 
     TreeGraphicDump(&tree, true, nameTable);

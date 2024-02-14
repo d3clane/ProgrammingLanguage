@@ -26,8 +26,7 @@ HEADERS  = Tree/Tree.h Tree/Operations.h Common/Colors.h Common/DoubleFuncs.h Co
 			FrontEnd/LexicalParserTokenType	\
 			Tree/DSL.h Tree/NameTable/ArrayFuncs.h Tree/NameTable/HashFuncs.h 				\
 			Tree/NameTable/NameTable.h Tree/NameTable/NameTableTypes.h FrontEnd/LexicalParser.h		\
-			FrontEnd/SyntaxParser.h BackEnd/BackEnd.h Assembler/Assembler.h Assembler/Commands/Commands.h \
-			Assembler/Commands/Common.h BackFrontEnd/BackFrontEnd.h MiddleEnd/MiddleEnd.h
+			FrontEnd/SyntaxParser.h BackEnd/BackEnd.h BackFrontEnd/BackFrontEnd.h MiddleEnd/MiddleEnd.h
 			
 FILESCPP = Tree/Tree.cpp Common/DoubleFuncs.cpp \
 			Common/Errors.cpp \
@@ -36,7 +35,7 @@ FILESCPP = Tree/Tree.cpp Common/DoubleFuncs.cpp \
 			FrontEnd/TokensArr/ArrayFuncs.cpp FrontEnd/TokensArr/HashFuncs.cpp FrontEnd/TokensArr/TokensArr.cpp \
 			Tree/DSL.cpp Tree/NameTable/ArrayFuncs.cpp Tree/NameTable/HashFuncs.cpp	\
 			Tree/NameTable/NameTable.cpp FrontEnd/LexicalParser.cpp FrontEnd/SyntaxParser.cpp	\
-			BackEnd/BackEnd.cpp Assembler/Assembler.cpp BackFrontEnd/BackFrontEnd.cpp	\
+			BackEnd/BackEnd.cpp BackFrontEnd/BackFrontEnd.cpp	\
 			MiddleEnd/main.cpp MiddleEnd/MiddleEnd.cpp
  
 objects = $(FILESCPP:%.cpp=%.o)

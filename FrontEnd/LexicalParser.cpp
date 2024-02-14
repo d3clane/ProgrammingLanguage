@@ -19,16 +19,14 @@ static inline void SyntaxError(const size_t line, const size_t posErr, const cha
     size_t pos = posErr;
     while (str[pos] != '\n' && str[pos] != '\0')
     {
-        printf("%c(%d)", str[pos], str[pos]);
+        putchar(str[pos]);
         
         ++pos;
     }
     putchar('\n');
 }
 
-//TODO: отделить определния от объявлений у функций
-
-static size_t ParseDigit(const char* str, const size_t posStart, const size_t line, 
+static size_t ParseNumber(const char* str, const size_t posStart, const size_t line, 
                                                                 TokensArr* tokens)
 {
     assert(str);
@@ -195,7 +193,7 @@ static size_t Parse5(const char* str, const size_t posStart, const size_t line,
     pos += shift;
 
     if (value != 57 && value != 575757)
-        return ParseDigit(str, posStart, line, tokens);
+        return ParseNumber(str, posStart, line, tokens);
 
     if (value == 575757)
     {
@@ -258,8 +256,6 @@ static size_t ParseQuotes(const char* str, const size_t posStart, const size_t l
     pos++;
     wordPos++;
     word[wordPos] = '\0';
-
-    printf(RED_TEXT("WORD - %s\n"), word);
 
     TokensArrPush(tokensArr, TokenCreate(TokenValueCreateName(word), 
                                                 TokenValueType::NAME, line, posStart));
@@ -358,6 +354,14 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
                 break; 
             }
 
+            case '.':
+            {
+                TokensArrPush(tokens, TokenCreate(TokenValueCreateToken(TokenId::PRINT),
+                                                        TokenValueType::TOKEN, line, pos));
+                pos++;
+                break;
+            }
+
             case '"':
             {
                 pos = ParseQuotes(str, pos, line, tokens);
@@ -395,7 +399,7 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
             case '8':
             case '9':
             {
-                pos = ParseDigit(str, pos, line, tokens);
+                pos = ParseNumber(str, pos, line, tokens);
                 break;
             }
 
@@ -407,8 +411,6 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
 
             default:
             {
-                printf("STR[%zu] - %c(%d)\n", pos, str[pos], str[pos]);
-
                 if (isalpha(str[pos]) || str[pos] == '_')
                 {
                     pos = ParseWord(str, pos, line, tokens);

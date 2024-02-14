@@ -145,4 +145,6 @@ static inline bool NameTableIsEmpty(const NameTableType* stk)
 /// @param [in]error error to print
 void NameTablePrintError(NameTableErrors error);
 
+void NameCtor(Name* name, const char* string, void* localNameTablePtr, size_t varRamId);
+
 #endif // NAME_TABLE_H
