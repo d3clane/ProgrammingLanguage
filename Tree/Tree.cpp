@@ -496,8 +496,8 @@ static TreeNode* TreeReadPrefixFormat(const char* const string, const char** str
         return nullptr;
     }
 
-    TreeNodeValue value;
-    TreeNodeValueType valueType;
+    TreeNodeValue value         = {};
+    TreeNodeValueType valueType = {};
 
     stringPtr = TreeReadNodeValue(&value, &valueType, stringPtr, allNamesTable);
     TreeNode* node = TreeNodeCreate(value, valueType);
@@ -522,7 +522,7 @@ static const char* TreeReadNodeValue(TreeNodeValue* value, TreeNodeValueType* va
     assert(value);
     assert(string);
     assert(valueType);
-
+    
     int readenValue = 0;
     int shift = 0;
     int scanResult = sscanf(string, "%d%n\n", &readenValue, &shift);
@@ -530,7 +530,7 @@ static const char* TreeReadNodeValue(TreeNodeValue* value, TreeNodeValueType* va
     if (scanResult != 0)
     {
         value->num = readenValue;
-        *valueType   = TreeNodeValueType::NUM;
+        *valueType = TreeNodeValueType::NUM;
         return string + shift;
     }
 
@@ -582,16 +582,30 @@ static const char* TreeReadNodeValue(TreeNodeValue* value, TreeNodeValueType* va
         return stringPtr;
     }
 
-    Name pushName =
+    Name* varInNameTablePtr = nullptr;
+    NameTableFind(allNamesTable, inputString, &varInNameTablePtr);
+
+    if (varInNameTablePtr == nullptr)
     {
-        .name = strdup(inputString),
+        Name pushName = 
+        {
+            .name = strdup(inputString),
 
-        .localNameTable = nullptr,
-    };
+            .localNameTable = nullptr,
+        };
 
-    NameTablePush(allNamesTable, pushName);
+        NameTablePush(allNamesTable, pushName);
 
-    *value = TreeNodeNameValueCreate(allNamesTable->size - 1);
+        *value = TreeNodeNameValueCreate(allNamesTable->size - 1);
+    }
+    else 
+    {
+        size_t varInNameTablePos = -1;
+        NameTableGetPos(allNamesTable, varInNameTablePtr, &varInNameTablePos);
+
+        *value = TreeNodeNameValueCreate((int)varInNameTablePos);
+    }
+
     *valueType   = TreeNodeValueType::NAME;
 
     return stringPtr;
