@@ -96,7 +96,7 @@ static void AsmCodeBuild(TreeNode* node, NameTableType* localTable,
 
         Name* varName = nullptr;
         NameTableFind(localTable, allNamesTable->data[node->value.nameId].name, &varName);
-
+        printf("name id - %d, name - %s, var ram id - %zu\n", node->value.nameId, allNamesTable->data[node->value.nameId].name, varName->varRamId);
         assert(varName);
 
         FprintfLine(outStream, numberOfTabs, "push [%zu]\n", varName->varRamId);
@@ -328,6 +328,7 @@ static void AsmCodeBuildFunc(TreeNode* node, const NameTableType* allNamesTable,
 
     NameTableType* local = nullptr;
     NameTableCtor(&local);
+
     allNamesTable->data[node->left->value.nameId].localNameTable = local;
 
     NameTablePushFuncParams(node->left->left, local, allNamesTable, varRamId);
@@ -352,7 +353,7 @@ static void NameTablePushFuncParams(TreeNode* node, NameTableType* local,
     if (node->valueType == TreeNodeValueType::NAME)
     {
         Name pushName = {};
-        NameCtor(&pushName, strdup(allNamesTable->data[node->value.nameId].name), nullptr, *varRamId);
+        NameCtor(&pushName, allNamesTable->data[node->value.nameId].name, nullptr, *varRamId);
 
         *varRamId += 1;
 
@@ -442,14 +443,24 @@ static void AsmCodeBuildAssign(TreeNode* node, NameTableType* localTable,
     AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
 
     assert(node->left->valueType == TreeNodeValueType::NAME);
-    Name pushName = {};
-    NameCtor(&pushName, strdup(allNamesTable->data[node->left->value.nameId].name), nullptr, *varRamId);
 
-    *varRamId += 1;
+    Name* varNameInTablePtr = nullptr;
+    NameTableFind(localTable, allNamesTable->data[node->left->value.nameId].name, &varNameInTablePtr);
 
-    NameTablePush(localTable, pushName);
+    //TODO: it is hotfix, a lot of operations are done
+    // better fix: split assigning and defining and push only once
+    if (varNameInTablePtr == nullptr)
+    {
+        Name pushName = {};
+        NameCtor(&pushName, allNamesTable->data[node->left->value.nameId].name, nullptr, *varRamId);
 
-    FprintfLine(outStream, numberOfTabs, "pop [%zu]\n", pushName.varRamId);
+        *varRamId += 1;
+
+        NameTablePush(localTable, pushName);
+        varNameInTablePtr = localTable->data + localTable->size - 1;    // pointing on pushed name
+    }
+
+    FprintfLine(outStream, numberOfTabs, "pop [%zu]\n", varNameInTablePtr->varRamId);
 }
 
 static void AsmCodeBuildAnd(TreeNode* node, NameTableType* localTable, 
