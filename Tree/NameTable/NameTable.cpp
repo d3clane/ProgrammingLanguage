@@ -309,6 +309,17 @@ NameTableErrors NameTableFind(NameTableType* table, const char* name, Name** out
     return NameTableErrors::NAME_TABLE_NO_ERR;
 }
 
+NameTableErrors NameTableGetPos(NameTableType* table, Name* namePtr, size_t* outPos)
+{
+    assert(table);
+    assert(namePtr);
+    assert(outPos);
+
+    *outPos = namePtr - table->data;
+
+    return NameTableErrors::NAME_TABLE_NO_ERR;
+}
+
 NameTableErrors NameTableVerify(NameTableType* nameTable)
 {
     assert(nameTable);

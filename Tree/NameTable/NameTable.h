@@ -116,6 +116,8 @@ NameTableErrors NameTablePush(NameTableType* stk, const Name val);
 
 NameTableErrors NameTableFind(NameTableType* table, const char* name, Name** outName);
 
+NameTableErrors NameTableGetPos(NameTableType* table, Name* namePtr, size_t* outPos);
+
 /// @brief Verifies if nameTable is used properly
 /// @param [in]stk nameTable to verify
 /// @return NameTableErrors in nameTable
