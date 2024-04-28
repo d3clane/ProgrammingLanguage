@@ -18,12 +18,12 @@
 #define R_NUM(token) token->right->value.num
 
 
-#define MAKE_NUM(VALUE)         TreeNumericNodeCreate(VALUE)
-#define MAKE_VAR(id)            TreeNameNodeCreate(id)
-#define MAKE_STRING_LITERAL(id) TreeStringLiteralNodeCreate(id);
+#define CREATE_NUM(VALUE)         TreeNumericNodeCreate(VALUE)
+#define CREATE_VAR(id)            TreeNameNodeCreate(id)
+#define CREATE_STRING_LITERAL(id) TreeStringLiteralNodeCreate(id);
 
 #define GENERATE_OPERATION_CMD(NAME, ...)                                               \
-    TreeNode* MAKE_##NAME ##_NODE(TreeNode* left, TreeNode* right = nullptr);  \
+    TreeNode* CREATE_##NAME ##_NODE(TreeNode* left, TreeNode* right = nullptr);  \
 
 #include "Operations.h"
 

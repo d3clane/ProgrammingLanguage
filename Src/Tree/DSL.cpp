@@ -4,7 +4,7 @@
 
 
 #define GENERATE_OPERATION_CMD(NAME, ...)                                       \
-    TreeNode* MAKE_##NAME ##_NODE(TreeNode* left, TreeNode* right)     \
+    TreeNode* CREATE_##NAME ##_NODE(TreeNode* left, TreeNode* right)     \
     {                                                                           \
         return TreeNodeCreate(TreeNodeOpValueCreate(TreeOperationId::NAME),     \
                               TreeNodeValueType::OPERATION,                   \

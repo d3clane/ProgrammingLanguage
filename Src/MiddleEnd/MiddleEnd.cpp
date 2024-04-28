@@ -113,7 +113,7 @@ static TreeNode* TreeSimplifyConstants (TreeNode* node, int* simplifiesCount)
 
     if (TreeNodeCanBeCalculated(node) && !IS_NUM(node))
     {
-        TreeNode* numNode = MAKE_NUM(TreeCalculate(node));
+        TreeNode* numNode = CREATE_NUM(TreeCalculate(node));
         *simplifiesCount += 1;
         TreeNodeDtor(node);
         return numNode;
@@ -338,7 +338,7 @@ static inline TreeNode* TreeSimplifyReturnRightNode(TreeNode* node)
 
 static inline TreeNode* TreeSimplifyReturnNumNode(TreeNode* node, int value)
 {
-    TreeNode* constnode = MAKE_NUM(value);
+    TreeNode* constnode = CREATE_NUM(value);
     
     TreeNodeDtor(R(node));
     TreeNodeDtor(L(node));
@@ -346,7 +346,7 @@ static inline TreeNode* TreeSimplifyReturnNumNode(TreeNode* node, int value)
     node->left  = nullptr;
     node->right = nullptr;
 
-    return MAKE_NUM(value);
+    return CREATE_NUM(value);
 }
 
 //---------------------------------------------------------------------------------------

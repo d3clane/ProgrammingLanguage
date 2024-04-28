@@ -61,7 +61,7 @@ static void DescentStateDtor(DescentState* state);
 // CONST_STRING     ::= '"' [ANY_ASCII_CHAR]+ '"'
 
 static TreeNode* GetVar              (DescentState* state, bool* outErr);
-static TreeNode* AddVar              (DescentState* state, bool* outErr);
+static TreeNode* CreateVar           (DescentState* state, bool* outErr);
 static TreeNode* GetGrammar          (DescentState* state, bool* outErr);
 static TreeNode* GetAddSub           (DescentState* state, bool* outErr);
 static TreeNode* GetType             (DescentState* state, bool* outErr);
@@ -264,7 +264,7 @@ static TreeNode* GetGrammar(DescentState* state, bool* outErr)
         TreeNode* tmpNode = GetFunc(state, outErr);
         IF_ERR_RET(outErr, root, tmpNode);
 
-        root = MAKE_NEW_FUNC_NODE(root, tmpNode);
+        root = CREATE_NEW_FUNC_NODE(root, tmpNode);
     }
 
     SynAssert(state, PickToken(state, LangOpId::PROGRAM_END), outErr);
@@ -291,13 +291,13 @@ static TreeNode* GetFuncDef(DescentState* state, bool* outErr)
     TreeNode* typeNode = GetType(state, outErr);
     IF_ERR_RET(outErr, typeNode, nullptr);
 
-    TreeNode* funcName = AddVar(state, outErr);
+    TreeNode* funcName = CreateVar(state, outErr);
     IF_ERR_RET(outErr, typeNode, funcName);
     
     //TODO: create set table function
     state->globalTable->data[funcName->value.nameId].localNameTable = (void*)localNameTable;
     state->currentLocalTable = localNameTable;
-    func = MAKE_FUNC_NODE(funcName);
+    func = CREATE_FUNC_NODE(funcName);
 
     TreeNode* funcVars = GetFuncVarsDef(state, outErr);
     funcName->left = funcVars;
@@ -310,7 +310,7 @@ static TreeNode* GetFuncDef(DescentState* state, bool* outErr)
     funcName->right = funcCode;
     IF_ERR_RET(outErr, func, typeNode);
 
-    func = MAKE_TYPE_NODE(typeNode, func);
+    func = CREATE_TYPE_NODE(typeNode, func);
 
     return func;
 }
@@ -334,21 +334,21 @@ static TreeNode* GetFuncVarsDef(DescentState* state, bool* outErr)
     TreeNode* varType = GetType(state, outErr);
     IF_ERR_RET(outErr, varType, nullptr);
     
-    TreeNode* varName = AddVar(state, outErr);
+    TreeNode* varName = CreateVar(state, outErr);
     IF_ERR_RET(outErr, varType, varName);
 
-    varsDefNode = MAKE_TYPE_NODE(varType, varName);
+    varsDefNode = CREATE_TYPE_NODE(varType, varName);
 
     while (!PickToken(state, LangOpId::FIFTY_SEVEN))
     {
         varType = GetType(state, outErr);
         IF_ERR_RET(outErr, varsDefNode, varType);
 
-        varName = AddVar(state, outErr);
-        TreeNode* tmpVar = MAKE_TYPE_NODE(varType, varName);
+        varName = CreateVar(state, outErr);
+        TreeNode* tmpVar = CREATE_TYPE_NODE(varType, varName);
         IF_ERR_RET(outErr, tmpVar, varsDefNode);
 
-        varsDefNode = MAKE_COMMA_NODE(varsDefNode, tmpVar);
+        varsDefNode = CREATE_COMMA_NODE(varsDefNode, tmpVar);
     }
 
     return varsDefNode;
@@ -383,7 +383,7 @@ static TreeNode* GetOp(DescentState* state, bool* outErr)
         ConsumeToken(state, LangOpId::FIFTY_SEVEN, outErr);
         IF_ERR_RET(outErr, opNode, nullptr);
 
-        TreeNode* jointNode = MAKE_LINE_END_NODE(nullptr, nullptr);
+        TreeNode* jointNode = CREATE_LINE_END_NODE(nullptr, nullptr);
         opNode = jointNode;
         while (true)
         {
@@ -395,7 +395,7 @@ static TreeNode* GetOp(DescentState* state, bool* outErr)
             if (PickToken(state, LangOpId::L_BRACE))
                 break;
 
-            jointNode->right = MAKE_LINE_END_NODE(nullptr, nullptr);
+            jointNode->right = CREATE_LINE_END_NODE(nullptr, nullptr);
             jointNode        = jointNode->right;
         }
 
@@ -417,7 +417,7 @@ static TreeNode* GetOp(DescentState* state, bool* outErr)
 
 static TreeNode* GetReturn(DescentState* state, bool* outErr)
 {
-    return MAKE_RETURN_NODE(GetOr(state, outErr));
+    return CREATE_RETURN_NODE(GetOr(state, outErr));
 }
 
 static TreeNode* GetIf(DescentState* state, bool* outErr)
@@ -434,7 +434,7 @@ static TreeNode* GetIf(DescentState* state, bool* outErr)
     TreeNode* op = GetOp(state, outErr);
     IF_ERR_RET(outErr, condition, op);
 
-    return MAKE_IF_NODE(condition, op);
+    return CREATE_IF_NODE(condition, op);
 }
 
 static TreeNode* GetWhile(DescentState* state, bool* outErr)
@@ -451,7 +451,7 @@ static TreeNode* GetWhile(DescentState* state, bool* outErr)
     TreeNode* op = GetOp(state, outErr);
     IF_ERR_RET(outErr, condition, op);
 
-    return MAKE_WHILE_NODE(condition, op);
+    return CREATE_WHILE_NODE(condition, op);
 }
 
 static TreeNode* GetVarDef(DescentState* state, bool* outErr)
@@ -459,17 +459,17 @@ static TreeNode* GetVarDef(DescentState* state, bool* outErr)
     TreeNode* typeNode = GetType(state, outErr);
     IF_ERR_RET(outErr, typeNode, nullptr);
 
-    TreeNode* varName = AddVar(state, outErr);
+    TreeNode* varName = CreateVar(state, outErr);
     IF_ERR_RET(outErr, typeNode, varName);
 
     ConsumeToken(state, LangOpId::ASSIGN, outErr);
     IF_ERR_RET(outErr, typeNode, varName);
 
     TreeNode* expr   = GetOr(state, outErr);
-    TreeNode* assign = MAKE_ASSIGN_NODE(varName, expr);
+    TreeNode* assign = CREATE_ASSIGN_NODE(varName, expr);
     IF_ERR_RET(outErr, expr, typeNode);
 
-    return MAKE_TYPE_NODE(typeNode, assign);
+    return CREATE_TYPE_NODE(typeNode, assign);
 }
 
 static TreeNode* GetExpr(DescentState* state, bool* outErr)
@@ -502,7 +502,7 @@ static TreeNode* GetPrint(DescentState* state, bool* outErr)
 
     IF_ERR_RET(outErr, arg, nullptr);
 
-    return MAKE_PRINT_NODE(arg);
+    return CREATE_PRINT_NODE(arg);
 }
 
 static TreeNode* GetRead(DescentState* state, bool* outErr)
@@ -510,7 +510,7 @@ static TreeNode* GetRead(DescentState* state, bool* outErr)
     ConsumeToken(state, LangOpId::L_BRACE, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
-    return MAKE_READ_NODE(nullptr, nullptr);
+    return CREATE_READ_NODE(nullptr, nullptr);
 }
 
 static TreeNode* GetAssign(DescentState* state, bool* outErr)
@@ -524,7 +524,7 @@ static TreeNode* GetAssign(DescentState* state, bool* outErr)
     TreeNode* rightExpr = GetOr(state, outErr);
     IF_ERR_RET(outErr, rightExpr, var);
 
-    return MAKE_ASSIGN_NODE(var, rightExpr);
+    return CREATE_ASSIGN_NODE(var, rightExpr);
 }
 
 static TreeNode* GetMadeFuncCall(DescentState* state, bool* outErr)
@@ -542,7 +542,7 @@ static TreeNode* GetMadeFuncCall(DescentState* state, bool* outErr)
     ConsumeToken(state, LangOpId::FIFTY_SEVEN, outErr);
     IF_ERR_RET(outErr, funcName, funcVars);
 
-    return MAKE_FUNC_CALL_NODE(funcName);
+    return CREATE_FUNC_CALL_NODE(funcName);
 }
 
 static TreeNode* GetFuncVarsCall(DescentState* state, bool* outErr)
@@ -558,7 +558,7 @@ static TreeNode* GetFuncVarsCall(DescentState* state, bool* outErr)
         TreeNode* tmpVar = GetOr(state, outErr);
         IF_ERR_RET(outErr, vars, tmpVar);
 
-        vars = MAKE_COMMA_NODE(vars, tmpVar);
+        vars = CREATE_COMMA_NODE(vars, tmpVar);
     }
     
     return vars;
@@ -577,7 +577,7 @@ static TreeNode* GetOr(DescentState* state, bool* outErr)
         TreeNode* tmpExpr = GetAnd(state, outErr);
         IF_ERR_RET(outErr, tmpExpr, allExpr);
 
-        allExpr = MAKE_OR_NODE(allExpr, tmpExpr);
+        allExpr = CREATE_OR_NODE(allExpr, tmpExpr);
     }
 
     return allExpr;
@@ -596,7 +596,7 @@ static TreeNode* GetAnd(DescentState* state, bool* outErr)
         TreeNode* tmpExpr = GetCmp(state, outErr);
         IF_ERR_RET(outErr, tmpExpr, allExpr);
 
-        allExpr = MAKE_AND_NODE(allExpr, tmpExpr);
+        allExpr = CREATE_AND_NODE(allExpr, tmpExpr);
     }
 
     return allExpr;
@@ -620,27 +620,27 @@ static TreeNode* GetCmp(DescentState* state, bool* outErr)
         switch (langOpId)
         {
             case LangOpId::LESS:
-                allExpr = MAKE_LESS_NODE(allExpr, newExpr);
+                allExpr = CREATE_LESS_NODE(allExpr, newExpr);
                 break;
 
             case LangOpId::LESS_EQ:
-                allExpr = MAKE_LESS_EQ_NODE(allExpr, newExpr);
+                allExpr = CREATE_LESS_EQ_NODE(allExpr, newExpr);
                 break;
             
             case LangOpId::GREATER:
-                allExpr = MAKE_GREATER_NODE(allExpr, newExpr);
+                allExpr = CREATE_GREATER_NODE(allExpr, newExpr);
                 break;
 
             case LangOpId::GREATER_EQ:
-                allExpr = MAKE_GREATER_EQ_NODE(allExpr, newExpr);
+                allExpr = CREATE_GREATER_EQ_NODE(allExpr, newExpr);
                 break;
 
             case LangOpId::EQ:
-                allExpr = MAKE_EQ_NODE(allExpr, newExpr);
+                allExpr = CREATE_EQ_NODE(allExpr, newExpr);
                 break;
 
             case LangOpId::NOT_EQ:
-                allExpr = MAKE_NOT_EQ_NODE(allExpr, newExpr);
+                allExpr = CREATE_NOT_EQ_NODE(allExpr, newExpr);
                 break;
             default:
                 SynAssert(state, false, outErr);
@@ -668,11 +668,11 @@ static TreeNode* GetAddSub(DescentState* state, bool* outErr)
         switch (langOpId)
         {
             case LangOpId::ADD:
-                allExpr = MAKE_ADD_NODE(allExpr, newExpr);
+                allExpr = CREATE_ADD_NODE(allExpr, newExpr);
                 break;
             
             case LangOpId::SUB:
-                allExpr = MAKE_SUB_NODE(allExpr, newExpr);
+                allExpr = CREATE_SUB_NODE(allExpr, newExpr);
                 break;
 
             default:
@@ -701,11 +701,11 @@ static TreeNode* GetMulDiv(DescentState* state, bool* outErr)
         switch (langOpId)
         {
             case LangOpId::MUL:
-                allExpr = MAKE_MUL_NODE(allExpr, newExpr);
+                allExpr = CREATE_MUL_NODE(allExpr, newExpr);
                 break;
             
             case LangOpId::DIV:
-                allExpr = MAKE_DIV_NODE(allExpr, newExpr);
+                allExpr = CREATE_DIV_NODE(allExpr, newExpr);
                 break;
 
             default:
@@ -732,7 +732,7 @@ static TreeNode* GetPow(DescentState* state, bool* outErr)
         IF_ERR_RET(outErr, allExpr, newExpr);
         
         assert(langOpId == LangOpId::POW);
-        allExpr = MAKE_POW_NODE(allExpr, newExpr);
+        allExpr = CREATE_POW_NODE(allExpr, newExpr);
     }
 
     return allExpr;
@@ -776,23 +776,23 @@ static TreeNode* GetBuiltInFuncCall(DescentState* state, bool* outErr)
     switch (langOpId)
     {
         case LangOpId::SIN:
-            expr = MAKE_SIN_NODE(expr);
+            expr = CREATE_SIN_NODE(expr);
             break;
 
         case LangOpId::COS:
-            expr = MAKE_COS_NODE(expr);
+            expr = CREATE_COS_NODE(expr);
             break;
         
         case LangOpId::TAN:
-            expr = MAKE_TAN_NODE(expr);
+            expr = CREATE_TAN_NODE(expr);
             break;
 
         case LangOpId::COT:
-            expr = MAKE_COT_NODE(expr);
+            expr = CREATE_COT_NODE(expr);
             break;
 
         case LangOpId::SQRT:
-            expr = MAKE_SQRT_NODE(expr);
+            expr = CREATE_SQRT_NODE(expr);
             break;
 
         default:
@@ -823,13 +823,13 @@ static TreeNode* GetNum(DescentState* state, bool* outErr)
     SynAssert(state, PickNum(state), outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
-    TreeNode* num = MAKE_NUM(state->tokens.data[POS(state)].value.num);
+    TreeNode* num = CREATE_NUM(state->tokens.data[POS(state)].value.num);
     POS(state)++;
 
     return num;
 }
 
-static TreeNode* AddVar(DescentState* state, bool* outErr)
+static TreeNode* CreateVar(DescentState* state, bool* outErr)
 {
     SynAssert(state, PickName(state), outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
@@ -841,7 +841,7 @@ static TreeNode* AddVar(DescentState* state, bool* outErr)
 
     NameTablePush(state->currentLocalTable, pushName);
     NameTablePush(state->allNamesTable, pushName);
-    varNode = MAKE_VAR(state->allNamesTable->size - 1);
+    varNode = CREATE_VAR(state->allNamesTable->size - 1);
     
     POS(state)++;
 
@@ -868,10 +868,9 @@ static TreeNode* GetVar(DescentState* state, bool* outErr)
 
     SynAssert(state, outName != nullptr, outErr);
     IF_ERR_RET(outErr, varNode, nullptr);
-
     
     //TODO: здесь пройтись по локали + глобали, проверить на существование переменную типо
-    varNode = MAKE_VAR(outName - state->allNamesTable->data);
+    varNode = CREATE_VAR(outName - state->allNamesTable->data);
     
     POS(state)++;
 
@@ -889,7 +888,7 @@ static TreeNode* GetConstString(DescentState* state, bool* outErr)
     NameTablePush(state->allNamesTable, pushName);
 
     //TODO: здесь пройтись по локали + глобали, проверить на существование переменную типо
-    varNode = MAKE_STRING_LITERAL(state->allNamesTable->size - 1);
+    varNode = CREATE_STRING_LITERAL(state->allNamesTable->size - 1);
 
     POS(state)++;
 
