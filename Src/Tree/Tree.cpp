@@ -82,12 +82,12 @@ static void TreeDtor(TreeNode* node)
 
 //---------------------------------------------------------------------------------------
 
-TreeNode* TreeNodeCreate(TreeNodeValue value, 
-                                            TreeNodeValueType valueType,
-                                            TreeNode* left,
-                                            TreeNode* right)
+TreeNode* TreeNodeCreate(TreeNodeValue value, TreeNodeValueType valueType,
+                         TreeNode* left, TreeNode* right)
 {   
-    TreeNode* node = (TreeNode*)calloc(1, sizeof(*node));
+    TreeNode* node  = (TreeNode*)calloc(1, sizeof(*node));
+    assert(node);
+
     node->left      = left;
     node->right     = right;
     node->value     = value;
@@ -339,7 +339,7 @@ TreeNodeType* TreeNodeCopy(const TreeNodeType* node)
 
 //---------------------------------------------------------------------------------------
 
-TreeNodeValue TreeNodeNumValueCreate(int value)
+TreeNodeValue TreeCreateNumVal(int value)
 {
     TreeNodeValue nodeValue =
     {
@@ -349,7 +349,7 @@ TreeNodeValue TreeNodeNumValueCreate(int value)
     return nodeValue;
 }
 
-TreeNodeValue TreeNodeOpValueCreate(TreeOperationId operation)
+TreeNodeValue TreeCreateOpVal(TreeOperationId operation)
 {
     TreeNodeValue value =
     {
@@ -359,7 +359,7 @@ TreeNodeValue TreeNodeOpValueCreate(TreeOperationId operation)
     return value;
 }
 
-TreeNodeValue TreeNodeNameValueCreate(int nameId)
+TreeNodeValue TreeCreateNameVal(int nameId)
 {
     TreeNodeValue value = 
     {
@@ -371,23 +371,23 @@ TreeNodeValue TreeNodeNameValueCreate(int nameId)
 
 //---------------------------------------------------------------------------------------
 
-TreeNode* TreeNumericNodeCreate(int value)
+TreeNode* TreeNumNodeCreate(int value)
 {
-    TreeNodeValue nodeVal = TreeNodeNumValueCreate(value);
+    TreeNodeValue nodeVal = TreeCreateNumVal(value);
 
     return TreeNodeCreate(nodeVal, TreeNodeValueType::NUM);
 }
 
 TreeNode* TreeNameNodeCreate(int nameId)
 {
-    TreeNodeValue nodeVal  = TreeNodeNameValueCreate(nameId);
+    TreeNodeValue nodeVal  = TreeCreateNameVal(nameId);
 
     return TreeNodeCreate(nodeVal, TreeNodeValueType::NAME);
 }
 
 TreeNode* TreeStringLiteralNodeCreate(int literalId)
 {
-    TreeNodeValue nodeVal  = TreeNodeNameValueCreate(literalId);
+    TreeNodeValue nodeVal  = TreeCreateNameVal(literalId);
 
     return TreeNodeCreate(nodeVal, TreeNodeValueType::STRING_LITERAL);
 }
@@ -564,7 +564,7 @@ static const char* TreeReadNodeValue(TreeNodeValue* value, TreeNodeValueType* va
 
         NameTablePush(allNamesTable, pushName);
 
-        *value     = TreeNodeNameValueCreate(allNamesTable->size - 1);
+        *value     = TreeCreateNameVal(allNamesTable->size - 1);
         *valueType = TreeNodeValueType::STRING_LITERAL;
         return stringPtr;
     }
@@ -577,7 +577,7 @@ static const char* TreeReadNodeValue(TreeNodeValue* value, TreeNodeValueType* va
     int operationId = TreeOperationGetId(inputString);
     if (operationId != -1)
     {
-        *value     = TreeNodeOpValueCreate((TreeOperationId) operationId);
+        *value     = TreeCreateOpVal((TreeOperationId) operationId);
         *valueType = TreeNodeValueType::OPERATION;
         return stringPtr;
     }
@@ -596,14 +596,14 @@ static const char* TreeReadNodeValue(TreeNodeValue* value, TreeNodeValueType* va
 
         NameTablePush(allNamesTable, pushName);
 
-        *value = TreeNodeNameValueCreate(allNamesTable->size - 1);
+        *value = TreeCreateNameVal(allNamesTable->size - 1);
     }
     else 
     {
         size_t varInNameTablePos = -1;
         NameTableGetPos(allNamesTable, varInNameTablePtr, &varInNameTablePos);
 
-        *value = TreeNodeNameValueCreate((int)varInNameTablePos);
+        *value = TreeCreateNameVal((int)varInNameTablePos);
     }
 
     *valueType   = TreeNodeValueType::NAME;

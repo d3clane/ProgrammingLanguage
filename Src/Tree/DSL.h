@@ -18,7 +18,7 @@
 #define R_NUM(token) token->right->value.num
 
 
-#define CREATE_NUM(VALUE)         TreeNumericNodeCreate(VALUE)
+#define CREATE_NUM(VALUE)         TreeNumNodeCreate(VALUE)
 #define CREATE_VAR(id)            TreeNameNodeCreate(id)
 #define CREATE_STRING_LITERAL(id) TreeStringLiteralNodeCreate(id);
 

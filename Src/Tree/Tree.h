@@ -15,8 +15,8 @@ enum class TreeOperationId
 
 union TreeNodeValue
 {
-    int                     num;
-    int                     nameId;
+    int             num;
+    int             nameId;
     TreeOperationId operation;
 }; 
 
@@ -31,7 +31,7 @@ enum class TreeNodeValueType
 struct TreeNode
 {
     TreeNodeValue        value;
-    TreeNodeValueType  valueType;
+    TreeNodeValueType    valueType;
     
     TreeNode*  left;
     TreeNode* right;
@@ -74,13 +74,13 @@ void TreeNodeDeepDtor(TreeNode* node);
 TreeErrors TreeVerify     (const Tree*      tree);
 TreeErrors TreeVerify     (const TreeNode* node);
 
-TreeNodeValue TreeNodeNumValueCreate(int value);
-TreeNodeValue TreeNodeOpValueCreate(TreeOperationId operationId);
-TreeNodeValue TreeNodeNameValueCreate(int nameId);
+TreeNodeValue TreeCreateNumVal  (int value);
+TreeNodeValue TreeCreateOpVal   (TreeOperationId operationId);
+TreeNodeValue TreeCreateNameVal (int nameId);
 
-TreeNode* TreeNumericNodeCreate      (int value);
-TreeNode* TreeNameNodeCreate         (int nameId);
-TreeNode* TreeStringLiteralNodeCreate(int literalId);
+TreeNode* TreeNumNodeCreate             (int value);
+TreeNode* TreeNameNodeCreate            (int nameId);
+TreeNode* TreeStringLiteralNodeCreate   (int literalId);
 
 #define TREE_TEXT_DUMP(tree) TreeTextDump((tree), __FILE__, __func__, __LINE__)
 

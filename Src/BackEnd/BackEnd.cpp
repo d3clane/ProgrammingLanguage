@@ -60,6 +60,13 @@ static void AsmCodeBuildPrint(TreeNode* node, NameTableType* localTable,
 static void PrintTabs(const size_t numberOfTabs, FILE* outStream);
 static void FprintfLine(FILE* outStream, const size_t numberOfTabs, const char* format, ...);
 
+#define PRINT(...) FprintfLine(outStream, numberOfTabs, __VA_ARGS__)
+#define CODE_BUILD(NODE) AsmCodeBuild(NODE, localTable, allNamesTable, outStream, numberOfTabs)
+
+#define PARAMS(NODE)                NODE, localTable, allNamesTable, outStream, numberOfTabs
+#define PARAMS_WITH_RAM_ID(NODE)    NODE, localTable, allNamesTable, &varRamId, outStream, numberOfTabs
+#define PARAMS_WITH_LABEL_ID(NODE)  NODE, localTable, allNamesTable, &labelId,  outStream, numberOfTabs
+
 void AsmCodeBuild(Tree* tree, NameTableType* allNamesTable, FILE* outStream, FILE* outBinStream)
 {
     assert(tree);
@@ -86,7 +93,7 @@ static void AsmCodeBuild(TreeNode* node, NameTableType* localTable,
 
     if (node->valueType == TreeNodeValueType::NUM)
     {
-        FprintfLine(outStream, numberOfTabs, "push %d\n", node->value.num);
+        PRINT("push %d\n", node->value.num);
         return;
     }
 
@@ -98,14 +105,14 @@ static void AsmCodeBuild(TreeNode* node, NameTableType* localTable,
         NameTableFind(localTable, allNamesTable->data[node->value.nameId].name, &varName);
         assert(varName);
 
-        FprintfLine(outStream, numberOfTabs, "push [%zu]\n", varName->varRamId);
+        PRINT("push [%zu]\n", varName->varRamId);
 
         return;
     }
 
     if (node->valueType == TreeNodeValueType::STRING_LITERAL)
     {
-        AsmCodePrintStringLiteral(node, localTable, allNamesTable, outStream, numberOfTabs);
+        AsmCodePrintStringLiteral(PARAMS(node));
 
         return;
     }
@@ -116,94 +123,94 @@ static void AsmCodeBuild(TreeNode* node, NameTableType* localTable,
     {
         case TreeOperationId::ADD:
         {
-            AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
-            AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
+            CODE_BUILD(node->right);
 
-            FprintfLine(outStream, numberOfTabs, "add\n");
+            PRINT("add\n");
             break;
         }
         case TreeOperationId::SUB:
         {
-            AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
-            AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
+            CODE_BUILD(node->right);
 
-            FprintfLine(outStream, numberOfTabs, "sub\n");
+            PRINT("sub\n");
             break;
         }
         case TreeOperationId::MUL:
         {
-            AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
-            AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
+            CODE_BUILD(node->right);
 
-            FprintfLine(outStream, numberOfTabs, "mul\n");
+            PRINT("mul\n");
             break;
         }
         case TreeOperationId::DIV:
         {
-            AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
-            AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
+            CODE_BUILD(node->right);
 
-            FprintfLine(outStream, numberOfTabs, "div\n");
+            PRINT("div\n");
             break;
         }
         case TreeOperationId::SIN:
         {
-            AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
-            FprintfLine(outStream, numberOfTabs, "sin\n");
+            PRINT("sin\n");
             break;
         }
         case TreeOperationId::COS:
         {
-            AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
-            FprintfLine(outStream, numberOfTabs, "cos\n");
+            PRINT("cos\n");
             break;
         }
         case TreeOperationId::TAN:
         {
-            AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
-            FprintfLine(outStream, numberOfTabs, "tan\n");
+            PRINT("tan\n");
             break;
         }
         case TreeOperationId::COT:
         {
-            AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
-            FprintfLine(outStream, numberOfTabs, "cot\n");
+            PRINT("cot\n");
             break;
         }
         case TreeOperationId::SQRT:
         {
-            AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
-            FprintfLine(outStream, numberOfTabs, "sqrt\n");
+            PRINT("sqrt\n");
             break;
         }
 
         case TreeOperationId::COMMA:
         {
-            AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
-            AsmCodeBuild(node->left,  localTable, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
+            CODE_BUILD(node->left);
 
             // Comma goes in the opposite way, because it is used here only for func call
             break;
         }
         case TreeOperationId::NEW_FUNC:
         {
-            AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, "\n");
 
-            AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             break;
         }
 
         case TreeOperationId::TYPE:
         {
-            AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
             break;
         }
 
@@ -216,96 +223,96 @@ static void AsmCodeBuild(TreeNode* node, NameTableType* localTable,
 
         case TreeOperationId::LINE_END:
         {
-            AsmCodeBuild(node->left, localTable,  allNamesTable, outStream, numberOfTabs);
-            AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
+            CODE_BUILD(node->right);
 
             break;
         }
 
         case TreeOperationId::IF:
         {
-            AsmCodeBuildIf(node, localTable, allNamesTable, &labelId, outStream, numberOfTabs);
+            AsmCodeBuildIf(PARAMS_WITH_LABEL_ID(node));
             break;
         }
 
         case TreeOperationId::WHILE:
         {
-            AsmCodeBuildWhile(node, localTable, allNamesTable, &labelId, outStream, numberOfTabs);
+            AsmCodeBuildWhile(PARAMS_WITH_LABEL_ID(node));
             break;
         }
 
         case TreeOperationId::AND:
         {
-            AsmCodeBuildAnd(node, localTable, allNamesTable, &labelId, outStream, numberOfTabs);
+            AsmCodeBuildAnd(PARAMS_WITH_LABEL_ID(node));
             break;
         }
 
         case TreeOperationId::OR:
         {
-            AsmCodeBuildOr(node, localTable, allNamesTable, &labelId, outStream, numberOfTabs);
+            AsmCodeBuildOr(PARAMS_WITH_LABEL_ID(node));
             break;
         }
 
         case TreeOperationId::ASSIGN:
         {
-            AsmCodeBuildAssign(node, localTable, allNamesTable, &varRamId, outStream, numberOfTabs);
+            AsmCodeBuildAssign(PARAMS_WITH_RAM_ID(node));
             break;
         }
 
         case TreeOperationId::FUNC_CALL:
         {
-            AsmCodeBuildFuncCall(node, localTable, allNamesTable, outStream, numberOfTabs);
+            AsmCodeBuildFuncCall(PARAMS(node));
             break;
         }
 
         case TreeOperationId::RETURN:
         {
-            AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
-            FprintfLine(outStream, numberOfTabs, "ret\n");
+            PRINT("ret\n");
             break;
         }
 
         case TreeOperationId::EQ:
         {
-            AsmCodeBuildEq(node, localTable, allNamesTable, &labelId, outStream, numberOfTabs);
+            AsmCodeBuildEq(PARAMS_WITH_LABEL_ID(node));
             break;
         }
         case TreeOperationId::NOT_EQ:
         {
-            AsmCodeBuildNotEq(node, localTable, allNamesTable, &labelId, outStream, numberOfTabs);
+            AsmCodeBuildNotEq(PARAMS_WITH_LABEL_ID(node));
             break;
         }
         case TreeOperationId::LESS:
         {
-            AsmCodeBuildLess(node, localTable, allNamesTable, &labelId, outStream, numberOfTabs);
+            AsmCodeBuildLess(PARAMS_WITH_LABEL_ID(node));
             break;
         }
         case TreeOperationId::LESS_EQ:
         {
-            AsmCodeBuildLessEq(node, localTable, allNamesTable, &labelId, outStream, numberOfTabs);
+            AsmCodeBuildLessEq(PARAMS_WITH_LABEL_ID(node));
             break;
         }
         case TreeOperationId::GREATER:
         {
-            AsmCodeBuildGreater(node, localTable, allNamesTable, &labelId, outStream, numberOfTabs);
+            AsmCodeBuildGreater(PARAMS_WITH_LABEL_ID(node));
             break;
         }
         case TreeOperationId::GREATER_EQ:
         {
-            AsmCodeBuildGreaterEq(node, localTable, allNamesTable, &labelId, outStream, numberOfTabs);
+            AsmCodeBuildGreaterEq(PARAMS_WITH_LABEL_ID(node));
             break;
         }
 
         case TreeOperationId::READ:
         {
-            FprintfLine(outStream, numberOfTabs, "in\n");
+            PRINT("in\n");
             break;
         }
 
         case TreeOperationId::PRINT:
         {
-            AsmCodeBuildPrint(node, localTable, allNamesTable, outStream, numberOfTabs);
+            AsmCodeBuildPrint(PARAMS(node));
 
             break;
         }
@@ -321,23 +328,23 @@ static void AsmCodeBuildFunc(TreeNode* node, const NameTableType* allNamesTable,
 {
     assert(node->left->valueType == TreeNodeValueType::NAME);
 
-    FprintfLine(outStream, numberOfTabs, "%s: \n", 
+    PRINT("%s: \n", 
                         allNamesTable->data[node->left->value.nameId].name);
     numberOfTabs += 1;
 
-    NameTableType* local = nullptr;
-    NameTableCtor(&local);
+    NameTableType* localTable = nullptr;
+    NameTableCtor(&localTable);
 
-    allNamesTable->data[node->left->value.nameId].localNameTable = local;
+    allNamesTable->data[node->left->value.nameId].localNameTable = localTable;
 
-    NameTablePushFuncParams(node->left->left, local, allNamesTable, varRamId);
+    NameTablePushFuncParams(node->left->left, localTable, allNamesTable, varRamId);
 
-    for (size_t i = 0; i < local->size; ++i)
+    for (size_t i = 0; i < localTable->size; ++i)
     {
-        FprintfLine(outStream, numberOfTabs, "pop [%zu]\n", local->data[i].varRamId);
+        PRINT("pop [%zu]\n", localTable->data[i].varRamId);
     }
 
-    AsmCodeBuild(node->left->right, local, allNamesTable, outStream, numberOfTabs);
+    CODE_BUILD(node->left->right);
 }
 
 static void NameTablePushFuncParams(TreeNode* node, NameTableType* local, 
@@ -353,7 +360,12 @@ static void NameTablePushFuncParams(TreeNode* node, NameTableType* local,
     {
         Name pushName = {};
         NameCtor(&pushName, allNamesTable->data[node->value.nameId].name, nullptr, *varRamId);
+        // TODO: Name ctors strdups name. 
+        // It's kind of useless when I am creating local table - 
+        // I'm not going to delete local tables strings without deleting global table
+        // Just using extra mem + time. 
 
+        // TODO: mem leak never DTOR name table. + Create recursive name table dtor surely
         *varRamId += 1;
 
         NameTablePush(local, pushName);
@@ -392,20 +404,20 @@ static void AsmCodeBuildIf(TreeNode* node, NameTableType* localTable,
                            size_t numberOfTabs)
 {
     fprintf(outStream, "\n");
-    FprintfLine(outStream, numberOfTabs, "@ if condition:\n");
+    PRINT("@ if condition:\n");
 
-    AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
+    CODE_BUILD(node->left);
 
     size_t id = *labelId;
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "je END_IF_%zu:\n", id);
+    PRINT("push 0\n");
+    PRINT("je END_IF_%zu:\n", id);
     *labelId += 1;
 
-    FprintfLine(outStream, numberOfTabs, "@ if code block:\n");
+    PRINT("@ if code block:\n");
 
     AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs + 1);
     
-    FprintfLine(outStream, numberOfTabs, "END_IF_%zu:\n\n", id);
+    PRINT("END_IF_%zu:\n\n", id);
 }
 
 static void AsmCodeBuildWhile(TreeNode* node, NameTableType* localTable, 
@@ -416,37 +428,37 @@ static void AsmCodeBuildWhile(TreeNode* node, NameTableType* localTable,
 
     fprintf(outStream, "\n");
 
-    FprintfLine(outStream, numberOfTabs, "while_%zu:\n", id);
+    PRINT("while_%zu:\n", id);
 
     *labelId += 1;
-    FprintfLine(outStream, numberOfTabs, "@ while condition: \n");
+    PRINT("@ while condition: \n");
 
-    AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
+    CODE_BUILD(node->left);
 
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "je END_WHILE_%zu:\n", id);
+    PRINT("push 0\n");
+    PRINT("je END_WHILE_%zu:\n", id);
 
     *labelId += 1;
 
-    FprintfLine(outStream, numberOfTabs, "@ while code block: \n");
+    PRINT("@ while code block: \n");
 
     AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs + 1);
 
-    FprintfLine(outStream, numberOfTabs, "END_WHILE_%zu:\n\n", id);
+    PRINT("END_WHILE_%zu:\n\n", id);
 }
 
 static void AsmCodeBuildAssign(TreeNode* node, NameTableType* localTable, 
                               const NameTableType* allNamesTable, size_t* varRamId, FILE* outStream,
                               size_t numberOfTabs)
 {
-    AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+    CODE_BUILD(node->right);
 
     assert(node->left->valueType == TreeNodeValueType::NAME);
 
     Name* varNameInTablePtr = nullptr;
     NameTableFind(localTable, allNamesTable->data[node->left->value.nameId].name, &varNameInTablePtr);
 
-    //TODO: it is hotfix, a lot of operations are done
+    // TODO: it is hotfix, a lot of operations are done
     // better fix: split assigning and defining and push only once
     if (varNameInTablePtr == nullptr)
     {
@@ -459,24 +471,24 @@ static void AsmCodeBuildAssign(TreeNode* node, NameTableType* localTable,
         varNameInTablePtr = localTable->data + localTable->size - 1;    // pointing on pushed name
     }
 
-    FprintfLine(outStream, numberOfTabs, "pop [%zu]\n", varNameInTablePtr->varRamId);
+    PRINT("pop [%zu]\n", varNameInTablePtr->varRamId);
 }
 
 static void AsmCodeBuildAnd(TreeNode* node, NameTableType* localTable, 
                               const NameTableType* allNamesTable, size_t* labelId, FILE* outStream,
                               size_t numberOfTabs)
 {
-    AsmCodeBuild(node->left,  localTable, allNamesTable, outStream, numberOfTabs);
-    AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+    CODE_BUILD(node->left);
+    CODE_BUILD(node->right);
 
-    FprintfLine(outStream, numberOfTabs, "mul\n");
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "je AND_FALSE_%zu:\n", *labelId);
-    FprintfLine(outStream, numberOfTabs, "push 1\n");
-    FprintfLine(outStream, numberOfTabs, "jmp AND_END_%zu:\n", *labelId);
-    FprintfLine(outStream, numberOfTabs, "AND_FALSE_%zu:\n", *labelId);
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "AND_END_%zu:\n\n", *labelId);
+    PRINT("mul\n");
+    PRINT("push 0\n");
+    PRINT("je AND_FALSE_%zu:\n", *labelId);
+    PRINT("push 1\n");
+    PRINT("jmp AND_END_%zu:\n", *labelId);
+    PRINT("AND_FALSE_%zu:\n", *labelId);
+    PRINT("push 0\n");
+    PRINT("AND_END_%zu:\n\n", *labelId);
 
     *labelId += 1;
 }
@@ -485,85 +497,85 @@ static void AsmCodeBuildOr(TreeNode* node, NameTableType* localTable,
                            const NameTableType* allNamesTable, size_t* labelId, FILE* outStream,
                            size_t numberOfTabs)
 {
-    AsmCodeBuild(node->left,  localTable, allNamesTable, outStream, numberOfTabs);
+    CODE_BUILD(node->left);
 
     size_t id = *labelId;
 
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "je OR_FIRST_VAL_SET_ZERO_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 1\n");
-    FprintfLine(outStream, numberOfTabs, "jmp OR_FIRST_VAL_END_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "OR_FIRST_VAL_SET_ZERO_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "OR_FIRST_VAL_END_%zu\n\n", id);
+    PRINT("push 0\n");
+    PRINT("je OR_FIRST_VAL_SET_ZERO_%zu:\n", id);
+    PRINT("push 1\n");
+    PRINT("jmp OR_FIRST_VAL_END_%zu:\n", id);
+    PRINT("OR_FIRST_VAL_SET_ZERO_%zu:\n", id);
+    PRINT("push 0\n");
+    PRINT("OR_FIRST_VAL_END_%zu\n\n", id);
 
     *labelId += 1;
 
-    AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+    CODE_BUILD(node->right);
 
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "je OR_SECOND_VAL_SET_ZERO_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 1\n");
-    FprintfLine(outStream, numberOfTabs, "jmp OR_SECOND_VAL_END_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "OR_SECOND_VAL_SET_ZERO_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "OR_SECOND_VAL_END_%zu\n\n", id);
+    PRINT("push 0\n");
+    PRINT("je OR_SECOND_VAL_SET_ZERO_%zu:\n", id);
+    PRINT("push 1\n");
+    PRINT("jmp OR_SECOND_VAL_END_%zu:\n", id);
+    PRINT("OR_SECOND_VAL_SET_ZERO_%zu:\n", id);
+    PRINT("push 0\n");
+    PRINT("OR_SECOND_VAL_END_%zu\n\n", id);
 
-    FprintfLine(outStream, numberOfTabs, "add\n");
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "je OR_FALSE_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 1\n");
-    FprintfLine(outStream, numberOfTabs, "jmp OR_END_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "OR_FALSE_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "OR_END_%zu:\n\n", id);
+    PRINT("add\n");
+    PRINT("push 0\n");
+    PRINT("je OR_FALSE_%zu:\n", id);
+    PRINT("push 1\n");
+    PRINT("jmp OR_END_%zu:\n", id);
+    PRINT("OR_FALSE_%zu:\n", id);
+    PRINT("push 0\n");
+    PRINT("OR_END_%zu:\n\n", id);
 }
 
 static void AsmCodeBuildFuncCall(TreeNode* node, NameTableType* localTable, 
                                  const NameTableType* allNamesTable, FILE* outStream,
                                  size_t numberOfTabs)
 {
-    FprintfLine(outStream, numberOfTabs, "@ pushing func local vars:\n");
+    PRINT("@ pushing func local vars:\n");
 
     for (size_t i = 0; i < localTable->size; ++i)
     {
-        FprintfLine(outStream, numberOfTabs, "push [%zu]\n", localTable->data[i].varRamId);
+        PRINT("push [%zu]\n", localTable->data[i].varRamId);
     }
 
-    FprintfLine(outStream, numberOfTabs, "@ pushing func args:\n");
-    AsmCodeBuild(node->left->left, localTable, allNamesTable, outStream, numberOfTabs);
+    PRINT("@ pushing func args:\n");
+    CODE_BUILD(node->left->left);
 
     assert(node->left->valueType == TreeNodeValueType::NAME);
 
-    FprintfLine(outStream, numberOfTabs, 
+    PRINT(
                     "call %s:\n", allNamesTable->data[node->left->value.nameId].name);
 
-    FprintfLine(outStream, numberOfTabs, "@ saving func return\n");
+    PRINT("@ saving func return\n");
 
-    FprintfLine(outStream, numberOfTabs, "pop rax\n");
+    PRINT("pop rax\n");
 
     for (int i = (int)localTable->size - 1; i > -1; --i)
     {
-        FprintfLine(outStream, numberOfTabs, "pop [%zu]\n", localTable->data[i].varRamId);
+        PRINT("pop [%zu]\n", localTable->data[i].varRamId);
     }
 
-    FprintfLine(outStream, numberOfTabs, "push rax\n");
+    PRINT("push rax\n");
 }
 
 static void AsmCodeBuildEq(TreeNode* node, NameTableType* localTable, 
                            const NameTableType* allNamesTable, size_t* labelId, FILE* outStream,
                            size_t numberOfTabs)
 {
-    AsmCodeBuild(node->left,  localTable, allNamesTable, outStream, numberOfTabs);
-    AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+    CODE_BUILD(node->left);
+    CODE_BUILD(node->right);
 
     size_t id = *labelId;
-    FprintfLine(outStream, numberOfTabs, "je EQ_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "jmp AFTER_EQ_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "EQ_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 1\n");
-    FprintfLine(outStream, numberOfTabs, "AFTER_EQ_%zu:\n\n", id);
+    PRINT("je EQ_%zu:\n", id);
+    PRINT("push 0\n");
+    PRINT("jmp AFTER_EQ_%zu:\n", id);
+    PRINT("EQ_%zu:\n", id);
+    PRINT("push 1\n");
+    PRINT("AFTER_EQ_%zu:\n\n", id);
 
     *labelId += 1;
 }
@@ -572,16 +584,16 @@ static void AsmCodeBuildNotEq(TreeNode* node, NameTableType* localTable,
                               const NameTableType* allNamesTable, size_t* labelId, FILE* outStream,
                               size_t numberOfTabs)
 {
-    AsmCodeBuild(node->left,  localTable, allNamesTable, outStream, numberOfTabs);
-    AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+    CODE_BUILD(node->left);
+    CODE_BUILD(node->right);
 
     size_t id = *labelId;
-    FprintfLine(outStream, numberOfTabs, "jne NOT_EQ_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "jmp AFTER_NOT_EQ_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "NOT_EQ_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 1\n");
-    FprintfLine(outStream, numberOfTabs, "AFTER_NOT_EQ_%zu:\n\n", id);
+    PRINT("jne NOT_EQ_%zu:\n", id);
+    PRINT("push 0\n");
+    PRINT("jmp AFTER_NOT_EQ_%zu:\n", id);
+    PRINT("NOT_EQ_%zu:\n", id);
+    PRINT("push 1\n");
+    PRINT("AFTER_NOT_EQ_%zu:\n\n", id);
     
     *labelId += 1;
 }
@@ -590,16 +602,16 @@ static void AsmCodeBuildLess(TreeNode* node, NameTableType* localTable,
                               const NameTableType* allNamesTable, size_t* labelId, FILE* outStream,
                               size_t numberOfTabs)
 {
-    AsmCodeBuild(node->left,  localTable, allNamesTable, outStream, numberOfTabs);
-    AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+    CODE_BUILD(node->left);
+    CODE_BUILD(node->right);
 
     size_t id = *labelId;
-    FprintfLine(outStream, numberOfTabs, "jb LESS_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "jmp AFTER_LESS_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "LESS_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 1\n");
-    FprintfLine(outStream, numberOfTabs, "AFTER_LESS_%zu:\n\n", id);
+    PRINT("jb LESS_%zu:\n", id);
+    PRINT("push 0\n");
+    PRINT("jmp AFTER_LESS_%zu:\n", id);
+    PRINT("LESS_%zu:\n", id);
+    PRINT("push 1\n");
+    PRINT("AFTER_LESS_%zu:\n\n", id);
     
     *labelId += 1;
 }
@@ -608,16 +620,16 @@ static void AsmCodeBuildLessEq(TreeNode* node, NameTableType* localTable,
                               const NameTableType* allNamesTable, size_t* labelId, FILE* outStream,
                               size_t numberOfTabs)
 {
-    AsmCodeBuild(node->left,  localTable, allNamesTable, outStream, numberOfTabs);
-    AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+    CODE_BUILD(node->left);
+    CODE_BUILD(node->right);
 
     size_t id = *labelId;
-    FprintfLine(outStream, numberOfTabs, "jbe LESS_EQ_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "jmp AFTER_LESS_EQ_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "LESS_EQ_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 1\n");
-    FprintfLine(outStream, numberOfTabs, "AFTER_LESS_EQ_%zu:\n\n", id);
+    PRINT("jbe LESS_EQ_%zu:\n", id);
+    PRINT("push 0\n");
+    PRINT("jmp AFTER_LESS_EQ_%zu:\n", id);
+    PRINT("LESS_EQ_%zu:\n", id);
+    PRINT("push 1\n");
+    PRINT("AFTER_LESS_EQ_%zu:\n\n", id);
     
     *labelId += 1;
 }
@@ -626,16 +638,16 @@ static void AsmCodeBuildGreater(TreeNode* node, NameTableType* localTable,
                               const NameTableType* allNamesTable, size_t* labelId, FILE* outStream,
                               size_t numberOfTabs)
 {
-    AsmCodeBuild(node->left,  localTable, allNamesTable, outStream, numberOfTabs);
-    AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+    CODE_BUILD(node->left);
+    CODE_BUILD(node->right);
 
     size_t id = *labelId;
-    FprintfLine(outStream, numberOfTabs, "ja GREATER_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "jmp AFTER_GREATER_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "GREATER_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 1\n");
-    FprintfLine(outStream, numberOfTabs, "AFTER_GREATER_%zu:\n\n", id);
+    PRINT("ja GREATER_%zu:\n", id);
+    PRINT("push 0\n");
+    PRINT("jmp AFTER_GREATER_%zu:\n", id);
+    PRINT("GREATER_%zu:\n", id);
+    PRINT("push 1\n");
+    PRINT("AFTER_GREATER_%zu:\n\n", id);
 
     *labelId += 1;
 }
@@ -644,16 +656,16 @@ static void AsmCodeBuildGreaterEq(TreeNode* node, NameTableType* localTable,
                                 const NameTableType* allNamesTable, size_t* labelId, FILE* outStream,
                                 size_t numberOfTabs)
 {
-    AsmCodeBuild(node->left,  localTable, allNamesTable, outStream, numberOfTabs);
-    AsmCodeBuild(node->right, localTable, allNamesTable, outStream, numberOfTabs);
+    CODE_BUILD(node->left);
+    CODE_BUILD(node->right);
 
     size_t id = *labelId;
-    FprintfLine(outStream, numberOfTabs, "jae GREATER_EQ_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 0\n");
-    FprintfLine(outStream, numberOfTabs, "jmp AFTER_GREATER_EQ_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "GREATER_EQ_%zu:\n", id);
-    FprintfLine(outStream, numberOfTabs, "push 1\n");
-    FprintfLine(outStream, numberOfTabs, "AFTER_GREATER_EQ_%zu:\n\n", id);
+    PRINT("jae GREATER_EQ_%zu:\n", id);
+    PRINT("push 0\n");
+    PRINT("jmp AFTER_GREATER_EQ_%zu:\n", id);
+    PRINT("GREATER_EQ_%zu:\n", id);
+    PRINT("push 1\n");
+    PRINT("AFTER_GREATER_EQ_%zu:\n\n", id);
 
     *labelId += 1;
 }
@@ -667,15 +679,15 @@ static void AsmCodePrintStringLiteral(TreeNode* node, NameTableType* localTable,
 
     while (string[pos] != '"')
     {
-        FprintfLine(outStream, numberOfTabs, "push %d\n", string[pos]);
-        FprintfLine(outStream, numberOfTabs, "outc\n");
-        FprintfLine(outStream, numberOfTabs, "pop\n");
+        PRINT("push %d\n", string[pos]);
+        PRINT("outc\n");
+        PRINT("pop\n");
         ++pos;
     }
 
-    FprintfLine(outStream, numberOfTabs, "push 10\n");
-    FprintfLine(outStream, numberOfTabs, "outc\n");
-    FprintfLine(outStream, numberOfTabs, "pop\n");
+    PRINT("push 10\n");
+    PRINT("outc\n");
+    PRINT("pop\n");
 }
 
 static void AsmCodeBuildPrint(TreeNode* node, NameTableType* localTable, 
@@ -685,15 +697,15 @@ static void AsmCodeBuildPrint(TreeNode* node, NameTableType* localTable,
 
     if (node->left->valueType == TreeNodeValueType::STRING_LITERAL)
     {
-        AsmCodePrintStringLiteral(node->left, localTable, allNamesTable, outStream, numberOfTabs);
+        AsmCodePrintStringLiteral(PARAMS(node->left));
 
         return;
     }
 
-    AsmCodeBuild(node->left, localTable, allNamesTable, outStream, numberOfTabs);
+    CODE_BUILD(node->left);
 
-    FprintfLine(outStream, numberOfTabs, "out\n");
-    FprintfLine(outStream, numberOfTabs, "pop\n");
+    PRINT("out\n");
+    PRINT("pop\n");
 }
 
 static void PrintTabs(const size_t numberOfTabs, FILE* outStream)

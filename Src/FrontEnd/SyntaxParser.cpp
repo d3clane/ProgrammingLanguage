@@ -320,7 +320,7 @@ static TreeNode* GetType(DescentState* state, bool* outErr)
     ConsumeToken(state, LangOpId::TYPE_INT, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
-    return TreeNodeCreate(TreeNodeOpValueCreate(TreeOperationId::TYPE_INT), 
+    return TreeNodeCreate(TreeCreateOpVal(TreeOperationId::TYPE_INT), 
                                                     TreeNodeValueType::OPERATION);
 }
 
@@ -850,8 +850,6 @@ static TreeNode* CreateVar(DescentState* state, bool* outErr)
 
 static TreeNode* GetVar(DescentState* state, bool* outErr)
 {
-    assert(state);
-
     SynAssert(state, state->tokens.data[POS(state)].value.name, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
@@ -882,7 +880,7 @@ static TreeNode* GetConstString(DescentState* state, bool* outErr)
     Name pushName = {};
     NameCtor(&pushName, strdup(state->tokens.data[POS(state)].value.name), nullptr, 0);
 
-    //TODO: здесь проверки на то, что мы пушим (в плане того, чтобы не было конфликтов имен и т.д, пока похуй)
+    //TODO: здесь проверки на то, что мы пушим (в плане того, чтобы не было конфликтов имен и т.д
     TreeNode* varNode = nullptr;
 
     NameTablePush(state->allNamesTable, pushName);
