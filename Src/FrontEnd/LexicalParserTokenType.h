@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-enum class TokenId
+enum class LangOpId
 {
     ADD,
     SUB,
@@ -48,14 +48,14 @@ enum class TokenId
 
 union TokenValue
 {
-    TokenId      tokenId;
+    LangOpId      langOpId;
     char*           name;
     int             num;
 };
 
 enum class TokenValueType
 {
-    TOKEN,
+    LANG_OP,
     NAME,
     NUM,
 };

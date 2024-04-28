@@ -5,6 +5,7 @@
 #include "ArrayFuncs.h"
 #include "TokensArr.h"
 #include "Common/Log.h"
+#include "../../Common/Log.h"
 
 //----------static functions------------
 

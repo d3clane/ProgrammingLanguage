@@ -17,7 +17,7 @@ Token TokenCreate(TokenValue value, TokenValueType valueType,   const size_t lin
 
 TokenValue TokenValueCreate (const char* name);
 TokenValue TokenValueCreate (const int value);
-TokenValue TokenValueCreate (const TokenId tokenId);
+TokenValue TokenValueCreate (const LangOpId tokenId);
 
 LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens);
 

@@ -131,12 +131,12 @@ static inline void SYN_ASSERT(DescentState* state, bool statement, bool* outErr)
     *outErr = true;
 }
 
-static inline bool PickToken(DescentState* state, TokenId tokenId)
+static inline bool PickToken(DescentState* state, LangOpId langOpId)
 {
     assert(state);
 
-    if (state->tokens.data[POS(state)].valueType     == TokenValueType::TOKEN &&
-        state->tokens.data[POS(state)].value.tokenId == tokenId)
+    if (state->tokens.data[POS(state)].valueType     == TokenValueType::LANG_OP &&
+        state->tokens.data[POS(state)].value.langOpId == langOpId)
         return true;
     
     return false;
@@ -162,11 +162,11 @@ static inline bool PickName(DescentState* state)
     return false;
 }
 
-static inline bool ConsumeToken(DescentState* state, TokenId tokenId, bool* outErr)
+static inline bool ConsumeToken(DescentState* state, LangOpId langOpId, bool* outErr)
 {
     assert(state);
 
-    if (PickToken(state, tokenId))
+    if (PickToken(state, langOpId))
     {
         POS(state)++;
 
@@ -206,23 +206,23 @@ static inline bool ConsumeName(DescentState* state)
     return false;
 }
 
-static inline bool PickTokenOnPos(DescentState* state, const size_t pos, TokenId tokenId)
+static inline bool PickTokenOnPos(DescentState* state, const size_t pos, LangOpId langOpId)
 {
     assert(state);
 
-    if (state->tokens.data[pos].valueType     == TokenValueType::TOKEN &&
-        state->tokens.data[pos].value.tokenId == tokenId)
+    if (state->tokens.data[pos].valueType     == TokenValueType::LANG_OP &&
+        state->tokens.data[pos].value.langOpId == langOpId)
         return true;
     
     return false;
 }
 
-static inline TokenId GetLastTokenId(DescentState* state)
+static inline LangOpId GetLastTokenId(DescentState* state)
 {
     assert(state);
-    assert(state->tokens.data[POS(state)].valueType == TokenValueType::TOKEN);
+    assert(state->tokens.data[POS(state)].valueType == TokenValueType::LANG_OP);
 
-    return state->tokens.data[POS(state)].value.tokenId;
+    return state->tokens.data[POS(state)].value.langOpId;
 }
 
 void CodeParse(const char* str, SyntaxParserErrors* outErr, FILE* outStream)
@@ -259,7 +259,7 @@ static TreeNode* GetGrammar(DescentState* state, bool* outErr)
     TreeNode* root = GetFunc(state, outErr);
     IF_ERR_RET(outErr, root, nullptr);
 
-    while (!PickToken(state, TokenId::PROGRAM_END))
+    while (!PickToken(state, LangOpId::PROGRAM_END))
     {
         TreeNode* tmpNode = GetFunc(state, outErr);
         IF_ERR_RET(outErr, root, tmpNode);
@@ -267,7 +267,7 @@ static TreeNode* GetGrammar(DescentState* state, bool* outErr)
         root = MAKE_NEW_FUNC_NODE(root, tmpNode);
     }
 
-    SynAssert(state, PickToken(state, TokenId::PROGRAM_END), outErr);
+    SynAssert(state, PickToken(state, LangOpId::PROGRAM_END), outErr);
     IF_ERR_RET(outErr, root, nullptr);
 
     return root;
@@ -303,7 +303,7 @@ static TreeNode* GetFuncDef(DescentState* state, bool* outErr)
     funcName->left = funcVars;
     IF_ERR_RET(outErr, func, typeNode);
 
-    SynAssert(state, PickToken(state, TokenId::FIFTY_SEVEN), outErr);
+    SynAssert(state, PickToken(state, LangOpId::FIFTY_SEVEN), outErr);
     IF_ERR_RET(outErr, func, typeNode);
     
     TreeNode* funcCode = GetOp(state, outErr);
@@ -317,7 +317,7 @@ static TreeNode* GetFuncDef(DescentState* state, bool* outErr)
 
 static TreeNode* GetType(DescentState* state, bool* outErr)
 {
-    ConsumeToken(state, TokenId::TYPE_INT, outErr);
+    ConsumeToken(state, LangOpId::TYPE_INT, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
     return TreeNodeCreate(TreeNodeOpValueCreate(TreeOperationId::TYPE_INT), 
@@ -328,7 +328,7 @@ static TreeNode* GetFuncVarsDef(DescentState* state, bool* outErr)
 {
     TreeNode* varsDefNode = nullptr;
         
-    if (!PickToken(state, TokenId::TYPE_INT))
+    if (!PickToken(state, LangOpId::TYPE_INT))
         return nullptr;
     
     TreeNode* varType = GetType(state, outErr);
@@ -339,7 +339,7 @@ static TreeNode* GetFuncVarsDef(DescentState* state, bool* outErr)
 
     varsDefNode = MAKE_TYPE_NODE(varType, varName);
 
-    while (!PickToken(state, TokenId::FIFTY_SEVEN))
+    while (!PickToken(state, LangOpId::FIFTY_SEVEN))
     {
         varType = GetType(state, outErr);
         IF_ERR_RET(outErr, varsDefNode, varType);
@@ -358,29 +358,29 @@ static TreeNode* GetOp(DescentState* state, bool* outErr)
 {
     TreeNode* opNode = nullptr;
 
-    if (PickToken(state, TokenId::IF))
+    if (PickToken(state, LangOpId::IF))
     {
         opNode = GetIf(state, outErr);
         IF_ERR_RET(outErr, opNode, nullptr);
 
         return opNode;
     }
-    else if (PickToken(state, TokenId::WHILE))
+    else if (PickToken(state, LangOpId::WHILE))
     {
         opNode = GetWhile(state, outErr);
         IF_ERR_RET(outErr, opNode, nullptr);
 
         return opNode;
     }
-    else if (PickToken(state, TokenId::PRINT))
+    else if (PickToken(state, LangOpId::PRINT))
         opNode = GetPrint(state, outErr);
-    else if (PickToken(state, TokenId::TYPE_INT))
+    else if (PickToken(state, LangOpId::TYPE_INT))
         opNode = GetVarDef(state, outErr);
-    else if (PickTokenOnPos(state, state->tokenPos + 1, TokenId::ASSIGN))
+    else if (PickTokenOnPos(state, state->tokenPos + 1, LangOpId::ASSIGN))
         opNode = GetAssign(state, outErr);
-    else if (PickToken(state, TokenId::FIFTY_SEVEN))
+    else if (PickToken(state, LangOpId::FIFTY_SEVEN))
     {
-        ConsumeToken(state, TokenId::FIFTY_SEVEN, outErr);
+        ConsumeToken(state, LangOpId::FIFTY_SEVEN, outErr);
         IF_ERR_RET(outErr, opNode, nullptr);
 
         TreeNode* jointNode = MAKE_LINE_END_NODE(nullptr, nullptr);
@@ -392,14 +392,14 @@ static TreeNode* GetOp(DescentState* state, bool* outErr)
 
             jointNode->left = opInNode;
 
-            if (PickToken(state, TokenId::L_BRACE))
+            if (PickToken(state, LangOpId::L_BRACE))
                 break;
 
             jointNode->right = MAKE_LINE_END_NODE(nullptr, nullptr);
             jointNode        = jointNode->right;
         }
 
-        ConsumeToken(state, TokenId::L_BRACE, outErr);
+        ConsumeToken(state, LangOpId::L_BRACE, outErr);
         IF_ERR_RET(outErr, opNode, nullptr);
 
         return opNode;
@@ -409,7 +409,7 @@ static TreeNode* GetOp(DescentState* state, bool* outErr)
 
     IF_ERR_RET(outErr, opNode, nullptr);
 
-    ConsumeToken(state, TokenId::FIFTY_SEVEN, outErr);
+    ConsumeToken(state, LangOpId::FIFTY_SEVEN, outErr);
     IF_ERR_RET(outErr, opNode, nullptr);
 
     return opNode;
@@ -422,13 +422,13 @@ static TreeNode* GetReturn(DescentState* state, bool* outErr)
 
 static TreeNode* GetIf(DescentState* state, bool* outErr)
 {
-    ConsumeToken(state, TokenId::IF, outErr);
+    ConsumeToken(state, LangOpId::IF, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
     TreeNode* condition = GetOr(state, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
 
-    ConsumeToken(state, TokenId::FIFTY_SEVEN, outErr);
+    ConsumeToken(state, LangOpId::FIFTY_SEVEN, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
 
     TreeNode* op = GetOp(state, outErr);
@@ -439,13 +439,13 @@ static TreeNode* GetIf(DescentState* state, bool* outErr)
 
 static TreeNode* GetWhile(DescentState* state, bool* outErr)
 {
-    ConsumeToken(state, TokenId::WHILE, outErr);
+    ConsumeToken(state, LangOpId::WHILE, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
     TreeNode* condition = GetOr(state, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
 
-    ConsumeToken(state, TokenId::FIFTY_SEVEN, outErr);
+    ConsumeToken(state, LangOpId::FIFTY_SEVEN, outErr);
     IF_ERR_RET(outErr, condition, nullptr);
 
     TreeNode* op = GetOp(state, outErr);
@@ -462,7 +462,7 @@ static TreeNode* GetVarDef(DescentState* state, bool* outErr)
     TreeNode* varName = AddVar(state, outErr);
     IF_ERR_RET(outErr, typeNode, varName);
 
-    ConsumeToken(state, TokenId::ASSIGN, outErr);
+    ConsumeToken(state, LangOpId::ASSIGN, outErr);
     IF_ERR_RET(outErr, typeNode, varName);
 
     TreeNode* expr   = GetOr(state, outErr);
@@ -474,16 +474,16 @@ static TreeNode* GetVarDef(DescentState* state, bool* outErr)
 
 static TreeNode* GetExpr(DescentState* state, bool* outErr)
 {
-    if (!PickToken(state, TokenId::L_BRACKET))
+    if (!PickToken(state, LangOpId::L_BRACKET))
         return GetArg(state, outErr);
 
-    ConsumeToken(state, TokenId::L_BRACKET, outErr);
+    ConsumeToken(state, LangOpId::L_BRACKET, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
     
     TreeNode* inBracketsExpr = GetOr(state, outErr);
     IF_ERR_RET(outErr, inBracketsExpr, nullptr);
 
-    ConsumeToken(state, TokenId::R_BRACKET, outErr); //Здесь изменение, раньше не было сдвига pos, предполагаю что баг
+    ConsumeToken(state, LangOpId::R_BRACKET, outErr); //Здесь изменение, раньше не было сдвига pos, предполагаю что баг
     IF_ERR_RET(outErr, inBracketsExpr, nullptr);
 
     return inBracketsExpr;
@@ -491,7 +491,7 @@ static TreeNode* GetExpr(DescentState* state, bool* outErr)
 
 static TreeNode* GetPrint(DescentState* state, bool* outErr)
 {
-    ConsumeToken(state, TokenId::PRINT, outErr);
+    ConsumeToken(state, LangOpId::PRINT, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
     TreeNode* arg = nullptr;
@@ -507,7 +507,7 @@ static TreeNode* GetPrint(DescentState* state, bool* outErr)
 
 static TreeNode* GetRead(DescentState* state, bool* outErr)
 {
-    ConsumeToken(state, TokenId::L_BRACE, outErr);
+    ConsumeToken(state, LangOpId::L_BRACE, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
     return MAKE_READ_NODE(nullptr, nullptr);
@@ -518,7 +518,7 @@ static TreeNode* GetAssign(DescentState* state, bool* outErr)
     TreeNode* var = GetVar(state, outErr);
     IF_ERR_RET(outErr, var, nullptr);
 
-    ConsumeToken(state, TokenId::ASSIGN, outErr);
+    ConsumeToken(state, LangOpId::ASSIGN, outErr);
     IF_ERR_RET(outErr, var, nullptr);
 
     TreeNode* rightExpr = GetOr(state, outErr);
@@ -532,14 +532,14 @@ static TreeNode* GetMadeFuncCall(DescentState* state, bool* outErr)
     TreeNode* funcName = GetVar(state, outErr);
     IF_ERR_RET(outErr, funcName, nullptr);
 
-    ConsumeToken(state, TokenId::L_BRACE, outErr);
+    ConsumeToken(state, LangOpId::L_BRACE, outErr);
     IF_ERR_RET(outErr, funcName, nullptr);
 
     TreeNode* funcVars = GetFuncVarsCall(state, outErr);
     IF_ERR_RET(outErr, funcName, funcVars);
     funcName->left = funcVars;
 
-    ConsumeToken(state, TokenId::FIFTY_SEVEN, outErr);
+    ConsumeToken(state, LangOpId::FIFTY_SEVEN, outErr);
     IF_ERR_RET(outErr, funcName, funcVars);
 
     return MAKE_FUNC_CALL_NODE(funcName);
@@ -547,13 +547,13 @@ static TreeNode* GetMadeFuncCall(DescentState* state, bool* outErr)
 
 static TreeNode* GetFuncVarsCall(DescentState* state, bool* outErr)
 {
-    if (PickToken(state, TokenId::FIFTY_SEVEN))
+    if (PickToken(state, LangOpId::FIFTY_SEVEN))
         return nullptr;
 
     TreeNode* vars = GetOr(state, outErr);
     IF_ERR_RET(outErr, vars, nullptr);
 
-    while (!PickToken(state, TokenId::FIFTY_SEVEN))
+    while (!PickToken(state, LangOpId::FIFTY_SEVEN))
     {
         TreeNode* tmpVar = GetOr(state, outErr);
         IF_ERR_RET(outErr, vars, tmpVar);
@@ -569,9 +569,9 @@ static TreeNode* GetOr(DescentState* state, bool* outErr)
     TreeNode* allExpr = GetAnd(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
-    while (PickToken(state, TokenId::OR))
+    while (PickToken(state, LangOpId::OR))
     {
-        ConsumeToken(state, TokenId::OR, outErr);
+        ConsumeToken(state, LangOpId::OR, outErr);
         IF_ERR_RET(outErr, allExpr, nullptr);
 
         TreeNode* tmpExpr = GetAnd(state, outErr);
@@ -588,9 +588,9 @@ static TreeNode* GetAnd(DescentState* state, bool* outErr)
     TreeNode* allExpr = GetCmp(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
-    while (PickToken(state, TokenId::AND))
+    while (PickToken(state, LangOpId::AND))
     {
-        ConsumeToken(state, TokenId::AND, outErr);
+        ConsumeToken(state, LangOpId::AND, outErr);
         IF_ERR_RET(outErr, allExpr, nullptr);
 
         TreeNode* tmpExpr = GetCmp(state, outErr);
@@ -607,39 +607,39 @@ static TreeNode* GetCmp(DescentState* state, bool* outErr)
     TreeNode* allExpr = GetAddSub(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
-    while (PickToken(state, TokenId::LESS)    || PickToken(state, TokenId::LESS_EQ)     ||
-           PickToken(state, TokenId::GREATER) || PickToken(state, TokenId::GREATER_EQ)  ||
-           PickToken(state, TokenId::EQ)      || PickToken(state, TokenId::NOT_EQ))
+    while (PickToken(state, LangOpId::LESS)    || PickToken(state, LangOpId::LESS_EQ)     ||
+           PickToken(state, LangOpId::GREATER) || PickToken(state, LangOpId::GREATER_EQ)  ||
+           PickToken(state, LangOpId::EQ)      || PickToken(state, LangOpId::NOT_EQ))
     {
-        TokenId tokenId = GetLastTokenId(state);
+        LangOpId langOpId = GetLastTokenId(state);
         POS(state)++;
 
         TreeNode* newExpr = GetAddSub(state, outErr);
         IF_ERR_RET(outErr, allExpr, newExpr);
 
-        switch (tokenId)
+        switch (langOpId)
         {
-            case TokenId::LESS:
+            case LangOpId::LESS:
                 allExpr = MAKE_LESS_NODE(allExpr, newExpr);
                 break;
 
-            case TokenId::LESS_EQ:
+            case LangOpId::LESS_EQ:
                 allExpr = MAKE_LESS_EQ_NODE(allExpr, newExpr);
                 break;
             
-            case TokenId::GREATER:
+            case LangOpId::GREATER:
                 allExpr = MAKE_GREATER_NODE(allExpr, newExpr);
                 break;
 
-            case TokenId::GREATER_EQ:
+            case LangOpId::GREATER_EQ:
                 allExpr = MAKE_GREATER_EQ_NODE(allExpr, newExpr);
                 break;
 
-            case TokenId::EQ:
+            case LangOpId::EQ:
                 allExpr = MAKE_EQ_NODE(allExpr, newExpr);
                 break;
 
-            case TokenId::NOT_EQ:
+            case LangOpId::NOT_EQ:
                 allExpr = MAKE_NOT_EQ_NODE(allExpr, newExpr);
                 break;
             default:
@@ -657,21 +657,21 @@ static TreeNode* GetAddSub(DescentState* state, bool* outErr)
     TreeNode* allExpr = GetMulDiv(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
-    while (PickToken(state, TokenId::ADD) || PickToken(state, TokenId::SUB))
+    while (PickToken(state, LangOpId::ADD) || PickToken(state, LangOpId::SUB))
     {
-        TokenId tokenId = GetLastTokenId(state);
+        LangOpId langOpId = GetLastTokenId(state);
         POS(state)++;
 
         TreeNode* newExpr = GetMulDiv(state, outErr);
         IF_ERR_RET(outErr, allExpr, newExpr);
 
-        switch (tokenId)
+        switch (langOpId)
         {
-            case TokenId::ADD:
+            case LangOpId::ADD:
                 allExpr = MAKE_ADD_NODE(allExpr, newExpr);
                 break;
             
-            case TokenId::SUB:
+            case LangOpId::SUB:
                 allExpr = MAKE_SUB_NODE(allExpr, newExpr);
                 break;
 
@@ -690,21 +690,21 @@ static TreeNode* GetMulDiv(DescentState* state, bool* outErr)
     TreeNode* allExpr = GetPow(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
-    while (PickToken(state, TokenId::MUL) || PickToken(state, TokenId::DIV))
+    while (PickToken(state, LangOpId::MUL) || PickToken(state, LangOpId::DIV))
     {
-        TokenId tokenId = GetLastTokenId(state);
+        LangOpId langOpId = GetLastTokenId(state);
         POS(state)++;
 
         TreeNode* newExpr = GetPow(state, outErr);
         IF_ERR_RET(outErr, allExpr, newExpr);
 
-        switch (tokenId)
+        switch (langOpId)
         {
-            case TokenId::MUL:
+            case LangOpId::MUL:
                 allExpr = MAKE_MUL_NODE(allExpr, newExpr);
                 break;
             
-            case TokenId::DIV:
+            case LangOpId::DIV:
                 allExpr = MAKE_DIV_NODE(allExpr, newExpr);
                 break;
 
@@ -723,15 +723,15 @@ static TreeNode* GetPow(DescentState* state, bool* outErr)
     TreeNode* allExpr = GetFuncCall(state, outErr);
     IF_ERR_RET(outErr, allExpr, nullptr);
 
-    while (PickToken(state, TokenId::POW))
+    while (PickToken(state, LangOpId::POW))
     {
-        TokenId tokenId = GetLastTokenId(state);
+        LangOpId langOpId = GetLastTokenId(state);
         POS(state)++;
 
         TreeNode* newExpr = GetFuncCall(state, outErr);
         IF_ERR_RET(outErr, allExpr, newExpr);
         
-        assert(tokenId == TokenId::POW);
+        assert(langOpId == LangOpId::POW);
         allExpr = MAKE_POW_NODE(allExpr, newExpr);
     }
 
@@ -740,12 +740,12 @@ static TreeNode* GetPow(DescentState* state, bool* outErr)
 
 static TreeNode* GetFuncCall(DescentState* state, bool* outErr)
 {
-    if (PickToken(state, TokenId::SIN)  || PickToken(state, TokenId::COS) ||
-        PickToken(state, TokenId::TAN)  || PickToken(state, TokenId::COT) ||
-        PickToken(state, TokenId::SQRT) || PickToken(state, TokenId::L_BRACE))
+    if (PickToken(state, LangOpId::SIN)  || PickToken(state, LangOpId::COS) ||
+        PickToken(state, LangOpId::TAN)  || PickToken(state, LangOpId::COT) ||
+        PickToken(state, LangOpId::SQRT) || PickToken(state, LangOpId::L_BRACE))
         return GetBuiltInFuncCall(state, outErr);
 
-    if (PickTokenOnPos(state, state->tokenPos + 1, TokenId::L_BRACE) && PickName(state))
+    if (PickTokenOnPos(state, state->tokenPos + 1, LangOpId::L_BRACE) && PickName(state))
         return GetMadeFuncCall(state, outErr);
     
     return GetExpr(state, outErr);
@@ -753,45 +753,45 @@ static TreeNode* GetFuncCall(DescentState* state, bool* outErr)
 
 static TreeNode* GetBuiltInFuncCall(DescentState* state, bool* outErr)
 {
-    if (PickToken(state, TokenId::L_BRACE))
+    if (PickToken(state, LangOpId::L_BRACE))
         return GetRead(state, outErr);
 
-    if (!(PickToken(state, TokenId::SIN) || PickToken(state, TokenId::COS) ||
-          PickToken(state, TokenId::TAN) || PickToken(state, TokenId::COT) ||
-          PickToken(state, TokenId::SQRT)))
+    if (!(PickToken(state, LangOpId::SIN) || PickToken(state, LangOpId::COS) ||
+          PickToken(state, LangOpId::TAN) || PickToken(state, LangOpId::COT) ||
+          PickToken(state, LangOpId::SQRT)))
         return GetExpr(state, outErr);
 
-    TokenId tokenId = GetLastTokenId(state);
+    LangOpId langOpId = GetLastTokenId(state);
     POS(state)++;
 
-    ConsumeToken(state, TokenId::L_BRACKET, outErr);
+    ConsumeToken(state, LangOpId::L_BRACKET, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
     TreeNode* expr = GetOr(state, outErr);
     IF_ERR_RET(outErr, expr, nullptr);
 
-    ConsumeToken(state, TokenId::R_BRACKET, outErr);
+    ConsumeToken(state, LangOpId::R_BRACKET, outErr);
     IF_ERR_RET(outErr, expr, nullptr);
 
-    switch (tokenId)
+    switch (langOpId)
     {
-        case TokenId::SIN:
+        case LangOpId::SIN:
             expr = MAKE_SIN_NODE(expr);
             break;
 
-        case TokenId::COS:
+        case LangOpId::COS:
             expr = MAKE_COS_NODE(expr);
             break;
         
-        case TokenId::TAN:
+        case LangOpId::TAN:
             expr = MAKE_TAN_NODE(expr);
             break;
 
-        case TokenId::COT:
+        case LangOpId::COT:
             expr = MAKE_COT_NODE(expr);
             break;
 
-        case TokenId::SQRT:
+        case LangOpId::SQRT:
             expr = MAKE_SQRT_NODE(expr);
             break;
 

@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
     FILE* outStream = fopen(argv[2], "w");
 
     char* inputTxt = ReadText(inStream);
-
+    
     SyntaxParserErrors err = SyntaxParserErrors::NO_ERR;
     CodeParse(inputTxt, &err, outStream);
 

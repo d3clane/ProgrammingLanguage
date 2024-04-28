@@ -5,6 +5,7 @@
 #include "LexicalParser.h"
 #include "Common/StringFuncs.h"
 #include "Common/Colors.h"
+#include "LexicalParserTokenType.h"
 
 static inline void SyntaxError(const size_t line, const size_t posErr, const char* str)
 {
@@ -22,6 +23,17 @@ static inline void SyntaxError(const size_t line, const size_t posErr, const cha
     putchar('\n');
 }
 
+#define PUSH_LANG_OP_TOKEN(LANG_OP_ID)                                                      \
+    TokensArrPush(tokens, TokenCreate(TokenValueCreate(LANG_OP_ID),                         \
+                                                TokenValueType::LANG_OP, line, posStart))
+
+#define PUSH_NAME_TOKEN(WORD)                                                               \
+    TokensArrPush(tokens, TokenCreate(TokenValueCreate(WORD),                               \
+                                    TokenValueType::NAME, line, posStart));                 \
+
+#define PUSH_NUM_TOKEN(VALUE)                                                               \
+    TokensArrPush(tokens, TokenCreate(TokenValueCreate(VALUE), TokenValueType::NUM, line, pos));
+
 static size_t ParseNumber(const char* str, const size_t posStart, const size_t line, 
                                                                 TokensArr* tokens)
 {
@@ -35,7 +47,7 @@ static size_t ParseNumber(const char* str, const size_t posStart, const size_t l
     sscanf(str + pos, "%d%n", &value, &shift);
     pos += shift;
 
-    TokensArrPush(tokens, TokenCreate(TokenValueCreate(value), TokenValueType::NUM, line, pos));
+    PUSH_NUM_TOKEN(value);
 
     return pos;
 }
@@ -65,29 +77,21 @@ static size_t ParseWord(const char* str, const size_t posStart, const size_t lin
     word[wordPos] = '\0';
 
     if (strcmp(word, "sqrt") == 0)
-        TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::SQRT), 
-                                                TokenValueType::TOKEN, line, posStart));
+        PUSH_LANG_OP_TOKEN(LangOpId::SQRT);
     else if (strcmp(word, "sin") == 0)
-            TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::SIN), 
-                                                TokenValueType::TOKEN, line, posStart));
+        PUSH_LANG_OP_TOKEN(LangOpId::SIN);
     else if (strcmp(word, "cos") == 0)
-            TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::COS), 
-                                                TokenValueType::TOKEN, line, posStart)); 
+        PUSH_LANG_OP_TOKEN(LangOpId::COS);
     else if (strcmp(word, "tan") == 0)
-            TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::TAN), 
-                                                TokenValueType::TOKEN, line, posStart)); 
+            PUSH_LANG_OP_TOKEN(LangOpId::TAN);
     else if (strcmp(word, "cot") == 0)
-            TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::COT), 
-                                                TokenValueType::TOKEN, line, posStart)); 
+            PUSH_LANG_OP_TOKEN(LangOpId::COT); 
     else if (strcmp(word, "and") == 0)
-            TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::OR), 
-                                                TokenValueType::TOKEN, line, posStart)); 
+            PUSH_LANG_OP_TOKEN(LangOpId::AND);
     else if (strcmp(word, "or") == 0)
-            TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::AND), 
-                                                TokenValueType::TOKEN, line, posStart)); 
+            PUSH_LANG_OP_TOKEN(LangOpId::OR);
     else
-        TokensArrPush(tokens, TokenCreate(TokenValueCreate(word), 
-                                            TokenValueType::NAME, line, posStart));      
+        PUSH_NAME_TOKEN(word);
 
     return pos;
 }
@@ -105,12 +109,10 @@ static size_t ParseEq(const char* str, const size_t posStart, const size_t line,
     {
         pos++;
 
-        TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::ASSIGN), 
-                                            TokenValueType::TOKEN, line, posStart));
+        PUSH_LANG_OP_TOKEN(LangOpId::ASSIGN);
     }
     else
-        TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::NOT_EQ), 
-                                            TokenValueType::TOKEN, line, posStart));
+        PUSH_LANG_OP_TOKEN(LangOpId::NOT_EQ);
 
     return pos;
 }
@@ -128,13 +130,13 @@ static size_t ParseExclamation(const char* str, const size_t posStart, const siz
     {
         pos++;
 
-        TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::EQ),    
-                                            TokenValueType::TOKEN, line, posStart));
+        PUSH_LANG_OP_TOKEN(LangOpId::EQ);
     }
     else
     {
         SyntaxError(line, pos, str);
         *outErr = LexicalParserErrors::SYNTAX_ERR;
+
         //TODO: syn_assert / or add not as !
     }
 
@@ -155,21 +157,17 @@ static size_t ParseLessOrGreater(const char* str, const size_t posStart, const s
     {
         pos++;
         if (firstChar == '<')
-            TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::GREATER_EQ), 
-                                            TokenValueType::TOKEN, line, posStart));
+            PUSH_LANG_OP_TOKEN(LangOpId::GREATER_EQ);
         else
-            TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::LESS_EQ), 
-                                            TokenValueType::TOKEN, line, posStart)); 
+            PUSH_LANG_OP_TOKEN(LangOpId::LESS_EQ);
 
         return pos;
     }
 
     if (firstChar == '<')
-        TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::GREATER), 
-                                        TokenValueType::TOKEN, line, posStart));
+        PUSH_LANG_OP_TOKEN(LangOpId::GREATER);
     else
-        TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::LESS), 
-                                        TokenValueType::TOKEN, line, posStart)); 
+        PUSH_LANG_OP_TOKEN(LangOpId::LESS); 
 
     return pos;
 }
@@ -193,8 +191,7 @@ static size_t Parse5(const char* str, const size_t posStart, const size_t line,
 
     if (value == 575757)
     {
-        TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::TYPE_INT), 
-                                            TokenValueType::TOKEN, line, posStart));
+        PUSH_LANG_OP_TOKEN(LangOpId::TYPE_INT);
 
         return pos;  
     }
@@ -205,8 +202,7 @@ static size_t Parse5(const char* str, const size_t posStart, const size_t line,
     if (str[pos] == '?')
     {
         pos++;
-        TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::IF), 
-                                            TokenValueType::TOKEN, line, posStart));
+        PUSH_LANG_OP_TOKEN(LangOpId::IF);
 
         return pos;
     }
@@ -214,23 +210,21 @@ static size_t Parse5(const char* str, const size_t posStart, const size_t line,
     if (str[pos] == '!')
     {
         pos++;
-        TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::WHILE), 
-                                TokenValueType::TOKEN, line, posStart));
+        PUSH_LANG_OP_TOKEN(LangOpId::WHILE);
 
         return pos;
     }
 
-    TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::FIFTY_SEVEN),
-                                            TokenValueType::TOKEN, line, posStart));
+    PUSH_LANG_OP_TOKEN(LangOpId::FIFTY_SEVEN);
 
     return pos;
 }
 
 static size_t ParseQuotes(const char* str, const size_t posStart, const size_t line,
-                                                                        TokensArr* tokensArr)
+                                                                        TokensArr* tokens)
 {
     assert(str);
-    assert(tokensArr);
+    assert(tokens);
 
     size_t pos = posStart;
 
@@ -253,11 +247,15 @@ static size_t ParseQuotes(const char* str, const size_t posStart, const size_t l
     wordPos++;
     word[wordPos] = '\0';
 
-    TokensArrPush(tokensArr, TokenCreate(TokenValueCreate(word), 
-                                                TokenValueType::NAME, line, posStart));
+    PUSH_NAME_TOKEN(word);
 
     return pos;                                                
 }
+
+#undef  PUSH_LANG_OP_TOKEN
+#define PUSH_LANG_OP_TOKEN(LANG_OP_ID)                                                      \
+    TokensArrPush(tokens, TokenCreate(TokenValueCreate(LANG_OP_ID),                         \
+                                                TokenValueType::LANG_OP, line, pos))        
 
 LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
 {
@@ -272,29 +270,25 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
         {
             case '+':
             {
-                TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::SUB), 
-                                                TokenValueType::TOKEN, line, pos));
+                PUSH_LANG_OP_TOKEN(LangOpId::SUB);
                 pos++;
                 break; 
             }
             case '*':
             {
-                TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::DIV), 
-                                                TokenValueType::TOKEN, line, pos));
+                PUSH_LANG_OP_TOKEN(LangOpId::DIV);
                 pos++;
                 break; 
             }
             case '/':
             {
-                TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::MUL), 
-                                                TokenValueType::TOKEN, line, pos));
+                PUSH_LANG_OP_TOKEN(LangOpId::MUL);
                 pos++;
                 break; 
             }
             case '^':
             {
-                TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::POW), 
-                                                TokenValueType::TOKEN, line, pos));
+                PUSH_LANG_OP_TOKEN(LangOpId::POW);
                 pos++;
                 break; 
             }
@@ -320,40 +314,35 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
 
             case '-':
             {
-                TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::ADD), 
-                                                    TokenValueType::TOKEN, line, pos));
+                PUSH_LANG_OP_TOKEN(LangOpId::ADD);
                 pos++;
                 break;
             }
 
             case '(':
             {
-                TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::L_BRACKET), 
-                                                        TokenValueType::TOKEN, line, pos));
+                PUSH_LANG_OP_TOKEN(LangOpId::L_BRACKET);
                 ++pos;
                 break;
             }
 
             case ')':
             {
-                TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::R_BRACKET), 
-                                                        TokenValueType::TOKEN, line, pos));
+                PUSH_LANG_OP_TOKEN(LangOpId::R_BRACKET);
                 ++pos;
                 break;
             }
 
             case '{':
             {
-                TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::L_BRACE), 
-                                                        TokenValueType::TOKEN, line, pos));
+                PUSH_LANG_OP_TOKEN(LangOpId::L_BRACE);
                 pos++;
                 break; 
             }
 
             case '.':
             {
-                TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::PRINT),
-                                                        TokenValueType::TOKEN, line, pos));
+                PUSH_LANG_OP_TOKEN(LangOpId::PRINT);
                 pos++;
                 break;
             }
@@ -429,8 +418,8 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
         printf("line - %zu, pos - %zu, token - %zu\n", tokens->data[i].line, tokens->data[i].pos, i);
         switch (tokens->data[i].valueType)
         {
-            case TokenValueType::TOKEN:
-                printf("Operation - %d\n", (int)tokens->data[i].value.tokenId);
+            case TokenValueType::LANG_OP:
+                printf("Operation - %d\n", (int)tokens->data[i].value.langOpId);
                 break;
             case TokenValueType::NAME:
                 printf("Variable - %s\n", tokens->data[i].value.name);
@@ -447,8 +436,7 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
     if (error != LexicalParserErrors::NO_ERR)
         return error;
 
-    TokensArrPush(tokens, TokenCreate(TokenValueCreate(TokenId::PROGRAM_END), 
-                                                TokenValueType::TOKEN, line, pos));
+    PUSH_LANG_OP_TOKEN(LangOpId::PROGRAM_END);
 
     return error;
 }
@@ -491,12 +479,16 @@ TokenValue TokenValueCreate(const char* word)
     return val;
 }
 
-TokenValue TokenValueCreate(const TokenId tokenId)
+TokenValue TokenValueCreate(const LangOpId langOpId)
 {
     TokenValue val =
     {
-        .tokenId = tokenId,
+        .langOpId = langOpId,
     };
 
     return val;
 }
+
+#undef PUSH_LANG_OP_TOKEN
+#undef PUSH_NUM_TOKEN
+#undef PUSH_NAME_TOKEN
