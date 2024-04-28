@@ -102,6 +102,33 @@ ssize_t Log(const char* format, ...)
     return write(LOG_FILE, buf, numberOfChars * sizeof(char));
 }
 
+ssize_t LogError(const char* format, ...)
+{
+    assert(format);
+
+    va_list args = {};
+
+    va_start(args, format);
+
+    static const size_t BufSize = 1024;
+    static char buf[BufSize];
+
+    size_t numberOfChars = (size_t) vsnprintf(buf, BufSize, format, args);
+
+    va_end(args);
+
+    numberOfChars = Min(numberOfChars, BufSize);
+    
+    ssize_t numberOfPrintedChars = 0;
+    
+    //TODO: check each print result
+    numberOfPrintedChars += write(LOG_FILE, HTML_RED_HEAD_BEGIN, sizeof(HTML_RED_HEAD_BEGIN) - 1);
+    numberOfPrintedChars += write(LOG_FILE, buf, numberOfChars * sizeof(char));
+    numberOfPrintedChars += write(LOG_FILE, HTML_HEAD_END,       sizeof(HTML_HEAD_END) - 1);
+    
+    return numberOfPrintedChars;
+}
+
 void LogEnd(const char* fileName, const char* funcName, const int line)
 {
     static const size_t buffSize = 128;
@@ -132,10 +159,13 @@ static inline size_t Min(size_t a, size_t b)
 
 static int TryOpenFile(const char* name)
 {
-    static const size_t maxNameLength  = 128;
-    static char fileName[maxNameLength] =  "";
-    strcat(fileName, name);
-    strcat(fileName, ".log.html");
+    const char* fileSuffix = ".log.html";
+
+    const size_t  fileNameSize  = 256;
+    char fileName[fileNameSize] = "";
+    
+    assert(strlen(name) + sizeof(fileSuffix) <= fileNameSize);
+    snprintf(fileName, fileNameSize, "%s%s", name, fileSuffix);
 
     LOG_FILE = open(fileName, O_WRONLY | O_APPEND);
 

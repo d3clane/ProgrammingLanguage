@@ -6,8 +6,6 @@
 
 #include <stdio.h>
 
-#include "../Common/Errors.h"
-
 /// @brief Contains info about line (her ending and length)
 struct LineType
 {
@@ -68,7 +66,7 @@ char* ReadText(FILE* const inStream);
 /// @param [in]lines array containing pointers to the lines.
 /// @param [in]linesCnt number of elements in ptrArr
 /// @param [in]outStream file pointer to print output
-/// @return 0 if no errors occured otherwise not 0
+/// @return 0 if no errors occurred otherwise not 0
 int PrintLines(LineType* lines, const size_t linesCnt, FILE* const outStream);
 
 //------------------------------------------------------------------------------------------------

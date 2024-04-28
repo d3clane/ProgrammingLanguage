@@ -24,6 +24,8 @@ void LogBegin(const char* fileName, const char* funcName, const int line);
 /// @param [in]params as in printf
 ssize_t Log(const char* format, ...);
 
+ssize_t LogError(const char* format, ...);
+
 /// @brief Ends logging part
 /// @param [in]fileName file from which logging is called
 /// @param [in]funcName function from which logging is called
