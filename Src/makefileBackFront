@@ -17,8 +17,8 @@ CXXFLAGS = -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-l
 HOME = $(shell pwd)
 CXXFLAGS += -I $(HOME)
 
-OBJECTDIR  = backFrontBuild
-PROGRAMDIR = backFrontBuild/bin
+OBJECTDIR  = build/backFrontBuild
+PROGRAMDIR = build/backFrontBuild/bin
 TARGET 	   = backFrontEnd
 
 DOXYFILE = Others/Doxyfile
@@ -32,7 +32,7 @@ TREE_NAME_TABLE_CPP = ArrayFuncs.cpp HashFuncs.cpp NameTable.cpp
 TREE_NAME_TABLE_OBJ = $(TREE_NAME_TABLE_CPP:%.cpp=$(OBJECTDIR)/TREE_%.o)
 
 COMMON_DIR = Common
-COMMON_CPP = DoubleFuncs.cpp Errors.cpp Log.cpp StringFuncs.cpp
+COMMON_CPP = DoubleFuncs.cpp Log.cpp StringFuncs.cpp
 COMMON_OBJ = $(COMMON_CPP:%.cpp=$(OBJECTDIR)/%.o)
 
 BACK_FRONT_END_DIR = BackFrontEnd

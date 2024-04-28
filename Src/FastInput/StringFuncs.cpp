@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../Common/Errors.h"
 #include "StringFuncs.h"
 
 //------------------------------------------------------------------------------------------------
@@ -18,7 +17,6 @@ LineType* BuildLinesArr(const char* text, const char separator, size_t* arrSize)
 
     if (lines == nullptr)
     {
-        UPDATE_ERR(Errors::MEMORY_ALLOCATION_ERR);
         return nullptr;
     }
 

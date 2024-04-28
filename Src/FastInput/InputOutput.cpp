@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
-#include "../Common/Colors.h"
+#include "Common/Colors.h"
 #include "InputOutput.h"
 #include "StringFuncs.h"
 
