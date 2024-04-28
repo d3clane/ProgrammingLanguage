@@ -3,3 +3,8 @@
 Program/
 imgs/
 .vscode/
+frontBuild/
+backBuild/
+backFrontBuild/
+middleBuild/
+.DS_Store
