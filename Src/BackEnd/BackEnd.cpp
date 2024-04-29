@@ -328,8 +328,7 @@ static void AsmCodeBuildFunc(TreeNode* node, const NameTableType* allNamesTable,
 {
     assert(node->left->valueType == TreeNodeValueType::NAME);
 
-    PRINT("%s: \n", 
-                        allNamesTable->data[node->left->value.nameId].name);
+    PRINT("%s: \n", allNamesTable->data[node->left->value.nameId].name);
     numberOfTabs += 1;
 
     NameTableType* localTable = nullptr;
@@ -365,7 +364,7 @@ static void NameTablePushFuncParams(TreeNode* node, NameTableType* local,
         // I'm not going to delete local tables strings without deleting global table
         // Just using extra mem + time. 
 
-        // TODO: mem leak never DTOR name table. + Create recursive name table dtor surely
+        // TODO: mem leak never DTOR name table. + Create recursive name table dtor
         *varRamId += 1;
 
         NameTablePush(local, pushName);
