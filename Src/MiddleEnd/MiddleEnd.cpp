@@ -338,8 +338,6 @@ static inline TreeNode* TreeSimplifyReturnRightNode(TreeNode* node)
 
 static inline TreeNode* TreeSimplifyReturnNumNode(TreeNode* node, int value)
 {
-    TreeNode* constnode = CREATE_NUM(value);
-    
     TreeNodeDtor(R(node));
     TreeNodeDtor(L(node));
 

@@ -16,6 +16,9 @@ void CodeBuild(Tree* tree, NameTableType* allNamesTable, FILE* outStream)
     CodeBuild(tree->root, allNamesTable, outStream, 0);
 }
 
+#define CODE_BUILD(NODE)           CodeBuild(NODE, allNamesTable, outStream, numberOfTabs)
+#define CODE_BUILD_TAB_SHIFT(NODE) CodeBuild(NODE, allNamesTable, outStream, numberOfTabs + 1)
+
 static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStream, 
                                                                     size_t numberOfTabs)
 {
@@ -48,11 +51,11 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
     {
         case TreeOperationId::NEW_FUNC:
         {
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, "\n");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             break;
         }
@@ -69,11 +72,11 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
 
             assert(numberOfTabs == 0);
 
-            CodeBuild(node->left->left, allNamesTable, outStream, numberOfTabs + 1);
+            CODE_BUILD_TAB_SHIFT(node->left->left);
 
             fprintf(outStream, "\n57\n");
 
-            CodeBuild(node->left->right, allNamesTable, outStream, numberOfTabs + 1);
+            CODE_BUILD_TAB_SHIFT(node->left->right);
 
             fprintf(outStream, "{\n");
 
@@ -84,25 +87,25 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             PrintTabs(numberOfTabs, outStream);
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             if (!(node->left->valueType == TreeNodeValueType::OPERATION && 
                   (node->left->value.operation == TreeOperationId::IF   ||
                    node->left->value.operation == TreeOperationId::WHILE)))
                 fprintf(outStream, " 57\n");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             break;
         }
 
         case TreeOperationId::ASSIGN:
         {
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, " == ");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             break;
         }
@@ -118,7 +121,7 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "{ ");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             break;
         }
@@ -127,7 +130,7 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "%s { ", allNamesTable->data[node->left->value.nameId].name);
             
-            CodeBuild(node->left->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left->left);
 
             fprintf(outStream, " 57");
 
@@ -138,13 +141,13 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "57? ");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, " 57\n");
             PrintTabs(numberOfTabs, outStream);
             fprintf(outStream, "57\n");
              
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs + 1);
+            CODE_BUILD_TAB_SHIFT(node->right);
 
             PrintTabs(numberOfTabs, outStream);
             fprintf(outStream, "{\n");
@@ -156,13 +159,13 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "57! ");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, " 57\n");
             PrintTabs(numberOfTabs, outStream);
             fprintf(outStream, "57\n");
              
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs + 1);
+            CODE_BUILD_TAB_SHIFT(node->right);
 
             PrintTabs(numberOfTabs, outStream);
             fprintf(outStream, "{\n");
@@ -172,11 +175,11 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
 
         case TreeOperationId::ADD:
         {
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, " - ");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             fprintf(outStream, ") ");
 
@@ -186,11 +189,11 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, " + ");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             fprintf(outStream, ") ");
 
@@ -200,11 +203,11 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, " / ");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             fprintf(outStream, ") ");
 
@@ -214,11 +217,11 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, " * ");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             fprintf(outStream, ") ");
 
@@ -228,11 +231,11 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, "< ");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             fprintf(outStream, ") ");
 
@@ -242,11 +245,11 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, "<= ");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             fprintf(outStream, ") ");
 
@@ -256,11 +259,11 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, "> ");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             fprintf(outStream, ") ");
 
@@ -270,11 +273,11 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, ">= ");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             fprintf(outStream, ") ");
 
@@ -284,11 +287,11 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, "!= ");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             fprintf(outStream, ") ");
 
@@ -298,11 +301,11 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, "= ");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             fprintf(outStream, ") ");
 
@@ -312,11 +315,11 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, " or ");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             fprintf(outStream, ") ");
 
@@ -326,11 +329,11 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, " and ");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             fprintf(outStream, ") ");
 
@@ -340,11 +343,11 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, ") ^ (");
 
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
 
             fprintf(outStream, ") ");
 
@@ -355,7 +358,7 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "sin(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, ") ");
 
@@ -365,7 +368,7 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "cos(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, ") ");
 
@@ -375,7 +378,7 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "tan(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, ") ");
 
@@ -385,7 +388,7 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "cot(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, ") ");
 
@@ -395,7 +398,7 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         {
             fprintf(outStream, "sqrt(");
 
-            CodeBuild(node->left, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->left);
 
             fprintf(outStream, ") ");
 
@@ -405,7 +408,7 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
         default:
         {
             CodeBuild(node->left,  allNamesTable, outStream, numberOfTabs);
-            CodeBuild(node->right, allNamesTable, outStream, numberOfTabs);
+            CODE_BUILD(node->right);
             break;
         }
     }
