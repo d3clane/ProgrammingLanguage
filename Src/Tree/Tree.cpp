@@ -557,10 +557,8 @@ static const char* TreeReadNodeValue(TreeNodeValue* value, TreeNodeValueType* va
         inputStringPos++;
 
         inputString[inputStringPos] = '\0';
-        Name pushName = //TODO: вынести в функцию
-        {
-            .name = strdup(inputString),
-        };
+        Name pushName = {};
+        NameCtor(&pushName, inputString, nullptr, 0);
 
         NameTablePush(allNamesTable, pushName);
 
@@ -587,12 +585,8 @@ static const char* TreeReadNodeValue(TreeNodeValue* value, TreeNodeValueType* va
 
     if (varInNameTablePtr == nullptr)
     {
-        Name pushName = 
-        {
-            .name = strdup(inputString),
-
-            .localNameTable = nullptr,
-        };
+        Name pushName = {};
+        NameCtor(&pushName, inputString, nullptr, 0);
 
         NameTablePush(allNamesTable, pushName);
 
