@@ -38,12 +38,11 @@ AST(abstract syntax tree) - это представление какого-то 
 Порядок действий, в котором надо выполнять какие-то действия определяется структурой дерева. Например, даже если в исходном коде у арифметических выражений были скобочки, которые определяли порядок выполнения действий, в AST их уже нет, а порядок определяется расположением операций друг относительно друга. Рассмотрим на примере:
 
 Выражение int value = $(2 + 3) \cdot (4 + 5)$ выглядит так:
-
-![add_mul](https://github.com/d3clane/Compiler/blob/main/ReadmeAssets/imgs/add_mul.png)
+![add_mul](https://github.com/d3clane/ProgrammingLanguage/blob/main/ReadmeAssets/imgs/add_mul.png)
 
 А выражение int value = $2 + 3 \cdot (4 + 5)$ вот так:
 
-![mul_add](https://github.com/d3clane/Compiler/blob/main/ReadmeAssets/imgs/mul_add.png)
+![mul_add](https://github.com/d3clane/ProgrammingLanguage/blob/main/ReadmeAssets/imgs/mul_add.png)
 
 При спуске по дереву сначала полностью рассчитывается выражение в левом поддереве, потом в правом, а затем применяется операция в вершине к полученным результатам. Фактически, на первом примере сначала посчитается сумма $2 + 3$, затем $4 + 5$, а потом их произведение. Во втором же случае посчитается $4 + 5$, затем $3 \cdot (4 + 5)$, а затем $2 + 3 \cdot (4 + 5)$. 
 
@@ -121,7 +120,7 @@ TYPE             ::= 575757
 
 Пример AST, которое строится по исходному коду [программы для нахождения факториала числа](examples/factorial.txt):
 
-![factorial](https://github.com/d3clane/Compiler/blob/main/ReadmeAssets/imgs/factorial.png)
+![factorial](https://github.com/d3clane/ProgrammingLanguage/blob/main/ReadmeAssets/imgs/factorial.png)
 
 Операции отмечены зеленым цветом, имена (переменных / функций / строковые литералы) голубым, числа темно-синим. 
 
