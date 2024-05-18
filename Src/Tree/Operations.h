@@ -58,7 +58,7 @@ GENERATE_OPERATION_CMD(SQRT,
 {
     CALC_CHECK();
 
-    assert(val1 > 0); //TODO: надо бы сравнение даблов сделать
+    assert(val1 >= 0);
 
     return sqrt(val1);
 })

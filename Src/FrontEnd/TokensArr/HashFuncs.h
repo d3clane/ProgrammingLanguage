@@ -1,6 +1,9 @@
 #ifndef TOKENS_ARR_HASH_FUNCS_H
 #define TOKENS_ARR_HASH_FUNCS_H
 
+#include <stddef.h>
+#include <stdint.h>
+
 /// @file
 /// @brief Contains functions to hash
 

@@ -153,7 +153,7 @@ static inline void CreateImgInLogFile(const size_t imgIndex, bool openImg)
 
     static const size_t     maxCommandLength  = 128;
     static char commandName[maxCommandLength] =  "";
-    snprintf(commandName, maxCommandLength, "dot TreeHandler.dot -T png -o %s", imgName);
+    snprintf(commandName, maxCommandLength, "dot treeHandler.dot -T png -o %s", imgName);
     system(commandName);
 
     snprintf(commandName, maxCommandLength, "<img src = \"%s\">\n", imgName);    

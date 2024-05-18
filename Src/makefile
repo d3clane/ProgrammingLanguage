@@ -1,4 +1,4 @@
-PROGRAMDIR = Program
+PROGRAMDIR = ../examples/bin/
 
 .PHONY: all docs clean buildDirs
 
