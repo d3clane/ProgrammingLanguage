@@ -43,7 +43,6 @@ enum class LangOpId
 
     L_BRACE,
     PRINT,
-    
 };
 
 union TokenValue

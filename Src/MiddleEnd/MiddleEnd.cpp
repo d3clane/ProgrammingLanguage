@@ -58,7 +58,7 @@ static int TreeCalculate(const TreeNode* node)
 }
 
 static int CalculateUsingOperation(const TreeOperationId operation, 
-                                      const int val1, const int val2)
+                                   const int val1, const int val2)
 {
     #define GENERATE_OPERATION_CMD(NAME, CALC_CODE, ...)                                    \
         case TreeOperationId::NAME:                                                         \
@@ -98,7 +98,7 @@ void TreeSimplify(Tree* tree)
     do
     {
         simplifiesCount = 0;
-        tree->root = TreeSimplifyConstants(tree->root, &simplifiesCount);
+        tree->root = TreeSimplifyConstants   (tree->root, &simplifiesCount);
         tree->root = TreeSimplifyNeutralNodes(tree->root, &simplifiesCount);
     
     } while (simplifiesCount != 0);
@@ -119,8 +119,8 @@ static TreeNode* TreeSimplifyConstants (TreeNode* node, int* simplifiesCount)
         return numNode;
     }
 
-    node->left  = TreeSimplifyConstants(node->left,  simplifiesCount);
-    node->right = TreeSimplifyConstants(node->right, simplifiesCount);
+    node->left  = TreeSimplifyConstants(L(node), simplifiesCount);
+    node->right = TreeSimplifyConstants(R(node), simplifiesCount);
 
     return node;
 }
@@ -150,7 +150,8 @@ static TreeNode* TreeSimplifyNeutralNodes(TreeNode* node, int* simplifiesCount)
     
     assert(IS_OP(node));
 
-    if (IS_NAME(right) && IS_NAME(left) && left->value.nameId == right->value.nameId)
+    if (IS_NAME(right) && IS_NAME(left) && left->value.nameId == right->value.nameId && 
+        node->value.operation == TreeOperationId::SUB)
         return TreeSimplifyReturnNumNode(node, 0);
 
     if (!IS_NUM(left) && !IS_NUM(right))
@@ -358,6 +359,9 @@ static bool TreeNodeCanBeCalculated(const TreeNode* node)
         return true;
     
     if (IS_NAME(node))
+        return false;
+
+    if (IS_STRING_LITERAL(node))
         return false;
 
     switch (node->value.operation)
