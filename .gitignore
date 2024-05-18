@@ -10,3 +10,4 @@ middleBuild/
 .DS_Store
 bin/
 *.dot
+!ReadmeAssets/imgs
