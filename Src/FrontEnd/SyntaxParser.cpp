@@ -225,11 +225,12 @@ static inline LangOpId GetLastTokenId(DescentState* state)
     return state->tokens.data[POS(state)].value.langOpId;
 }
 
-void CodeParse(const char* code, SyntaxParserErrors* outErr, FILE* outStream)
+Tree CodeParse(const char* code, SyntaxParserErrors* outErr)
 {
     assert(code);
 
     Tree tree = {};
+    TreeCtor(&tree);
 
     DescentState state = {};
     DescentStateCtor(&state, code);
@@ -237,18 +238,16 @@ void CodeParse(const char* code, SyntaxParserErrors* outErr, FILE* outStream)
     ParseOnTokens(code, &state.tokens);
 
     bool err = false;
-    tree.root = GetGrammar(&state, &err);
+
+    tree.root          = GetGrammar(&state, &err);
+    tree.allNamesTable = state.allNamesTable;
 
     if (err)
         *outErr = SyntaxParserErrors::SYNTAX_ERR; 
 
-    if (!err)
-    {
-        TreePrintPrefixFormat(&tree, outStream, state.allNamesTable);
-    }
-
-    TreeDtor(&tree);
     DescentStateDtor(&state);
+
+    return tree;
 }
 
 static TreeNode* GetGrammar(DescentState* state, bool* outErr)
@@ -910,7 +909,6 @@ static void DescentStateCtor(DescentState* state, const char* str)
 static void DescentStateDtor(DescentState* state)
 {    
     NameTableDtor(state->globalTable);
-    NameTableDtor(state->allNamesTable);
 
     TokensArrDtor(&state->tokens);
     state->tokenPos = 0;

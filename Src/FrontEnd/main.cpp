@@ -18,9 +18,15 @@ int main(int argc, char* argv[])
     char* inputTxt = ReadText(inStream);
     
     SyntaxParserErrors err = SyntaxParserErrors::NO_ERR;
-    CodeParse(inputTxt, &err, outStream);
+    Tree ast = CodeParse(inputTxt, &err);
+
+    if (err == SyntaxParserErrors::NO_ERR)
+        TreePrintPrefixFormat(&ast, outStream);
+
+    // TreeGraphicDump(&ast, true);
 
     free(inputTxt);
+    TreeDtor(&ast);
 
     fclose(inStream);
     fclose(outStream);

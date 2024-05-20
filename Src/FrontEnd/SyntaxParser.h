@@ -10,6 +10,6 @@ enum class SyntaxParserErrors
     SYNTAX_ERR,
 };
 
-void CodeParse(const char* code, SyntaxParserErrors* outErr, FILE* outStream);
+Tree CodeParse(const char* code, SyntaxParserErrors* outErr);
 
 #endif

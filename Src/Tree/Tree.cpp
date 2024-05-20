@@ -63,6 +63,9 @@ void TreeDtor(Tree* tree)
 
     TreeDtor(tree->root);
     tree->root = nullptr;
+
+    NameTableDtor(tree->allNamesTable);
+    tree->allNamesTable = nullptr;
 }
 
 //---------------------------------------------------------------------------------------
@@ -183,7 +186,7 @@ static inline void DotFileEnd(FILE* outDotFile)
 
 //---------------------------------------------------------------------------------------
 
-void TreeGraphicDump(const Tree* tree, bool openImg, const NameTableType* nameTable)
+void TreeGraphicDump(const Tree* tree, bool openImg)
 {
     assert(tree);
 
@@ -195,7 +198,7 @@ void TreeGraphicDump(const Tree* tree, bool openImg, const NameTableType* nameTa
 
     DotFileBegin(outDotFile);
 
-    DotFileCreateNodes(tree->root, outDotFile, nameTable);
+    DotFileCreateNodes(tree->root, outDotFile, tree->allNamesTable);
 
     TreeGraphicDump(tree->root, outDotFile);
 
@@ -211,7 +214,7 @@ void TreeGraphicDump(const Tree* tree, bool openImg, const NameTableType* nameTa
 //---------------------------------------------------------------------------------------
 
 static void DotFileCreateNodes(const TreeNode* node, FILE* outDotFile,
-                                const NameTableType* nameTable)
+                               const NameTableType* nameTable)
 {
     assert(outDotFile);
 
@@ -279,8 +282,7 @@ static void TreeGraphicDump(const TreeNode* node, FILE* outDotFile)
 
 //---------------------------------------------------------------------------------------
 
-void TreeTextDump(const Tree* tree, const char* fileName, const char* funcName, const int line,
-                                                                    const NameTableType* nameTable)
+void TreeTextDump(const Tree* tree, const char* fileName, const char* funcName, const int line)
 {
     assert(tree);
     assert(fileName);
@@ -290,7 +292,7 @@ void TreeTextDump(const Tree* tree, const char* fileName, const char* funcName, 
 
     Log("Tree root: %p, value: %s\n", tree->root, tree->root->value);
     Log("Tree: ");
-    TreePrintPrefixFormat(tree, nullptr, nameTable);
+    TreePrintPrefixFormat(tree, nullptr);
 
     LOG_END();
 }
@@ -298,16 +300,15 @@ void TreeTextDump(const Tree* tree, const char* fileName, const char* funcName, 
 //---------------------------------------------------------------------------------------
 
 void TreeDump(const Tree* tree, 
-              const char* fileName, const char* funcName, const int line,
-              const NameTableType* nameTable)
+              const char* fileName, const char* funcName, const int line)
 {
     assert(tree);
     assert(fileName);
     assert(funcName);
 
-    TreeTextDump(tree, fileName, funcName, line, nameTable);
+    TreeTextDump(tree, fileName, funcName, line);
 
-    TreeGraphicDump(tree, false, nameTable);
+    TreeGraphicDump(tree, false);
 }
 
 //---------------------------------------------------------------------------------------
@@ -401,15 +402,14 @@ do                                                     \
     Log(__VA_ARGS__);                                  \
 } while (0)
 
-TreeErrors TreePrintPrefixFormat(const Tree* tree, FILE* outStream,
-                                 const NameTableType* nameTable)
+TreeErrors TreePrintPrefixFormat(const Tree* tree, FILE* outStream)
 {
     assert(tree);
     assert(outStream);
 
     LOG_BEGIN();
 
-    TreeErrors err = TreePrintPrefixFormat(tree->root, outStream, nameTable);
+    TreeErrors err = TreePrintPrefixFormat(tree->root, outStream, tree->allNamesTable);
 
     PRINT(outStream, "\n");
 
@@ -451,11 +451,10 @@ static TreeErrors TreePrintPrefixFormat(const TreeNode* node, FILE* outStream,
     return err;
 }
 
-TreeErrors TreeReadPrefixFormat(Tree* tree, NameTableType** allNamesTable, FILE* inStream)
+TreeErrors TreeReadPrefixFormat(Tree* tree, FILE* inStream)
 {
     assert(tree);
     assert(inStream);
-    assert(allNamesTable);
 
     char* inputTree = ReadText(inStream);
 
@@ -463,10 +462,10 @@ TreeErrors TreeReadPrefixFormat(Tree* tree, NameTableType** allNamesTable, FILE*
         return TreeErrors::READING_ERR;
 
     const char* inputTreeEndPtr = inputTree;
+    
+    NameTableCtor(&tree->allNamesTable);
 
-    NameTableCtor(allNamesTable);
-
-    tree->root = TreeReadPrefixFormat(inputTree, &inputTreeEndPtr, *allNamesTable);
+    tree->root = TreeReadPrefixFormat(inputTree, &inputTreeEndPtr, tree->allNamesTable);
 
     free(inputTree);
 
