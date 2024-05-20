@@ -61,7 +61,7 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
 
         case TreeOperationId::TYPE_INT:
         {
-            fprintf(outStream, "575757 ");
+            fprintf(outStream, " 575757 ");
             break;
         }
 
@@ -118,7 +118,7 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
 
         case TreeOperationId::PRINT:
         {
-            fprintf(outStream, "{ ");
+            fprintf(outStream, ". ");
 
             CODE_BUILD(node->left);
 

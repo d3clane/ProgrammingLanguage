@@ -44,7 +44,7 @@
     {
     
     575757 D     == b / b + 4 / a / c 57
-    575757 sqrtD == sqrt(D) 57
+    575757 sqrtD == sqrt(D ) 57
 
     (0 + b + sqrtD) * 2 * a 57
 {
