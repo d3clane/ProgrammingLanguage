@@ -231,6 +231,9 @@ TokensArrErrors TokensArrDtor(TokensArr* const tokensArr)
     
     for (size_t i = 0; i < tokensArr->size; ++i)
     {
+        if (tokensArr->data[i].valueType == TokenValueType::NAME && tokensArr->data[i].value.name)
+            free(tokensArr->data[i].value.name);
+
         tokensArr->data[i] = TOKENS_ARR_POISON;
     }
 

@@ -14,6 +14,8 @@ int main(int argc, char* argv[])
     FILE* outStream = fopen(argv[2], "w");
 
     Tree tree = {};
+    TreeCtor(&tree);
+    
     NameTableType* nameTable = nullptr;
     TreeReadPrefixFormat(&tree, &nameTable, inStream);
 

@@ -257,16 +257,16 @@ static size_t ParseQuotes(const char* str, const size_t posStart, const size_t l
     TokensArrPush(tokens, TokenCreate(TokenValueCreate(LANG_OP_ID),                         \
                                                 TokenValueType::LANG_OP, line, pos))        
 
-LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
+LexicalParserErrors ParseOnTokens(const char* code, TokensArr* tokens)
 {
     size_t pos  = 0;
     size_t line = 0;
 
     LexicalParserErrors error = LexicalParserErrors::NO_ERR;
 
-    while (str[pos] != '\0' && error == LexicalParserErrors::NO_ERR)
+    while (code[pos] != '\0' && error == LexicalParserErrors::NO_ERR)
     {
-        switch (str[pos])
+        switch (code[pos])
         {
             case '+':
             {
@@ -295,20 +295,20 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
 
             case '=':
             {
-                pos = ParseEq(str, pos, line, tokens);
+                pos = ParseEq(code, pos, line, tokens);
                 break;
             }
 
             case '<':
             case '>':
             {
-                pos = ParseLessOrGreater(str, pos, line, tokens);
+                pos = ParseLessOrGreater(code, pos, line, tokens);
                 break;
             }
 
             case '!':
             {
-                pos = ParseExclamation(str, pos, line, tokens, &error);
+                pos = ParseExclamation(code, pos, line, tokens, &error);
                 break;
             }
 
@@ -349,15 +349,15 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
 
             case '"':
             {
-                pos = ParseQuotes(str, pos, line, tokens);
+                pos = ParseQuotes(code, pos, line, tokens);
                 break;
             }
 
             case '\t':
             case ' ':
             {
-                const char* strPtr = SkipSymbolsWhileStatement(str + pos, isblank);
-                pos = strPtr - str;
+                const char* codePtr = SkipSymbolsWhileStatement(code + pos, isblank);
+                pos = codePtr - code;
                 break;
             }
             case '\n':
@@ -369,8 +369,8 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
 
             case '@':
             {
-                const char* strPtr = SkipSymbolsUntilStopChar(str + pos, '\n');
-                pos = strPtr - str;
+                const char* codePtr = SkipSymbolsUntilStopChar(code + pos, '\n');
+                pos = codePtr - code;
                 break;
             }
 
@@ -384,25 +384,25 @@ LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens)
             case '8':
             case '9':
             {
-                pos = ParseNumber(str, pos, line, tokens);
+                pos = ParseNumber(code, pos, line, tokens);
                 break;
             }
 
             case '5':
             {
-                pos = Parse5(str, pos, line, tokens);
+                pos = Parse5(code, pos, line, tokens);
                 break;
             }
 
             default:
             {
-                if (isalpha(str[pos]) || str[pos] == '_')
+                if (isalpha(code[pos]) || code[pos] == '_')
                 {
-                    pos = ParseWord(str, pos, line, tokens);
+                    pos = ParseWord(code, pos, line, tokens);
                     break;
                 }
 
-                SyntaxError(line, pos, str);
+                SyntaxError(line, pos, code);
                 error = LexicalParserErrors::SYNTAX_ERR;
                 break;
             }

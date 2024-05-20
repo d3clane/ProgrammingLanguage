@@ -235,6 +235,11 @@ NameTableErrors NameTableDtor(NameTableType* const nameTable)
     
     for (size_t i = 0; i < nameTable->size; ++i)
     {
+        if (nameTable->data[i].localNameTable)
+        {
+            NameTableDtor((NameTableType*)nameTable->data[i].localNameTable);
+            nameTable->data[i].localNameTable = nullptr;
+        }
         free(nameTable->data[i].name);
         nameTable->data[i] = NAME_TABLE_POISON;
     }
@@ -261,6 +266,8 @@ NameTableErrors NameTableDtor(NameTableType* const nameTable)
         nameTable->structCanaryRight = 0;
     )
 
+    free(nameTable);
+    
     return NameTableErrors::NO_ERR;
 }
 
@@ -402,13 +409,12 @@ NameTableErrors NameTableVerify(NameTableType* nameTable)
         }
     )
 
-
     return NameTableErrors::NO_ERR;
 }
 
 void NameTableDump(const NameTableType* nameTable, const char* const fileName, 
-                                     const char* const funcName,
-                                     const int lineNumber)
+                                                   const char* const funcName,
+                                                   const int lineNumber)
 {
     assert(nameTable);
     assert(fileName);

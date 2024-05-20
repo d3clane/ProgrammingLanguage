@@ -23,4 +23,7 @@ int main(int argc, char* argv[])
     TreeGraphicDump(&tree, true, allNamesTable);
 
     AsmCodeBuild(&tree, allNamesTable, outStream, outBinStream);
+
+    NameTableDtor(allNamesTable);
+    TreeDtor(&tree);
 }

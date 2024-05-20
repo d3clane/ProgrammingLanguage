@@ -13,7 +13,12 @@ int main(int argc, char* argv[])
 
     NameTableType* allNamesTable = nullptr;
     Tree tree = {};
+    TreeCtor(&tree);
+    
     TreeReadPrefixFormat(&tree, &allNamesTable, inStream);
     
     CodeBuild(&tree, allNamesTable, outStream);
+
+    NameTableDtor(allNamesTable);
+    TreeDtor(&tree);
 }

@@ -135,7 +135,7 @@ static inline bool PickToken(DescentState* state, LangOpId langOpId)
 {
     assert(state);
 
-    if (state->tokens.data[POS(state)].valueType     == TokenValueType::LANG_OP &&
+    if (state->tokens.data[POS(state)].valueType      == TokenValueType::LANG_OP &&
         state->tokens.data[POS(state)].value.langOpId == langOpId)
         return true;
     
@@ -225,29 +225,29 @@ static inline LangOpId GetLastTokenId(DescentState* state)
     return state->tokens.data[POS(state)].value.langOpId;
 }
 
-void CodeParse(const char* str, SyntaxParserErrors* outErr, FILE* outStream)
+void CodeParse(const char* code, SyntaxParserErrors* outErr, FILE* outStream)
 {
-    assert(str);
+    assert(code);
 
-    Tree expression = {};
+    Tree tree = {};
 
     DescentState state = {};
-    DescentStateCtor(&state, str);
+    DescentStateCtor(&state, code);
 
-    ParseOnTokens(str, &state.tokens);
+    ParseOnTokens(code, &state.tokens);
 
     bool err = false;
-    expression.root = GetGrammar(&state, &err);
+    tree.root = GetGrammar(&state, &err);
 
     if (err)
         *outErr = SyntaxParserErrors::SYNTAX_ERR; 
 
     if (!err)
     {
-        TreeGraphicDump(&expression, true, state.allNamesTable);
-        TreePrintPrefixFormat(&expression, outStream, state.allNamesTable);
+        TreePrintPrefixFormat(&tree, outStream, state.allNamesTable);
     }
 
+    TreeDtor(&tree);
     DescentStateDtor(&state);
 }
 
@@ -295,6 +295,7 @@ static TreeNode* GetFuncDef(DescentState* state, bool* outErr)
     IF_ERR_RET(outErr, typeNode, funcName);
     
     //TODO: create set table function
+    assert(!state->globalTable->data[funcName->value.nameId].localNameTable);
     state->globalTable->data[funcName->value.nameId].localNameTable = (void*)localNameTable;
     state->currentLocalTable = localNameTable;
     func = CREATE_FUNC_NODE(funcName);
@@ -320,8 +321,7 @@ static TreeNode* GetType(DescentState* state, bool* outErr)
     ConsumeToken(state, LangOpId::TYPE_INT, outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
-    return TreeNodeCreate(TreeCreateOpVal(TreeOperationId::TYPE_INT), 
-                                                    TreeNodeValueType::OPERATION);
+    return TreeNodeCreate(TreeCreateOpVal(TreeOperationId::TYPE_INT), TreeNodeValueType::OPERATION);
 }
 
 static TreeNode* GetFuncVarsDef(DescentState* state, bool* outErr)
@@ -834,13 +834,15 @@ static TreeNode* CreateVar(DescentState* state, bool* outErr)
     SynAssert(state, PickName(state), outErr);
     IF_ERR_RET(outErr, nullptr, nullptr);
 
-    Name pushName = {};
-    NameCtor(&pushName, strdup(state->tokens.data[POS(state)].value.name), nullptr, 0);
+    Name pushLocalName      = {};
+    Name pushToAllNamesName = {};
+    NameCtor(&pushLocalName,      state->tokens.data[POS(state)].value.name, nullptr, 0);
+    NameCtor(&pushToAllNamesName, state->tokens.data[POS(state)].value.name, nullptr, 0);
 
     TreeNode* varNode = nullptr;
 
-    NameTablePush(state->currentLocalTable, pushName);
-    NameTablePush(state->allNamesTable, pushName);
+    NameTablePush(state->currentLocalTable, pushLocalName);
+    NameTablePush(state->allNamesTable, pushToAllNamesName);
     varNode = CREATE_VAR(state->allNamesTable->size - 1);
     
     POS(state)++;
@@ -878,7 +880,7 @@ static TreeNode* GetVar(DescentState* state, bool* outErr)
 static TreeNode* GetConstString(DescentState* state, bool* outErr)
 {
     Name pushName = {};
-    NameCtor(&pushName, strdup(state->tokens.data[POS(state)].value.name), nullptr, 0);
+    NameCtor(&pushName, state->tokens.data[POS(state)].value.name, nullptr, 0);
 
     //TODO: здесь проверки на то, что мы пушим (в плане того, чтобы не было конфликтов имен и т.д
     TreeNode* varNode = nullptr;
@@ -906,15 +908,9 @@ static void DescentStateCtor(DescentState* state, const char* str)
 }
 
 static void DescentStateDtor(DescentState* state)
-{
-    
-    for (size_t i = 0; i < state->globalTable->size; ++i)
-    {
-        if (state->globalTable->data[i].localNameTable)
-            NameTableDtor((NameTableType*)state->globalTable->data[i].localNameTable);
-    }
-
+{    
     NameTableDtor(state->globalTable);
+    NameTableDtor(state->allNamesTable);
 
     TokensArrDtor(&state->tokens);
     state->tokenPos = 0;

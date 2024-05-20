@@ -19,6 +19,6 @@ TokenValue TokenValueCreate (const char* name);
 TokenValue TokenValueCreate (const int value);
 TokenValue TokenValueCreate (const LangOpId tokenId);
 
-LexicalParserErrors ParseOnTokens(const char* str, TokensArr* tokens);
+LexicalParserErrors ParseOnTokens(const char* code, TokensArr* tokens);
 
 #endif 
