@@ -11,14 +11,12 @@ int main(int argc, char* argv[])
     FILE* inStream  = fopen(argv[1], "r");
     FILE* outStream = fopen(argv[2], "w");
 
-    NameTableType* allNamesTable = nullptr;
     Tree tree = {};
     TreeCtor(&tree);
     
-    TreeReadPrefixFormat(&tree, &allNamesTable, inStream);
+    TreeReadPrefixFormat(&tree, inStream);
     
-    CodeBuild(&tree, allNamesTable, outStream);
+    CodeBuild(&tree, outStream);
 
-    NameTableDtor(allNamesTable);
     TreeDtor(&tree);
 }

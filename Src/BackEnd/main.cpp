@@ -17,13 +17,11 @@ int main(int argc, char* argv[])
     Tree tree = {};
     TreeCtor(&tree);
 
-    NameTableType* allNamesTable = nullptr;
-    TreeReadPrefixFormat(&tree, &allNamesTable, inStream);
+    TreeReadPrefixFormat(&tree, inStream);
 
-    TreeGraphicDump(&tree, true, allNamesTable);
+    TreeGraphicDump(&tree, true);
 
-    AsmCodeBuild(&tree, allNamesTable, outStream, outBinStream);
+    AsmCodeBuild(&tree, outStream, outBinStream);
 
-    NameTableDtor(allNamesTable);
     TreeDtor(&tree);
 }

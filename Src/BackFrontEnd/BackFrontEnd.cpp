@@ -7,13 +7,12 @@ static void CodeBuild(TreeNode* node, NameTableType* allNamesTable, FILE* outStr
                                                                     size_t numberOfTabs);
 static void PrintTabs(size_t numberOfTabs, FILE* outStream);
 
-void CodeBuild(Tree* tree, NameTableType* allNamesTable, FILE* outStream)
+void CodeBuild(Tree* tree, FILE* outStream)
 {
     assert(tree);
-    assert(allNamesTable);
     assert(outStream);
 
-    CodeBuild(tree->root, allNamesTable, outStream, 0);
+    CodeBuild(tree->root, tree->allNamesTable, outStream, 0);
 }
 
 #define CODE_BUILD(NODE)           CodeBuild(NODE, allNamesTable, outStream, numberOfTabs)

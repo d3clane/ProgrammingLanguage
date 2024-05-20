@@ -3,6 +3,6 @@
 
 #include "Tree/Tree.h"
 
-void CodeBuild(Tree* tree, NameTableType* allNamesTable, FILE* outStream);
+void CodeBuild(Tree* tree, FILE* outStream);
 
 #endif

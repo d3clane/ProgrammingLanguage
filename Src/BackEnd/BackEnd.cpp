@@ -67,17 +67,16 @@ static void FprintfLine(FILE* outStream, const size_t numberOfTabs, const char* 
 #define PARAMS_WITH_RAM_ID(NODE)    NODE, localTable, allNamesTable, &varRamId, outStream, numberOfTabs
 #define PARAMS_WITH_LABEL_ID(NODE)  NODE, localTable, allNamesTable, &labelId,  outStream, numberOfTabs
 
-void AsmCodeBuild(Tree* tree, NameTableType* allNamesTable, FILE* outStream, FILE* outBinStream)
+void AsmCodeBuild(Tree* tree, FILE* outStream, FILE* outBinStream)
 {
     assert(tree);
-    assert(allNamesTable);
     assert(outStream);
     assert(outBinStream);
 
     fprintf(outStream, "call main:\n"
                        "hlt\n\n");
     
-    AsmCodeBuild(tree->root, nullptr, allNamesTable, outStream, 0);
+    AsmCodeBuild(tree->root, nullptr, tree->allNamesTable, outStream, 0);
 
     fprintf(outStream, "    ret\n");
 }

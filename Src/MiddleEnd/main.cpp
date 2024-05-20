@@ -16,17 +16,15 @@ int main(int argc, char* argv[])
     Tree tree = {};
     TreeCtor(&tree);
     
-    NameTableType* nameTable = nullptr;
-    TreeReadPrefixFormat(&tree, &nameTable, inStream);
+    TreeReadPrefixFormat(&tree, inStream);
 
-    TreeGraphicDump(&tree, true, nameTable);
+    TreeGraphicDump(&tree, true);
     
     TreeSimplify(&tree);
 
-    TreeGraphicDump(&tree, true, nameTable);
-    TreePrintPrefixFormat(&tree, outStream, nameTable);
+    TreeGraphicDump(&tree, true);
+    TreePrintPrefixFormat(&tree, outStream);
 
-    NameTableDtor(nameTable);
     TreeDtor(&tree);
     fclose(inStream);
     fclose(outStream);

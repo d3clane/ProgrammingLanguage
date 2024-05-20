@@ -4,6 +4,6 @@
 #include "Tree/Tree.h"
 #include "Tree/NameTable/NameTable.h"
 
-void AsmCodeBuild(Tree* tree, NameTableType* allNamesTable, FILE* outStream, FILE* outBinStream);
+void AsmCodeBuild(Tree* tree, FILE* outStream, FILE* outBinStream);
 
 #endif
